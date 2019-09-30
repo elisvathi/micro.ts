@@ -1,0 +1,22 @@
+{
+  "name": "micro-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node lib/main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/hapi": "^18.0.2",
+    "hapi": "^18.1.0",
+    "joi-typescript-validator": "0.0.4",
+    "reflect-metadata": "^0.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^12.7.8",
+    "@types/reflect-metadata": "^0.1.0"
+  }
+}

@@ -11,11 +11,13 @@
   "license": "ISC",
   "dependencies": {
     "@types/hapi": "^18.0.2",
+    "amqplib": "^0.5.5",
     "hapi": "^18.1.0",
     "joi-typescript-validator": "0.0.4",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.5.13",
     "@types/node": "^12.7.8",
     "@types/reflect-metadata": "^0.1.0"
   }

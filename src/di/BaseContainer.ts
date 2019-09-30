@@ -25,7 +25,7 @@ export class BaseContainer {
         this.singletonInstances.set(key, value);
     }
 
-    get<T>(key:  {new(...args: any[]):T}, scope? : string): T {
+    get<T>(key:  {new(...args: any[]):T}|string, scope? : string): T {
 
         if (typeof key === 'string') {
             if(scope) {

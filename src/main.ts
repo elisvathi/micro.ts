@@ -1,65 +1,58 @@
-import { JsonController, Get, Controller, Post, Body, Headers, CurrentUser, ContainerInject, Patch, Delete, Put} from "./decorators/BaseDecorators";
+import { JsonController, Get, Controller, Post, Body, Headers, CurrentUser, ContainerInject, Patch, Delete, Put, RawRequest, Request, Header, Param, Params, BodyParam, Method, Connection, Query, QueryParam, Action, Authorize } from "./decorators/BaseDecorators";
 import { BaseServer } from "./server/BaseServer";
 import { Container } from "./di/BaseContainer";
 import { HapiBroker } from "./brokers/IBroker";
+import { printMetadata } from "./decorators/ControllersMetadata";
+import { Service } from "./di/DiDecorators";
+import { AmqpBroker } from "./brokers/AmqpBroker";
 
-@Controller()
-export class Startup {
-    constructor(a: string){}
+@Service()
+class UserService {
+    private data: any[] = [];
 
-    @Post()
-    getData(){
+    getData() {
+        return this.data;
+    }
+
+    setData(headers: any) {
+        this.data.push(headers);
     }
 }
 
-@JsonController({path: 'Voluum'})
-export class VoluumController{
+@JsonController("Voluum")
+export class VoluumController {
+
     @Get()
-    public async trafficSources(){
-        return [];
+    public async trafficSources(@CurrentUser() user: any, @ContainerInject(UserService) serv: UserService, @Query() query: any, @Headers() headers: any) {
+        return query;
     }
 
     @Get()
-    public async trackerView(){
+    public async trackerView() {
         return {};
     }
-}
 
-@JsonController({path: "test"})
-export class Program {
-
-    constructor(private a: string, private b: Startup) {
+    @Post({path: "clear"})
+    public async removeData(@Body({validate: true, required: false}) data: UserService){
+        console.log("CALLED", JSON.parse(data.toString()));
+        return {"Done": true};
     }
 
-    @Delete({path: 'testing'})
-    async testDelete(val: number){
-    }
-
-    @Get()
-    async getCampaigns(){}
-
-    @Put({path: 'testing'})
-    async testPut(val: number){
-    }
-
-    @Patch()
-    async testPatch(val: number){
-    }
-
-    @Post({path: 'testing'})
-    async testPost(val: number){
-    }
-
-    @Get({path: 'test'})
-    async testMethod(@Headers() val: number,
-         @Body({required: true, validate: true}) v: string,
-         @CurrentUser({required: true}) test: Startup,
-         @ContainerInject() t: number): Promise<void> {
+    @Delete({path: "clear-all"})
+    public async removeAllData(){
     }
 
 }
-Container.set('hapiOptions', {address: '0.0.0.0', port: 8080});
-const hapi = Container.get(HapiBroker);
-const server = new BaseServer({controllers: [VoluumController, Program]});
-server.buildRoutes();
-hapi.start().catch(console.log);
+async function main(){
+    Container.set("hapiOptions", { address: '0.0.0.0', port: 8080 });
+    Container.set("amqpOptions", {url: "amqp://localhost"});
+    Container.set(HapiBroker, "abc");
+    const hapi = Container.get(HapiBroker);
+    const amqp = Container.get(AmqpBroker);
+    const server = new BaseServer({ controllers: [VoluumController],
+                                    brokers: [hapi, amqp],
+                                    basePath: '/api' ,
+                                    currentUserChecker: (a: Action)=>{return a.headers}});
+    await server.start();
+}
+main().catch(console.log);

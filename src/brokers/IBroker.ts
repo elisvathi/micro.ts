@@ -7,7 +7,9 @@ export abstract class CoreHandler {
 export interface BaseRouteDefinition {
     base: string;
     controller: string;
+    controllerCtor: any;
     handler: string;
+    handlerName: string;
     method: string;
 }
 
@@ -19,13 +21,12 @@ export interface BrokerConnection<T> {
 }
 
 export interface IBroker {
-    registerRoutes(): Promise<void>;
-    execute(action: Action): Promise<any>
-    setRouteMapper(mapper: RouteMapper): void;
+    addRoute(def: BaseRouteDefinition, handler: (action: Action)=>any): void | Promise<void>;
+    start(): Promise<void>;
 }
 
 @Service()
-export class HapiBroker {
+export class HapiBroker implements IBroker{
 
     constructor(@Inject({ key: 'hapiOptions' }) private options: {address: string, port: string}) {
         this.server = new HapiServer({
@@ -41,6 +42,7 @@ export class HapiBroker {
 
     protected requestMapper: RequestMapper = (r: HapiRequest) => {
         const act: Action = {
+            params: r.params,
             path: r.path,
             headers: r.headers,
             method: r.method,
@@ -63,7 +65,7 @@ export class HapiBroker {
     }
 
     public async start() {
-        // await this.server.start();
+        await this.server.start();
         console.log(`Server listetening on address ${this.options.address} and port ${this.options.port}`);
     }
 }

@@ -1,0 +1,13 @@
+version: "2"
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ms-mobile-rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+      - "5671:5671"
+    environment: 
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"

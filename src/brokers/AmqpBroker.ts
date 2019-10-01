@@ -1,33 +1,25 @@
-import { IBroker, BaseRouteDefinition, RouteMapper, RequestMapper } from "./IBroker";
-import { Connection, Channel, connect, Message, ConsumeMessage } from "amqplib";
+import { AbstractBroker, DefinitionHandlerPair } from "./AbstractBroker";
+import { RequestMapper, BaseRouteDefinition, RouteMapper } from "./IBroker";
+import { Message, Connection, Channel, connect, ConsumeMessage } from "amqplib";
+import { Action } from "../decorators/BaseDecorators";
 import { Inject } from "../di/DiDecorators";
-import { Action } from "../../lib/decorators/BaseDecorators";
-
-export class AmqpBroker implements IBroker {
-
-    setRequestMapper(requestMapper: RequestMapper): void {
-        this.requestMapper = requestMapper;
-    }
-
-    setRouteMapper(setRouteMapper: RouteMapper): void {
-        this.routeMapper = this.routeMapper;
-    }
-
+export class AmqpBroker extends AbstractBroker {
     private connection!: Connection;
     private channel!: Channel;
-    private routes: { def: BaseRouteDefinition, handler: (action: Action) => Action }[] = [];
-    constructor(@Inject("amqpOptions") private options: { url: string }) {
+    constructor(
+        @Inject("amqpOptions")
+        private options: {
+            url: string;
+        }) {
+        super();
     }
-
-    public async init() {
-    }
-
-    protected requestMapper: RequestMapper = (r: Message, queue: string, def: BaseRouteDefinition) => {
+    protected requestMapper: RequestMapper = (r: Message, queue: string, json: boolean) => {
         const payloadString = r.content.toString();
         let payload: any;
-        if(def.json){
+        if (json) {
             payload = JSON.parse(payloadString);
-        }else{
+        }
+        else {
             payload = payloadString;
         }
         const act: Action = {
@@ -35,51 +27,58 @@ export class AmqpBroker implements IBroker {
                 params: {},
                 path: queue,
                 headers: r.properties.headers,
-                method: def.method,
+                // method: def.method,
                 body: payload,
                 qs: {},
                 raw: r
             },
             connection: this.connection
-        }
+        };
         return act;
-    }
-
+    };
     protected routeMapper: RouteMapper = (def: BaseRouteDefinition) => {
-        return `ms.Tracker.${def.controller}.${def.handler}`.replace('/', '.');
-    }
+        return `${def.base}.${def.controller}.${def.handler}`.replace('/', '.');
+    };
     private async registerRoutes() {
-        return Promise.all(this.routes.map(async (route) => {
-            const queue = this.routeMapper(route.def);
-            await this.channel.assertQueue(queue, { autoDelete: true });
-            await this.channel.consume(queue, async (message: ConsumeMessage | null) => {
-                if (message) {
-                    const result = await route.handler(this.requestMapper(message, queue, route.def));
-                    if (result && message.properties.replyTo && message.properties.correlationId) {
-                        await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId);
-                    }
-                    await this.channel.ack(message);
+        this.registeredRoutes.forEach(async (value: DefinitionHandlerPair[], route: string) => {
+            let json = false;
+            let totalConsumers = 0;
+            value.forEach(v => {
+                const consumers = v.def.consumers || 1;
+                if (v.def.json) {
+                    json = true;
                 }
+                totalConsumers += consumers;
             });
-        }));
+            if (totalConsumers > 0) {
+                await this.channel.assertQueue(route, { autoDelete: true });
+                for (let i = 0; i < totalConsumers; i++) {
+                    await this.channel.consume(route, async (message: ConsumeMessage | null) => {
+                        if (message) {
+                            const mapped: Action = this.requestMapper(message, route, json);
+                            const handler = this.actionToRouteMapper(route, mapped, value);
+                            const result = await handler(mapped);
+                            console.log("MESSAGE", message.properties);
+                            if (result && message.properties.replyTo && message.properties.correlationId) {
+                                await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId);
+                            }
+                            await this.channel.ack(message);
+                        }
+                    });
+                }
+            }
+        });
     }
-
     private async rpcReply(data: Action, replyToQueue: string, correlationId: string) {
         const response = data.response || {};
         const body = response.body;
         const headers = response.headers;
         await this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), { correlationId, headers });
     }
-
-    public addRoute(def: BaseRouteDefinition, handler: (action: Action) => any) {
-        this.routes.push({ def, handler });
-    }
-
-    public async start() {
+    public async start(): Promise<void> {
         this.connection = await connect(this.options.url);
         this.channel = await this.connection.createChannel();
         await this.registerRoutes();
-        this.routes = [];
         console.log(`AMQP Connected on path ${this.options.url}`);
     }
 }

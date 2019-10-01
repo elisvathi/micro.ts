@@ -2,11 +2,9 @@
 import { JsonController, Get, Post, Body, Headers, CurrentUser, Delete, Query, UseMiddleware, Action } from "./decorators/BaseDecorators";
 import { BaseServer } from "./server/BaseServer";
 import { Container } from "./di/BaseContainer";
+import { Service } from "./di/DiDecorators";
 import { HapiBroker } from "./brokers/HapiBroker";
-import { Service, Inject } from "./di/DiDecorators";
 import { AmqpBroker } from "./brokers/AmqpBroker";
-import { HapiBroker2 } from "./brokers/HapiBroker2";
-import { AmqpBroker2 } from "./brokers/AmqpBroker2";
 import { BaseRouteDefinition } from "../lib/brokers/IBroker";
 import { DefinitionHandlerPair } from "./brokers/AbstractBroker";
 
@@ -67,8 +65,8 @@ export class VoluumController {
 async function main() {
     Container.set("hapiOptions", { address: '0.0.0.0', port: 8080 });
     Container.set("amqpOptions", { url: "amqp://localhost" });
-    const hapi = Container.get(HapiBroker2);
-    const amqp = Container.get(AmqpBroker2);
+    const hapi = Container.get(HapiBroker);
+    const amqp = Container.get(AmqpBroker);
     amqp.setRouteMapper((def: BaseRouteDefinition)=>{
         return `ms.Tracker.${def.controller}`
     });

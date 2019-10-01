@@ -1,28 +1,21 @@
 import { Server as HapiServer, Request as HapiRequest } from 'hapi';
-import { Inject, Service } from "../di/DiDecorators";
-import { IBroker, RouteMapper, BaseRouteDefinition, RequestMapper } from "./IBroker";
-import { Action } from '../decorators/BaseDecorators';
-
-@Service()
-export class HapiBroker implements IBroker {
-
-    setRequestMapper(requestMapper: RequestMapper): void {
-        this.requestMapper = requestMapper;
-    }
-    setRouteMapper(setRouteMapper: RouteMapper): void {
-        this.routeMapper = this.routeMapper;
-    }
+import { AbstractBroker, DefinitionHandlerPair } from "./AbstractBroker";
+import { RouteMapper, BaseRouteDefinition, RequestMapper } from "./IBroker";
+import { Action } from "../decorators/BaseDecorators";
+import { Inject } from '../di/DiDecorators';
+export class HapiBroker extends AbstractBroker {
+    private server: HapiServer;
     constructor(
         @Inject("hapiOptions")
         private options: {
             address: string;
             port: string;
         }) {
+        super();
         this.server = new HapiServer({
             address: options.address, port: options.port
         });
     }
-    private server: HapiServer;
     protected routeMapper: RouteMapper = (def: BaseRouteDefinition) => {
         return `/${def.base}/${def.controller}/${def.handler}`;
     };
@@ -41,24 +34,25 @@ export class HapiBroker implements IBroker {
         };
         return act;
     };
-
-    /**
-     * Registers route immediately on hapi Server object
-     * @param def
-     * @param handler
-     */
-    public addRoute(def: BaseRouteDefinition, handler: (action: Action) => Action) {
-        this.server.route({
-            method: def.method,
-            path: this.routeMapper(def),
-            handler: async (r: HapiRequest) => {
-                const result: Action = await handler(this.requestMapper(r));
-                result.response = result.response || {};
-                return result.response.body;
+    private registerRoutes() {
+        this.registeredRoutes.forEach(async (value: DefinitionHandlerPair[], route: string) => {
+            if (value.length > 0) {
+                this.server.route({
+                    method: value[0].def.method,
+                    path: route,
+                    handler: async (r: HapiRequest) => {
+                        const action = this.requestMapper(r);
+                        const handler = this.actionToRouteMapper(route, action, value);
+                        const result: Action = await handler(action);
+                        result.response = result.response || {};
+                        return result.response.body;
+                    }
+                });
             }
         });
     }
-    public async start() {
+    public async start(): Promise<void> {
+        this.registerRoutes();
         await this.server.start();
         console.log(`Server listening on address ${this.options.address} and port ${this.options.port}`);
     }

@@ -26,7 +26,6 @@ export class BaseContainer {
     }
 
     get<T>(key:  {new(...args: any[]):T}|string, scope? : string): T {
-
         if (typeof key === 'string') {
             if(scope) {
                 return this.scopes[scope].get(key);

@@ -12,9 +12,9 @@ export class GrpcGenerator{
     }
 
     public generateString(): string {
-        const metdata = getGlobalMetadata();
+        const metadata = getGlobalMetadata();
         let str = "";
-        metdata.controllers.forEach(x=>{
+        metadata.controllers.forEach(x=>{
             str += `service ${x.name} {\n\n`
             const handlers = x.handlers|| {}
             Object.keys(handlers).forEach((key: string)=>{

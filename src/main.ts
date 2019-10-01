@@ -1,9 +1,9 @@
-import { JsonController, Get, Controller, Post, Body, Headers, CurrentUser, ContainerInject, Patch, Delete, Put, RawRequest, Request, Header, Param, Params, BodyParam, Method, Connection, Query, QueryParam, Action, Authorize } from "./decorators/BaseDecorators";
+
+import { JsonController, Get, Post, Body, Headers, CurrentUser, Delete, Query, UseMiddleware, Action } from "./decorators/BaseDecorators";
 import { BaseServer } from "./server/BaseServer";
 import { Container } from "./di/BaseContainer";
-import { HapiBroker } from "./brokers/IBroker";
-import { printMetadata } from "./decorators/ControllersMetadata";
-import { Service } from "./di/DiDecorators";
+import { HapiBroker } from "./brokers/HapiBroker";
+import { Service, Inject } from "./di/DiDecorators";
 import { AmqpBroker } from "./brokers/AmqpBroker";
 
 @Service()
@@ -22,9 +22,25 @@ class UserService {
 @JsonController("Voluum")
 export class VoluumController {
 
+    constructor(private serv: UserService) {
+    }
+
     @Get()
-    public async trafficSources(@CurrentUser() user: any, @ContainerInject(UserService) serv: UserService, @Query() query: any, @Headers() headers: any) {
-        return query;
+    @UseMiddleware({
+        before: true,
+        middleware: (a: Action) => { a.request.qs = { num: Math.random(), value: (Math.random() < 0.5) ? true : false, ...a.request.qs }; return a; }
+    })
+    @UseMiddleware({
+        before: false,
+        middleware: (a: Action) => {
+            a.response = a.response || {};
+            a.response.body = { ok: true, result: a.response.body };
+            return a;
+        }
+    })
+    public async trafficSources(@CurrentUser() user: any, @Query() query: any, @Headers() headers: any) {
+        this.serv.setData(query);
+        return this.serv.getData();
     }
 
     @Get()
@@ -32,27 +48,32 @@ export class VoluumController {
         return {};
     }
 
-    @Post({path: "clear"})
-    public async removeData(@Body({validate: true, required: false}) data: UserService){
+    @Post({ path: "clear" })
+    public async removeData(@Body({ validate: true, required: false }) data: UserService) {
         console.log("CALLED", JSON.parse(data.toString()));
-        return {"Done": true};
+        return { "Done": true };
     }
 
-    @Delete({path: "clear-all"})
-    public async removeAllData(){
-    }
+    @Delete({ path: "clear-all" })
+    public async removeAllData() {
 
+    }
 }
-async function main(){
+
+async function main() {
     Container.set("hapiOptions", { address: '0.0.0.0', port: 8080 });
-    Container.set("amqpOptions", {url: "amqp://localhost"});
-    Container.set(HapiBroker, "abc");
+    Container.set("amqpOptions", { url: "amqp://localhost" });
     const hapi = Container.get(HapiBroker);
     const amqp = Container.get(AmqpBroker);
-    const server = new BaseServer({ controllers: [VoluumController],
-                                    brokers: [hapi, amqp],
-                                    basePath: '/api' ,
-                                    currentUserChecker: (a: Action)=>{return a.headers}});
+    const server = new BaseServer({
+        controllers: [VoluumController],
+        brokers: [hapi, amqp],
+        logRequests: true,
+        basePath: 'api',
+        dev: true,
+        currentUserChecker: (a: Action) => { return a.request.headers }
+    });
     await server.start();
 }
+
 main().catch(console.log);

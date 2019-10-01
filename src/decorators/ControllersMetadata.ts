@@ -1,4 +1,4 @@
-import { ControllerOptions, AuthorizeOptions, MiddlewareOptions, ErrorHandlerOptions, MethodOptions, ParamOptions } from "./BaseDecorators";
+import { AuthorizeOptions, ErrorHandlerOptions, ControllerOptions, ParamOptions, MethodOptions, MiddlewareOptions } from './BaseDecorators';
 
 export interface ParamMetadata {
 
@@ -8,7 +8,7 @@ export interface ParamDescription{
     type: any;
     options?: ParamOptions;
 }
-export type ControllerHanlders = {[key: string]: MethodDescription}
+export type ControllerHandlers = {[key: string]: MethodDescription}
 
 export interface MethodDescription{
     name? : string;
@@ -24,7 +24,7 @@ export interface ControllerMetadata{
     ctor: any;
     options?: ControllerOptions;
     constructorParams?: ParamDescription[];
-    handlers?: ControllerHanlders;
+    handlers?: ControllerHandlers;
 }
 
 export interface GlobalMetadata{

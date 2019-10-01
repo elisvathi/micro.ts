@@ -1,12 +1,15 @@
 import { IBroker, BaseRouteDefinition } from "../brokers/IBroker";
-import { GlobalMetadata, getGlobalMetadata, MethodDescription, ControllerMetadata, ControllerHanlders, ParamDescription } from "../decorators/ControllersMetadata";
+import { GlobalMetadata, getGlobalMetadata, MethodDescription, ControllerMetadata, ControllerHandlers, ParamDescription } from "../decorators/ControllersMetadata";
 import { Container } from "../di/BaseContainer";
-import { Action, ParamOptions, ParamDecoratorType, ContainerInject } from "../decorators/BaseDecorators";
+import { MiddlewareFunction, IMiddleware } from "../middlewares/IMiddleware";
+import { ParamOptions, ParamDecoratorType, Action } from "../../lib/decorators/BaseDecorators";
 
 export interface ServerOptions {
     basePath?: string;
     controllers: any[];
     brokers?: IBroker[];
+    dev? : boolean;
+    logRequests?: boolean;
     currentUserChecker?: (action: Action) => any;
     authorizationChecker?: (action: Action) => boolean | Promise<boolean>;
 }
@@ -21,20 +24,53 @@ export class BaseServer {
     private get controllersMetadata(): GlobalMetadata {
         return getGlobalMetadata();
     }
+    private async executeMiddleware(middleware: MiddlewareFunction | IMiddleware, def: BaseRouteDefinition, action: Action, controller: any): Promise<Action> {
+        if('do' in middleware){
+            const casted = middleware as IMiddleware;
+            return casted.do(action, def, controller);
+        }
+        return (middleware as MiddlewareFunction)(action, def, controller);
+    }
 
-    private async handleRequest(def: BaseRouteDefinition, action: Action) {
+
+    private async handleRequest(def: BaseRouteDefinition, action: Action, broker: IBroker) {
         const controllerInstance: any = Container.get(def.controllerCtor);
-        const method = controllerInstance[def.handlerName];
         const methodMetadata: MethodDescription = this.getSingleMethodMetadata(def.controllerCtor, def.handlerName);
-        const args = await this.buildParams(action, methodMetadata);
-        console.log("CALLING ", def);
-        return method(...args);
+        const middlewares: { before: any[], after: any[] } = { before: [], after: [] };
+        if (methodMetadata.middlewares && methodMetadata.middlewares.length) {
+            methodMetadata.middlewares.forEach(x => {
+                if (x.before) {
+                    middlewares.before.push(x.middleware);
+                } else {
+                    middlewares.after.push(x.middleware);
+                }
+            });
+        }
+        if (middlewares.before.length) {
+            for (let i = 0; i < middlewares.before.length; i++) {
+                action = await this.executeMiddleware(middlewares.before[i], def, action, controllerInstance);
+            }
+        }
+        const args = await this.buildParams(action, methodMetadata, broker);
+        if (this.options.logRequests) {
+            console.log("", `[${broker.constructor.name}] - [${def.method.toUpperCase()}] ${action.request.path}`);
+        }
+        let result = await controllerInstance[def.handlerName](...args);
+        action.response = action.response || {};
+        action.response.headers = action.response.headers || {};
+        action.response.body = result;
+        if (middlewares.after.length) {
+            for (let i = 0; i < middlewares.after.length; i++) {
+                action = await this.executeMiddleware(middlewares.after[i], def, action, controllerInstance);
+            }
+        }
+        return action;
     }
 
     private async buildParams(action: Action,
-        metadata: MethodDescription): Promise<any[]> {
+        metadata: MethodDescription, broker: IBroker): Promise<any[]> {
         return Promise.all(metadata.params.map(async (p) => {
-            return this.buildSingleParam(action, p);
+            return this.buildSingleParam(action, p, broker);
         }));
     }
 
@@ -45,44 +81,53 @@ export class BaseServer {
         return this.options.currentUserChecker(action);
     }
 
+    /**
+     * Switches through all the cases of param types and maps the correct information
+     * @param action
+     * @param metadata
+     * @param broker
+     */
     private async buildSingleParam(action: Action,
-        metadata: ParamDescription): Promise<any> {
+        metadata: ParamDescription, broker: IBroker): Promise<any> {
         if (!metadata.options) {
-            return action.body || action.qs || {};
+            return action.request.body || action.request.qs || {};
         } else {
             const options: ParamOptions = metadata.options as ParamOptions;
             switch (options.decoratorType) {
 
                 case ParamDecoratorType.Body:
-                    return action.body;
+                    return action.request.body;
                 case ParamDecoratorType.BodyField:
-                    return action.body[options.name as string]
+                    return action.request.body[options.name as string]
 
                 case ParamDecoratorType.Params:
-                    return action.params;
+                    return action.request.params;
                 case ParamDecoratorType.ParamField:
-                    return action.params[options.name as string]
+                    return action.request.params[options.name as string]
 
                 case ParamDecoratorType.Method:
-                    return action.method;
+                    return action.request.method;
+
                 case ParamDecoratorType.Connection:
                     return action.connection;
                 case ParamDecoratorType.Request:
                     return action;
                 case ParamDecoratorType.RawRequest:
-                    return action.raw;
+                    return action.request.raw;
                 case ParamDecoratorType.ContainerInject:
                     return Container.get(options.name as string);
+                case ParamDecoratorType.Broker:
+                    return broker;
 
                 case ParamDecoratorType.Header:
-                    return action.headers;
+                    return action.request.headers;
                 case ParamDecoratorType.HeaderField:
-                    return action.headers[options.name as string]
+                    return action.request.headers[options.name as string]
 
                 case ParamDecoratorType.Query:
-                    return action.qs;
+                    return action.request.qs;
                 case ParamDecoratorType.QueryField:
-                    return action.qs[options.name as string];
+                    return action.request.qs[options.name as string];
 
                 case ParamDecoratorType.User:
                     const user = await this.getUser(action);
@@ -97,23 +142,24 @@ export class BaseServer {
         if (!ctorMetadata) {
             return { name: methodName, params: [] };
         }
-        const handlers: ControllerHanlders = (ctorMetadata as ControllerMetadata).handlers || {};
+        const handlers: ControllerHandlers = (ctorMetadata as ControllerMetadata).handlers || {};
         return handlers[methodName];
     }
 
-    private async addRoute(def: BaseRouteDefinition) {
-        if(this.options.brokers){
-            this.options.brokers.forEach(async (broker)=>{
-                await broker.addRoute(def, (action: Action)=>{
-                    return this.handleRequest(def, action);
+    private addRoute(def: BaseRouteDefinition) {
+        if (this.options.brokers) {
+            this.options.brokers.forEach((broker) => {
+                broker.addRoute(def, (action: Action) => {
+                    return this.handleRequest(def, action, broker);
                 });
             });
         }
     }
-    public async start(){
+
+    public async start() {
         this.buildRoutes();
-        if(this.options.brokers){
-            await Promise.all(this.options.brokers.map(async (x)=>{
+        if (this.options.brokers) {
+            await Promise.all(this.options.brokers.map(async (x) => {
                 await x.start();
             }));
             console.log("SERVER STARTED");
@@ -131,18 +177,20 @@ export class BaseServer {
                 const cPath = options.path;
                 const controllerPath = cPath || name;
                 const handlers = c.handlers as any;
-                Object.keys(handlers).forEach(async (key) => {
+                Object.keys(handlers).forEach((key) => {
                     const methodName = key;
                     const methodPath = (c.handlers as any)[key].metadata.path;
                     const path = methodPath || methodName;
                     const reqMethod = (c.handlers as any)[key].metadata.method;
-                    const routeDefinition: BaseRouteDefinition = {base: basePath,
-                                                                  controller: controllerPath,
-                                                                  controllerCtor: c.ctor,
-                                                                  handler: path,
-                                                                  handlerName: methodName,
-                                                                  method: reqMethod};
-                    await this.addRoute(routeDefinition);
+                    const routeDefinition: BaseRouteDefinition = {
+                        base: basePath,
+                        controller: controllerPath,
+                        controllerCtor: c.ctor,
+                        handler: path,
+                        handlerName: methodName,
+                        method: reqMethod
+                    };
+                    this.addRoute(routeDefinition);
                     routes.push({ method: reqMethod.toUpperCase(), path: `${basePath}/${controllerPath}/${path}` })
                 });
             }

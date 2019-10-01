@@ -2,6 +2,7 @@ import { IMiddleware, MiddlewareFunction } from "../middlewares/IMiddleware";
 import { getGlobalMetadata, ControllerMetadata, MethodDescription, ParamDescription } from "./ControllersMetadata";
 import 'reflect-metadata';
 import { Service } from "../di/DiDecorators";
+import { ActionRequest } from '../../lib/decorators/BaseDecorators';
 
 export interface ControllerOptions {
     json?: boolean;
@@ -13,6 +14,7 @@ export interface MethodOptions {
     method?: string;
     path?: string;
     brokers?: any[];
+    consumers?: number;
 }
 
 export enum ParamDecoratorType {
@@ -26,11 +28,15 @@ export enum ParamDecoratorType {
 
     Query = "Query",
     QueryField = "QueryField",
+
     Request = "Request",
     RawRequest = "RawRequest",
-    ContainerInject ="ContainerInject",
+    ContainerInject = "ContainerInject",
     Connection = "Connection",
+    Broker = "Broker",
+
     Method = "Method",
+
     Params = "Params",
     ParamField = "ParamField"
 }
@@ -61,7 +67,7 @@ export interface RequestBodyOptions {
 export interface RequestBodyParamOptions { }
 
 export interface MiddlewareOptions {
-    before?: boolean
+    before?: boolean;
     middleware: IMiddleware | MiddlewareFunction;
 }
 
@@ -86,20 +92,28 @@ export interface CurrentUserOptions {
 }
 export interface ContainerInjectOptions {
 }
+export interface ActionResponse {
+    headers?: any;
+    body?: any;
+}
 
-export interface Action {
+export interface ActionRequest {
     qs?: any;
     method?: any;
-    path?: any;
     headers?: any;
-    params? : any;
+    params?: any;
     body?: any;
     raw?: any;
+    path: string;
+}
+
+export interface Action {
+    request: ActionRequest;
+    response?: ActionResponse;
     connection?: any;
 }
 
 function registerControllerMetadata(target: any, options?: ControllerOptions) {
-    Reflect.decorate([Service({ transient: true })], target);
     const metadata = getGlobalMetadata();
     metadata.controllers = metadata.controllers || [];
     const name: string = target.name;
@@ -112,11 +126,11 @@ function registerControllerMetadata(target: any, options?: ControllerOptions) {
     if (paramtypes && paramtypes.length) {
         found.constructorParams.push(...paramtypes.map(x => { return { type: x } }));
     }
-
     found.options = options;
     found.handlers = metadata.methods.get(target.prototype);
     metadata.methods.delete(target.prototype);
     metadata.controllers.set(target, found);
+    Reflect.decorate([Service({ transient: true })], target);
 }
 
 function registerHandlerMetadata(target: any, propertyKey: string, descriptor: PropertyDescriptor, options: MethodOptions) {
@@ -153,15 +167,40 @@ function registerParamMetadata(target: any, propertyKey: string, index: number, 
     metadata.parameters.set(target, controller);
 }
 
-function attachHandlerAuthorization(target: any, propertykey: string, descriptor: PropertyDescriptor, options?: AuthorizeOptions) {
+function attachHandlerAuthorization(target: any, propertyKey: string, descriptor: PropertyDescriptor, options?: AuthorizeOptions) {
+    const metadata = getGlobalMetadata();
+    let controller: { [key: string]: MethodDescription } = metadata.methods.get(target) as { [key: string]: MethodDescription };
+    controller = controller || {};
+    controller[propertyKey] = controller[propertyKey] || { params: [] };
+    const handlerObject = controller[propertyKey] || {};
+    handlerObject.authorization = handlerObject.authorization || [];
+    handlerObject.authorization = options;
+    controller[propertyKey] = handlerObject;
+    metadata.methods.set(target, controller);
 }
 
 function attachHandlerMiddleware(target: any, propertyKey: string, descriptor: PropertyDescriptor, options: MiddlewareOptions) {
-
+    const metadata = getGlobalMetadata();
+    let controller: { [key: string]: MethodDescription } = metadata.methods.get(target) as { [key: string]: MethodDescription };
+    controller = controller || {};
+    controller[propertyKey] = controller[propertyKey] || { params: [] };
+    const handlerObject = controller[propertyKey] || {};
+    handlerObject.middlewares = handlerObject.middlewares || [];
+    handlerObject.middlewares.push(options);
+    controller[propertyKey] = handlerObject;
+    metadata.methods.set(target, controller);
 }
 
 function attachHandlerErrorHandler(target: any, propertyKey: string, descriptor: PropertyDescriptor, options: ErrorHandlerOptions) {
-
+    const metadata = getGlobalMetadata();
+    let controller: { [key: string]: MethodDescription } = metadata.methods.get(target) as { [key: string]: MethodDescription };
+    controller = controller || {};
+    controller[propertyKey] = controller[propertyKey] || { params: [] };
+    const handlerObject = controller[propertyKey] || {};
+    handlerObject.errorHandlers = handlerObject.errorHandlers || [];
+    handlerObject.errorHandlers.push(options);
+    controller[propertyKey] = handlerObject;
+    metadata.methods.set(target, controller);
 }
 
 export function Controller(options?: ControllerOptions) {
@@ -329,6 +368,16 @@ export function Method() {
     }
 }
 
+export function Broker() {
+    return (target: any, propertyKey: string, parameterIndex: number) => {
+        const newOptions: ParamOptions = { decoratorType: ParamDecoratorType.Broker };
+        registerParamMetadata(target, propertyKey, parameterIndex, newOptions);
+    }
+}
+
+/**
+ * Injects the broker connection in the method parameter it decorates
+ */
 export function Connection() {
     return (target: any, propertyKey: string, parameterIndex: number) => {
         const newOptions: ParamOptions = { decoratorType: ParamDecoratorType.Connection };
@@ -336,6 +385,10 @@ export function Connection() {
     }
 }
 
+/**
+ * currentUserChecker function is called and its result gets injected on the method parameter 
+ * @param options
+ */
 export function CurrentUser(options?: CurrentUserOptions) {
     return (target: any, propertyKey: string, parameterIndex: number) => {
         const newOptions: ParamOptions = {
@@ -346,6 +399,11 @@ export function CurrentUser(options?: CurrentUserOptions) {
     }
 }
 
+/**
+ * Specifies that the current handler parameter will be injected from the DI container 
+ * @param name
+ * @param options
+ */
 export function ContainerInject(name?: any, options?: ContainerInjectOptions) {
     return (target: any, propertyKey: string, parameterIndex: number) => {
         const newOptions: ParamOptions = {
@@ -357,12 +415,20 @@ export function ContainerInject(name?: any, options?: ContainerInjectOptions) {
     }
 }
 
+/**
+ * Registers middlewares for the handler it decorates
+ * @param options
+ */
 export function UseMiddleware(options: MiddlewareOptions) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         attachHandlerMiddleware(target, propertyKey, descriptor, options);
     }
 }
 
+/**
+ * Register error handler for the handler it decorates 
+ * @param options
+ */
 export function UseErrorHandler(options: ErrorHandlerOptions) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         attachHandlerErrorHandler(target, propertyKey, descriptor, options);

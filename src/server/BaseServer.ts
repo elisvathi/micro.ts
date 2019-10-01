@@ -3,6 +3,7 @@ import { GlobalMetadata, getGlobalMetadata, MethodDescription, ControllerMetadat
 import { Container } from "../di/BaseContainer";
 import { MiddlewareFunction, IMiddleware } from "../middlewares/IMiddleware";
 import { ParamOptions, ParamDecoratorType, Action } from "../../lib/decorators/BaseDecorators";
+import chalk from 'chalk';
 
 export interface ServerOptions {
     basePath?: string;
@@ -53,7 +54,7 @@ export class BaseServer {
         }
         const args = await this.buildParams(action, methodMetadata, broker);
         if (this.options.logRequests) {
-            console.log("", `[${broker.constructor.name}] - [${def.method.toUpperCase()}] ${action.request.path}`);
+            console.log(chalk.greenBright(`[${broker.constructor.name}]`) , chalk.blueBright(`[${def.method.toUpperCase()}]`), chalk.green(`[${def.controller}]`),chalk.yellow(`[${def.handlerName}]`),`${action.request.path}`);
         }
         let result = await controllerInstance[def.handlerName](...args);
         action.response = action.response || {};
@@ -175,6 +176,7 @@ export class BaseServer {
                 let options = c.options;
                 options = options || {};
                 const cPath = options.path;
+                const isJon = options.json;
                 const controllerPath = cPath || name;
                 const handlers = c.handlers as any;
                 Object.keys(handlers).forEach((key) => {
@@ -188,7 +190,8 @@ export class BaseServer {
                         controllerCtor: c.ctor,
                         handler: path,
                         handlerName: methodName,
-                        method: reqMethod
+                        method: reqMethod,
+                        json: isJon
                     };
                     this.addRoute(routeDefinition);
                     routes.push({ method: reqMethod.toUpperCase(), path: `${basePath}/${controllerPath}/${path}` })

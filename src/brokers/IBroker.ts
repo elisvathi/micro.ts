@@ -1,7 +1,6 @@
 import { Action } from "../../lib/decorators/BaseDecorators";
 
-export abstract class CoreHandler {
-}
+
 export interface BaseRouteDefinition {
     base: string;
     controller: string;
@@ -9,11 +8,18 @@ export interface BaseRouteDefinition {
     handler: string;
     handlerName: string;
     method: string;
-    consumers? : number;
+    consumers?: number;
+    json?: boolean;
+}
+
+ interface HandlerRouteDefinition {
+    controller: string;
+    handler: string;
 }
 
 export type RouteMapper = (def: BaseRouteDefinition) => string;
 export type RequestMapper = (...input: any[]) => Action;
+export type RequestToHandlerRouteMapper = (...input: any[]) => HandlerRouteDefinition;
 
 export interface BrokerConnection<T> {
     connection: T;
@@ -29,5 +35,3 @@ export interface IBroker {
      */
     start(): Promise<void>;
 }
-
-

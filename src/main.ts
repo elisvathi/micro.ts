@@ -5,6 +5,10 @@ import { Container } from "./di/BaseContainer";
 import { HapiBroker } from "./brokers/HapiBroker";
 import { Service, Inject } from "./di/DiDecorators";
 import { AmqpBroker } from "./brokers/AmqpBroker";
+import { HapiBroker2 } from "./brokers/HapiBroker2";
+import { AmqpBroker2 } from "./brokers/AmqpBroker2";
+import { BaseRouteDefinition } from "../lib/brokers/IBroker";
+import { DefinitionHandlerPair } from "./brokers/AbstractBroker";
 
 @Service()
 class UserService {
@@ -63,8 +67,21 @@ export class VoluumController {
 async function main() {
     Container.set("hapiOptions", { address: '0.0.0.0', port: 8080 });
     Container.set("amqpOptions", { url: "amqp://localhost" });
-    const hapi = Container.get(HapiBroker);
-    const amqp = Container.get(AmqpBroker);
+    const hapi = Container.get(HapiBroker2);
+    const amqp = Container.get(AmqpBroker2);
+    amqp.setRouteMapper((def: BaseRouteDefinition)=>{
+        return `ms.Tracker.${def.controller}`
+    });
+    amqp.setActionToHandlerMapper((route: string, action: Action, pairs: DefinitionHandlerPair[])=>{
+        const body = action.request.body;
+        const method = body.method;
+        let filtered = pairs.find(x=>x.def.handlerName === method);
+        if(!filtered){
+            filtered = pairs[0];
+        }
+        action.request.method = filtered.def.method;
+        return filtered.handler;
+    });
     const server = new BaseServer({
         controllers: [VoluumController],
         brokers: [hapi, amqp],

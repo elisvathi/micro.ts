@@ -22,14 +22,21 @@ export class AmqpBroker implements IBroker {
     public async init() {
     }
 
-    protected requestMapper: RequestMapper = (r: Message, queue: string, method: string) => {
+    protected requestMapper: RequestMapper = (r: Message, queue: string, def: BaseRouteDefinition) => {
+        const payloadString = r.content.toString();
+        let payload: any;
+        if(def.json){
+            payload = JSON.parse(payloadString);
+        }else{
+            payload = payloadString;
+        }
         const act: Action = {
             request: {
                 params: {},
                 path: queue,
                 headers: r.properties.headers,
-                method: method,
-                body: r.content,
+                method: def.method,
+                body: payload,
                 qs: {},
                 raw: r
             },
@@ -47,7 +54,7 @@ export class AmqpBroker implements IBroker {
             await this.channel.assertQueue(queue, { autoDelete: true });
             await this.channel.consume(queue, async (message: ConsumeMessage | null) => {
                 if (message) {
-                    const result = await route.handler(this.requestMapper(message, queue, route.def.method));
+                    const result = await route.handler(this.requestMapper(message, queue, route.def));
                     if (result && message.properties.replyTo && message.properties.correlationId) {
                         await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId);
                     }

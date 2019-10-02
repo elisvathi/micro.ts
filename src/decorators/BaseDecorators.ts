@@ -1,4 +1,4 @@
-import { MethodOptions, MethodDescription, AuthorizeOptions, MiddlewareOptions, ErrorHandlerOptions, ControllerOptions } from "./types/MethodMetadataTypes";
+import { MethodOptions, MethodDescription, AuthorizeOptions, MiddlewareOptions, ControllerOptions } from "./types/MethodMetadataTypes";
 import { getGlobalMetadata } from "./GlobalMetadata";
 import { ParamDescription, ParamOptions } from "./types/ParamMetadataTypes";
 import { ControllerMetadata } from "./types/ControllerMetadataTypes";
@@ -79,7 +79,7 @@ export function attachHandlerErrorHandler(target: any, propertyKey: string, _des
 
 export function registerControllerMetadata(target: any, options?: ControllerOptions) {
     const metadata = getGlobalMetadata();
-    metadata.controllers = metadata.controllers || [];
+    metadata.controllers = metadata.controllers || new Map<any, ControllerMetadata>();
     const name: string = target.name;
     // let found = metadata.controllers.find(x => x.ctor === target);
     let found: ControllerMetadata | undefined = metadata.controllers.get(target);
@@ -104,8 +104,8 @@ export function registerControllerMetadata(target: any, options?: ControllerOpti
     found.handlers = found.handlers || metadata.methods.get(target.prototype);
     metadata.methods.delete(target.prototype);
     metadata.controllers.set(target, found);
-    if(!isFound)
-    Reflect.decorate([Service({ transient: true })], target);
+    if (!isFound)
+        Reflect.decorate([Service({ transient: true })], target);
 }
 
 

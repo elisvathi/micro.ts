@@ -1,6 +1,5 @@
 import { AbstractBroker, DefinitionHandlerPair } from "./AbstractBroker";
 import { Connection, Channel, connect, Message, ConsumeMessage} from 'amqplib';
-import { Inject } from "../di/DiDecorators";
 import { RequestMapper, RouteMapper } from "./IBroker";
 import { Action, BaseRouteDefinition } from "../server/types/BaseTypes";
 
@@ -8,7 +7,6 @@ export class AmqpBroker extends AbstractBroker {
     private connection!: Connection;
     private channel!: Channel;
     constructor(
-        @Inject("amqpOptions")
         private options: {
             url: string;
         }) {

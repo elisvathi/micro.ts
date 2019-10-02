@@ -7,9 +7,11 @@ import { MiddlewareFunction, IMiddleware, AppMiddelware } from '../middlewares/I
 import { BaseRouteDefinition, Action } from './types/BaseTypes';
 import { Container } from '../di/BaseContainer';
 import { MethodDescription, MethodControllerOptions, MiddlewareOptions } from '../decorators/types/MethodMetadataTypes';
-import { NotAuthorized } from '../errors/MainAppErrror';
+import { NotAuthorized, BadRequest } from '../errors/MainAppErrror';
 import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types/ParamMetadataTypes';
 import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors/types/ErrorHandlerTypes';
+import { Validate, getSchema } from 'joi-typescript-validator';
+import Joi from 'joi';
 
 export class BaseServer {
     constructor(private options: ServerOptions) { }
@@ -176,6 +178,26 @@ export class BaseServer {
         return this.options.currentUserChecker(action);
     }
 
+    private async validateParam(value: any, required: boolean, validate: boolean, name?: any, type?: any): Promise<any> {
+        console.log({ value, required, validate, name });
+        if (required && !value) {
+            throw new BadRequest(`${name} is required`);
+        }
+        if (validate && !!value) {
+            try {
+                const schema = getSchema(type);
+                if (!schema) {
+                    return value;
+                }
+                const result = await Joi.validate(value, schema);
+                // const result = await Validate(value);
+                return result;
+            } catch (err) {
+                throw new BadRequest("One or more errors with your request", err.details);
+            }
+        }
+        return value;
+    }
     /**
      * Switches through all the cases of param types and maps the correct information
      * @param action
@@ -191,14 +213,18 @@ export class BaseServer {
             switch (options.decoratorType) {
 
                 case ParamDecoratorType.Body:
-                    return action.request.body;
+                    const body = action.request.body;
+                    return this.validateParam(body, options.bodyOptions!.required || false, options.bodyOptions!.validate || false, 'body', metadata.type);
                 case ParamDecoratorType.BodyField:
-                    return action.request.body[options.name as string]
+                    const bodyField = action.request.body[options.name as string]
+                    return this.validateParam(bodyField, options.bodyParamOptions!.required || false, false, options.name);
 
                 case ParamDecoratorType.Params:
-                    return action.request.params;
+                    const params = action.request.params;
+                    return this.validateParam(params, true, options.paramOptions!.validate || false, 'parameters', metadata.type);
                 case ParamDecoratorType.ParamField:
-                    return action.request.params[options.name as string]
+                    const paramField =  action.request.params[options.name as string];
+                    return this.validateParam(paramField, true, false, options.name);
 
                 case ParamDecoratorType.Method:
                     return action.request.method;
@@ -215,17 +241,25 @@ export class BaseServer {
                     return broker;
 
                 case ParamDecoratorType.Header:
-                    return action.request.headers;
+                    const headers = action.request.headers;
+                    return this.validateParam(headers, options.headerOptions!.validate || false, false, 'headers', metadata.type);
                 case ParamDecoratorType.HeaderField:
-                    return action.request.headers[options.name as string]
+                    const headerParam = action.request.headers[options.name as string]
+                    return this.validateParam(headerParam, options.headerParamOptions!.required || false, false, options.name);
 
                 case ParamDecoratorType.Query:
-                    return action.request.qs;
+                    const query = action.request.qs;
+                    return this.validateParam(query, options.queryOptions!.required || false, options.queryOptions!.validate || false, 'query', metadata.type);
                 case ParamDecoratorType.QueryField:
-                    return action.request.qs[options.name as string];
+                    const queryParam =  action.request.qs[options.name as string];
+                    return this.validateParam(queryParam, options.queryParamOptions!.required || false, false, options.name);
 
                 case ParamDecoratorType.User:
                     const user = await this.getUser(action);
+                    const required = options.currentUserOptions!.required || false;
+                    if(required && !user){
+                        throw new NotAuthorized("You are not authorized to access this resource");
+                    }
                     return user;
             }
         }

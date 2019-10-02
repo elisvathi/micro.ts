@@ -89,7 +89,7 @@ export function Header(name: string, options?: RequestHeaderParamOptions) {
     return (target: any, propertyKey: string, parameterIndex: number) => {
         const newOptions: ParamOptions = {
             decoratorType: ParamDecoratorType.HeaderField,
-            headerParamOptiosn: options || {},
+            headerParamOptions: options || {},
             name
         };
         registerParamMetadata(target, propertyKey, parameterIndex, newOptions);

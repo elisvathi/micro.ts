@@ -2,7 +2,7 @@ export interface ParamMetadata {
 
 }
 
-export interface ParamDescription{
+export interface ParamDescription {
     type: any;
     options?: ParamOptions;
 }
@@ -38,7 +38,7 @@ export interface ParamOptions {
     bodyParamOptions?: RequestBodyParamOptions;
 
     headerOptions?: RequestHeaderOptions;
-    headerParamOptiosn?: RequestHeaderParamOptions;
+    headerParamOptions?: RequestHeaderParamOptions;
 
     queryOptions?: RequestQueryOptions;
     queryParamOptions?: RequestQueryParamOptions;
@@ -56,22 +56,36 @@ export interface RequestBodyOptions {
     required?: boolean;
 }
 
-export interface RequestBodyParamOptions { }
+export interface RequestBodyParamOptions {
+    required?: boolean;
+}
 
-export interface RequestHeaderOptions { }
+export interface RequestHeaderOptions {
+    validate? : boolean;
+ }
 
-export interface RequestHeaderParamOptions { }
+export interface RequestHeaderParamOptions {
+    required? : boolean;
+ }
 
-export interface RequestParamsOptions { }
+export interface RequestParamsOptions {
+    validate?: boolean;
+}
 
 export interface RequestSingleParamOptions { }
 
-export interface RequestQueryOptions { }
+export interface RequestQueryOptions {
+    required?: boolean;
+    validate?: boolean;
+}
 
-export interface RequestQueryParamOptions { }
+export interface RequestQueryParamOptions {
+    required?: boolean;
+}
 
 export interface CurrentUserOptions {
     required?: boolean;
 }
+
 export interface ContainerInjectOptions {
 }

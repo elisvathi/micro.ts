@@ -1,4 +1,5 @@
-import { ServiceOptions, Container } from "./BaseContainer";
+import { ServiceOptions } from "./types/DiOptionsTypes";
+import { Container } from "./BaseContainer";
 
 /**
  * Provide custom configuration (transient, or scoped)  for a service to register it in the DI container
@@ -9,7 +10,7 @@ export function Service(options?: ServiceOptions) {
         let constructorArgs = Reflect.getOwnMetadata('design:injectparamtypes', target);
         if(!constructorArgs){
             const paramTypes = Reflect.getOwnMetadata('design:paramtypes', target) || [];
-            constructorArgs = paramTypes.map(x=>{
+            constructorArgs = paramTypes.map((x: any)=>{
                 return {type: x};
             });
             Reflect.defineMetadata('design:injectparamtypes', constructorArgs, target);

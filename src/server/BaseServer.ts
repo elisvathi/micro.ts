@@ -1,24 +1,15 @@
-import { IBroker, BaseRouteDefinition } from "../brokers/IBroker";
-import { GlobalMetadata, getGlobalMetadata, MethodDescription, ControllerMetadata, ControllerHandlers, ParamDescription } from "../decorators/ControllersMetadata";
-import { Container } from "../di/BaseContainer";
-import { MiddlewareFunction, IMiddleware } from "../middlewares/IMiddleware";
 import chalk from 'chalk';
-import { NotAuthorized } from "../errors/MainAppErrror";
-import { Action, ParamOptions, ParamDecoratorType } from "../decorators/BaseDecorators";
-import { AuthorizeOptions } from "../../lib/decorators/BaseDecorators";
+import { ServerOptions } from './types/ServerOptions';
+import { IBroker } from '../brokers/IBroker';
+import { GlobalMetadata, ControllerHandlers, ControllerMetadata } from '../decorators/types/ControllerMetadataTypes';
+import { getGlobalMetadata } from '../decorators/GlobalMetadata';
+import { MiddlewareFunction, IMiddleware } from '../middlewares/IMiddleware';
+import { BaseRouteDefinition, Action } from './types/BaseTypes';
+import { Container } from '../di/BaseContainer';
+import { MethodDescription } from '../decorators/types/MethodMetadataTypes';
+import { NotAuthorized } from '../errors/MainAppErrror';
+import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types/ParamMetadataTypes';
 
-export interface ServerOptions {
-    basePath?: string;
-    controllers: any[];
-    brokers?: IBroker[];
-    dev?: boolean;
-    logRequests?: boolean;
-    beforeMiddlewares?: (IMiddleware | MiddlewareFunction)[];
-    afterMiddlewares?: (IMiddleware | MiddlewareFunction)[];
-    errorHandlers?: any[];
-    currentUserChecker?: (action: Action) => any;
-    authorizationChecker?: (action: Action, options: AuthorizeOptions) => boolean | Promise<boolean>;
-}
 export class BaseServer {
     constructor(private options: ServerOptions) { }
     private brokers: IBroker[] = [];

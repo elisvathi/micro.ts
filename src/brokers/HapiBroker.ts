@@ -1,8 +1,8 @@
 import { Server as HapiServer, Request as HapiRequest, ResponseToolkit } from 'hapi';
-import { AbstractBroker, DefinitionHandlerPair } from "./AbstractBroker";
-import { RouteMapper, BaseRouteDefinition, RequestMapper } from "./IBroker";
-import { Action } from "../decorators/BaseDecorators";
+import { AbstractBroker, DefinitionHandlerPair } from './AbstractBroker';
 import { Inject } from '../di/DiDecorators';
+import { RouteMapper, RequestMapper } from './IBroker';
+import { BaseRouteDefinition, Action } from '../server/types/BaseTypes';
 export class HapiBroker extends AbstractBroker {
     private server: HapiServer;
     constructor(

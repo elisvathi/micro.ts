@@ -1,14 +1,6 @@
 import 'reflect-metadata';
+import { ServiceOptions, InjectOptions } from './types/DiOptionsTypes';
 
-export interface ServiceOptions {
-    transient?: boolean;
-    scope?: string;
-    ctorParams?: { type: any, injectOptions: InjectOptions }[];
-}
-
-export interface InjectOptions {
-    key: any;
-}
 export class BaseContainer {
     serviceOptions: Map<any, ServiceOptions> = new Map<any, ServiceOptions>();
     singletonInstances: Map<any, any> = new Map<any, any>();

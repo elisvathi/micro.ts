@@ -1,14 +1,16 @@
-
-import { JsonController, Get, Post, Body, Headers, CurrentUser, Delete, Query, UseMiddlewares, Action } from "./decorators/BaseDecorators";
-import { BaseServer } from "./server/BaseServer";
-import { Container } from "./di/BaseContainer";
 import { Service } from "./di/DiDecorators";
+import { JsonController } from "./decorators/ControllerDecorators";
+import { Get, Post, Delete } from "./decorators/RestDecorators";
+import { UseMiddlewares, Authorize } from "./decorators/MethodDecorators";
+import { Action, BaseRouteDefinition } from "./server/types/BaseTypes";
+import { CurrentUser, Query, Headers, Body} from "./decorators/ParameterDecorators";
+import { Container } from "./di/BaseContainer";
 import { HapiBroker } from "./brokers/HapiBroker";
 import { AmqpBroker } from "./brokers/AmqpBroker";
-import { BaseRouteDefinition } from "../lib/brokers/IBroker";
 import { DefinitionHandlerPair } from "./brokers/AbstractBroker";
-import { AuthorizeOptions, Authorize } from "../lib/decorators/BaseDecorators";
-import { BadRequest, Forbidden } from "./errors/MainAppErrror";
+import { BaseServer } from "./server/BaseServer";
+import { AuthorizeOptions } from "./decorators/types/MethodMetadataTypes";
+
 
 @Service()
 class UserService {
@@ -52,7 +54,7 @@ export class VoluumController {
         }
     }])
     @Authorize()
-    public async trafficSources(@CurrentUser() user: any, @Query() query: any, @Headers() headers: any) {
+    public async trafficSources(@CurrentUser() _user: any, @Query() query: any, @Headers() _headers: any) {
         this.serv.setData(query);
         return this.serv.getData();
     }
@@ -82,7 +84,7 @@ async function main() {
     amqp.setRouteMapper((def: BaseRouteDefinition) => {
         return `ms.Tracker.${def.controller}`
     });
-    amqp.setActionToHandlerMapper((route: string, action: Action, pairs: DefinitionHandlerPair[]) => {
+    amqp.setActionToHandlerMapper((_route: string, action: Action, pairs: DefinitionHandlerPair[]) => {
         const body = action.request.body;
         const method = body.method;
         let filtered = pairs.find(x => x.def.handlerName === method);
@@ -100,7 +102,7 @@ async function main() {
         basePath: 'api',
         dev: true,
         currentUserChecker: (a: Action) => { return a.request.headers },
-        authorizationChecker: (a: Action, options: AuthorizeOptions) => { return true; }
+        authorizationChecker: (_a: Action, _options: AuthorizeOptions) => { return true; }
     });
     await server.start();
 }

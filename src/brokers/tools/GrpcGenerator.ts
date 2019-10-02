@@ -1,5 +1,5 @@
-import { getGlobalMetadata, GlobalMetadata } from "../../decorators/ControllersMetadata";
 import { Service } from "../../di/DiDecorators";
+import { getGlobalMetadata } from "../../decorators/GlobalMetadata";
 
 function isPrimitive(type: string) {
     const prims = ['String', 'Number', 'Boolean'];

@@ -1,8 +1,9 @@
 import { AbstractBroker, DefinitionHandlerPair } from "./AbstractBroker";
-import { RequestMapper, BaseRouteDefinition, RouteMapper } from "./IBroker";
-import { Message, Connection, Channel, connect, ConsumeMessage } from "amqplib";
-import { Action } from "../decorators/BaseDecorators";
+import { Connection, Channel, connect, Message, ConsumeMessage} from 'amqplib';
 import { Inject } from "../di/DiDecorators";
+import { RequestMapper, RouteMapper } from "./IBroker";
+import { Action, BaseRouteDefinition } from "../server/types/BaseTypes";
+
 export class AmqpBroker extends AbstractBroker {
     private connection!: Connection;
     private channel!: Channel;

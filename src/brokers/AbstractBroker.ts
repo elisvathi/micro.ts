@@ -1,5 +1,5 @@
-import { Action } from "../decorators/BaseDecorators";
-import { BaseRouteDefinition, IBroker, RequestMapper, RouteMapper } from "./IBroker";
+import { Action, BaseRouteDefinition } from "../server/types/BaseTypes";
+import { IBroker, RouteMapper, RequestMapper } from "./IBroker";
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
 export type DefinitionHandlerPair = {

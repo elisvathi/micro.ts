@@ -14,6 +14,7 @@ export interface MethodDescription{
     name? : string;
     metadata? : MethodOptions;
     params : ParamDescription[];
+    authorize?: boolean;
     authorization? : AuthorizeOptions;
     middlewares? : MiddlewareOptions[];
     errorHandlers? : ErrorHandlerOptions[];

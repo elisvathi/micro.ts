@@ -58,7 +58,6 @@ export class AmqpBroker extends AbstractBroker {
                             const mapped: Action = this.requestMapper(message, route, json);
                             const handler = this.actionToRouteMapper(route, mapped, value);
                             const result = await handler(mapped);
-                            console.log("MESSAGE", message.properties);
                             if (result && message.properties.replyTo && message.properties.correlationId) {
                                 await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId);
                             }
@@ -71,8 +70,12 @@ export class AmqpBroker extends AbstractBroker {
     }
     private async rpcReply(data: Action, replyToQueue: string, correlationId: string) {
         const response = data.response || {};
-        const body = response.body;
-        const headers = response.headers;
+        const body = response.body || response.error;
+        const headers = response.headers || {};
+        if(response.is_error){
+            headers.error = true;
+        }
+        headers.statusCode = response.statusCode;
         await this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), { correlationId, headers });
     }
     public async start(): Promise<void> {

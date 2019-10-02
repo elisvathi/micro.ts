@@ -93,6 +93,9 @@ export interface CurrentUserOptions {
 export interface ContainerInjectOptions {
 }
 export interface ActionResponse {
+    statusCode?: number;
+    is_error?: boolean;
+    error?: any;
     headers?: any;
     body?: any;
 }
@@ -173,20 +176,21 @@ function attachHandlerAuthorization(target: any, propertyKey: string, descriptor
     controller = controller || {};
     controller[propertyKey] = controller[propertyKey] || { params: [] };
     const handlerObject = controller[propertyKey] || {};
+    handlerObject.authorize = true;
     handlerObject.authorization = handlerObject.authorization || [];
     handlerObject.authorization = options;
     controller[propertyKey] = handlerObject;
     metadata.methods.set(target, controller);
 }
 
-function attachHandlerMiddleware(target: any, propertyKey: string, descriptor: PropertyDescriptor, options: MiddlewareOptions) {
+function attachHandlerMiddleware(target: any, propertyKey: string, descriptor: PropertyDescriptor, options: MiddlewareOptions[]) {
     const metadata = getGlobalMetadata();
     let controller: { [key: string]: MethodDescription } = metadata.methods.get(target) as { [key: string]: MethodDescription };
     controller = controller || {};
     controller[propertyKey] = controller[propertyKey] || { params: [] };
     const handlerObject = controller[propertyKey] || {};
     handlerObject.middlewares = handlerObject.middlewares || [];
-    handlerObject.middlewares.push(options);
+    handlerObject.middlewares.push(...options);
     controller[propertyKey] = handlerObject;
     metadata.methods.set(target, controller);
 }
@@ -261,6 +265,12 @@ export function Delete(options?: MethodOptions) {
 export function Authorize(options?: AuthorizeOptions) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         attachHandlerAuthorization(target, propertyKey, descriptor, options);
+    }
+}
+
+export function AllowAnonymous() {
+    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+        throw new Error("Function not implemented");
     }
 }
 
@@ -419,7 +429,7 @@ export function ContainerInject(name?: any, options?: ContainerInjectOptions) {
  * Registers middlewares for the handler it decorates
  * @param options
  */
-export function UseMiddleware(options: MiddlewareOptions) {
+export function UseMiddlewares(options: MiddlewareOptions[]) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         attachHandlerMiddleware(target, propertyKey, descriptor, options);
     }
@@ -432,5 +442,23 @@ export function UseMiddleware(options: MiddlewareOptions) {
 export function UseErrorHandler(options: ErrorHandlerOptions) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         attachHandlerErrorHandler(target, propertyKey, descriptor, options);
+    }
+}
+
+export function ControllerMiddlewares(options: MiddlewareOptions[]) {
+    return (target: any) => {
+        throw new Error("Function not implemented");
+    }
+}
+
+export function ControllerAuthorize(options: AuthorizeOptions[]) {
+    return (target: any) => {
+        throw new Error("Function not implemented");
+    }
+}
+
+export function ControllerErrorHandlers(options: ErrorHandlerOptions[]) {
+    return (target: any) => {
+        throw new Error("Function not implemented");
     }
 }

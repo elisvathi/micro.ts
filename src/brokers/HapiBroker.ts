@@ -1,4 +1,4 @@
-import { Server as HapiServer, Request as HapiRequest } from 'hapi';
+import { Server as HapiServer, Request as HapiRequest, ResponseToolkit } from 'hapi';
 import { AbstractBroker, DefinitionHandlerPair } from "./AbstractBroker";
 import { RouteMapper, BaseRouteDefinition, RequestMapper } from "./IBroker";
 import { Action } from "../decorators/BaseDecorators";
@@ -40,12 +40,18 @@ export class HapiBroker extends AbstractBroker {
                 this.server.route({
                     method: value[0].def.method,
                     path: route,
-                    handler: async (r: HapiRequest) => {
+                    handler: async (r: HapiRequest, h: ResponseToolkit) => {
                         const action = this.requestMapper(r);
                         const handler = this.actionToRouteMapper(route, action, value);
                         const result: Action = await handler(action);
                         result.response = result.response || {};
-                        return result.response.body;
+                        const body = result.response.body || result.response.error;
+                        let hapiResponse = h.response(body).code(result.response.statusCode || 200);
+                        const headers = result.response.headers || {};
+                        Object.keys(headers).forEach(h => {
+                            hapiResponse = hapiResponse.header(h, headers[h])
+                        });
+                        return hapiResponse;
                     }
                 });
             }

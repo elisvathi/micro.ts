@@ -2,17 +2,22 @@ import { IBroker, BaseRouteDefinition } from "../brokers/IBroker";
 import { GlobalMetadata, getGlobalMetadata, MethodDescription, ControllerMetadata, ControllerHandlers, ParamDescription } from "../decorators/ControllersMetadata";
 import { Container } from "../di/BaseContainer";
 import { MiddlewareFunction, IMiddleware } from "../middlewares/IMiddleware";
-import { ParamOptions, ParamDecoratorType, Action } from "../../lib/decorators/BaseDecorators";
 import chalk from 'chalk';
+import { NotAuthorized } from "../errors/MainAppErrror";
+import { Action, ParamOptions, ParamDecoratorType } from "../decorators/BaseDecorators";
+import { AuthorizeOptions } from "../../lib/decorators/BaseDecorators";
 
 export interface ServerOptions {
     basePath?: string;
     controllers: any[];
     brokers?: IBroker[];
-    dev? : boolean;
+    dev?: boolean;
     logRequests?: boolean;
+    beforeMiddlewares?: (IMiddleware | MiddlewareFunction)[];
+    afterMiddlewares?: (IMiddleware | MiddlewareFunction)[];
+    errorHandlers?: any[];
     currentUserChecker?: (action: Action) => any;
-    authorizationChecker?: (action: Action) => boolean | Promise<boolean>;
+    authorizationChecker?: (action: Action, options: AuthorizeOptions) => boolean | Promise<boolean>;
 }
 export class BaseServer {
     constructor(private options: ServerOptions) { }
@@ -26,17 +31,34 @@ export class BaseServer {
         return getGlobalMetadata();
     }
     private async executeMiddleware(middleware: MiddlewareFunction | IMiddleware, def: BaseRouteDefinition, action: Action, controller: any): Promise<Action> {
-        if('do' in middleware){
+        if ('do' in middleware) {
             const casted = middleware as IMiddleware;
             return casted.do(action, def, controller);
         }
         return (middleware as MiddlewareFunction)(action, def, controller);
     }
 
+    private async executeRequest(def: BaseRouteDefinition, action: Action, broker: IBroker){
+        try {
+            action = await this.handleRequest(def, action, broker);
+        }catch(err){
+            action.response = action.response || {};
+            action.response.statusCode = err.statusCode || 500;
+            action.response.is_error = true;
+            action.response.error = err;
+        }
+        return action;
+    }
 
     private async handleRequest(def: BaseRouteDefinition, action: Action, broker: IBroker) {
         const controllerInstance: any = Container.get(def.controllerCtor);
         const methodMetadata: MethodDescription = this.getSingleMethodMetadata(def.controllerCtor, def.handlerName);
+        if (this.options.authorizationChecker && methodMetadata.authorize) {
+            const authorized = await this.options.authorizationChecker(action, methodMetadata.authorization || {});
+            if (!authorized) {
+               throw new NotAuthorized("You are not authorized to make this request");
+            }
+        }
         const middlewares: { before: any[], after: any[] } = { before: [], after: [] };
         if (methodMetadata.middlewares && methodMetadata.middlewares.length) {
             methodMetadata.middlewares.forEach(x => {
@@ -54,11 +76,12 @@ export class BaseServer {
         }
         const args = await this.buildParams(action, methodMetadata, broker);
         if (this.options.logRequests) {
-            console.log(chalk.greenBright(`[${broker.constructor.name}]`) , chalk.blueBright(`[${def.method.toUpperCase()}]`), chalk.green(`[${def.controller}]`),chalk.yellow(`[${def.handlerName}]`),`${action.request.path}`);
+            console.log(chalk.greenBright(`[${broker.constructor.name}]`), chalk.blueBright(`[${def.method.toUpperCase()}]`), chalk.green(`[${def.controller}]`), chalk.yellow(`[${def.handlerName}]`), `${action.request.path}`);
         }
         let result = await controllerInstance[def.handlerName](...args);
         action.response = action.response || {};
         action.response.headers = action.response.headers || {};
+        action.response.statusCode = 200;
         action.response.body = result;
         if (middlewares.after.length) {
             for (let i = 0; i < middlewares.after.length; i++) {
@@ -151,7 +174,7 @@ export class BaseServer {
         if (this.options.brokers) {
             this.options.brokers.forEach((broker) => {
                 broker.addRoute(def, (action: Action) => {
-                    return this.handleRequest(def, action, broker);
+                    return this.executeRequest(def, action, broker);
                 });
             });
         }
@@ -191,6 +214,7 @@ export class BaseServer {
                         handler: path,
                         handlerName: methodName,
                         method: reqMethod,
+                        consumers: (c.handlers as any)[key].metadata.consumers,
                         json: isJon
                     };
                     this.addRoute(routeDefinition);

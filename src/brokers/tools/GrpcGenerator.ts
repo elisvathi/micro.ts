@@ -6,22 +6,22 @@ function isPrimitive(type: string) {
     return prims.includes(type);
 }
 @Service()
-export class GrpcGenerator{
-    constructor(){
+export class GrpcGenerator {
+    constructor() {
         const dir: string = __dirname;
     }
 
     public generateString(): string {
         const metadata = getGlobalMetadata();
         let str = "";
-        metadata.controllers.forEach(x=>{
+        metadata.controllers.forEach(x => {
             str += `service ${x.name} {\n\n`
-            const handlers = x.handlers|| {}
-            Object.keys(handlers).forEach((key: string)=>{
+            const handlers = x.handlers || {}
+            Object.keys(handlers).forEach((key: string) => {
                 // const metadata = handlers[key].metadata || {};
                 const params = handlers[key].params;
-                const names = params.map(x=>x.type.name).map(x=>{
-                    if(isPrimitive(x)){
+                const names = params.map(x => x.type.name).map(x => {
+                    if (isPrimitive(x)) {
                         return x.toLowerCase();
                     };
                     return x;

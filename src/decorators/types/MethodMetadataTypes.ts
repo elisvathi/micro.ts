@@ -1,5 +1,6 @@
 import { ParamDescription } from "./ParamMetadataTypes";
-import { IMiddleware, MiddlewareFunction } from "../../middlewares/IMiddleware";
+import { AppMiddelware } from "../../middlewares/IMiddleware";
+import { AppErrorHandler } from "../../errors/types/ErrorHandlerTypes";
 
 export interface MethodDescription{
     name? : string;
@@ -8,7 +9,7 @@ export interface MethodDescription{
     authorize?: boolean;
     authorization? : AuthorizeOptions;
     middlewares? : MiddlewareOptions[];
-    errorHandlers? : ErrorHandlerOptions[];
+    errorHandlers? : AppErrorHandler[];
 }
 
 export interface MethodOptions {
@@ -22,11 +23,20 @@ export interface ControllerOptions {
     json?: boolean;
     path?: string;
     brokers?: any[];
+    authorize? : boolean;
+    authorization? : AuthorizeOptions;
+    middlewares?: MiddlewareOptions[];
+    errorHandlers?: AppErrorHandler[];
+}
+
+export interface MethodControllerOptions  {
+    method: MethodDescription;
+    controller: ControllerOptions;
 }
 
 export interface MiddlewareOptions {
     before?: boolean;
-    middleware: IMiddleware | MiddlewareFunction;
+    middleware: AppMiddelware;
 }
 
 export interface ErrorHandlerOptions { }

@@ -3,6 +3,8 @@ import { getGlobalMetadata } from "./GlobalMetadata";
 import { ParamDescription, ParamOptions } from "./types/ParamMetadataTypes";
 import { ControllerMetadata } from "./types/ControllerMetadataTypes";
 import { Service } from "../di/DiDecorators";
+import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
+import { AppMiddelware } from "../middlewares/IMiddleware";
 
 export function registerHandlerMetadata(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options: MethodOptions) {
     const metadata = getGlobalMetadata();
@@ -38,13 +40,13 @@ export function registerParamMetadata(target: any, propertyKey: string, index: n
     metadata.parameters.set(target, controller);
 }
 
-export function attachHandlerAuthorization(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options?: AuthorizeOptions) {
+export function attachHandlerAuthorization(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options?: AuthorizeOptions, active: boolean = true) {
     const metadata = getGlobalMetadata();
     let controller: { [key: string]: MethodDescription } = metadata.methods.get(target) as { [key: string]: MethodDescription };
     controller = controller || {};
     controller[propertyKey] = controller[propertyKey] || { params: [] };
     const handlerObject = controller[propertyKey] || {};
-    handlerObject.authorize = true;
+    handlerObject.authorize = active;
     handlerObject.authorization = handlerObject.authorization || [];
     handlerObject.authorization = options;
     controller[propertyKey] = handlerObject;
@@ -63,14 +65,14 @@ export function attachHandlerMiddleware(target: any, propertyKey: string, _descr
     metadata.methods.set(target, controller);
 }
 
-export function attachHandlerErrorHandler(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options: ErrorHandlerOptions) {
+export function attachHandlerErrorHandler(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options: AppErrorHandler[]) {
     const metadata = getGlobalMetadata();
     let controller: { [key: string]: MethodDescription } = metadata.methods.get(target) as { [key: string]: MethodDescription };
     controller = controller || {};
     controller[propertyKey] = controller[propertyKey] || { params: [] };
     const handlerObject = controller[propertyKey] || {};
     handlerObject.errorHandlers = handlerObject.errorHandlers || [];
-    handlerObject.errorHandlers.push(options);
+    handlerObject.errorHandlers.push(...options);
     controller[propertyKey] = handlerObject;
     metadata.methods.set(target, controller);
 }
@@ -81,6 +83,7 @@ export function registerControllerMetadata(target: any, options?: ControllerOpti
     const name: string = target.name;
     // let found = metadata.controllers.find(x => x.ctor === target);
     let found: ControllerMetadata | undefined = metadata.controllers.get(target);
+    let isFound: boolean = !!found;
     const paramtypes: any[] = Reflect.getOwnMetadata('design:paramtypes', target);
 
     found = found || { name, ctor: target };
@@ -88,9 +91,37 @@ export function registerControllerMetadata(target: any, options?: ControllerOpti
     if (paramtypes && paramtypes.length) {
         found.constructorParams.push(...paramtypes.map(x => { return { type: x } }));
     }
-    found.options = options;
-    found.handlers = metadata.methods.get(target.prototype);
+    found.options = found.options || {};
+    found.options = { ...found.options, ...(options || {}) };
+    if (options && options.errorHandlers) {
+        const currentErrorHandlers: AppErrorHandler[] = found.options.errorHandlers || [];
+        options.errorHandlers = [...currentErrorHandlers, ...options.errorHandlers];
+    }
+    if (options && options.middlewares) {
+        const currentMiddlewares: MiddlewareOptions[] = found.options.middlewares || [];
+        options.middlewares = [...currentMiddlewares, ...options.middlewares];
+    }
+    found.handlers = found.handlers || metadata.methods.get(target.prototype);
     metadata.methods.delete(target.prototype);
     metadata.controllers.set(target, found);
+    if(!isFound)
     Reflect.decorate([Service({ transient: true })], target);
 }
+
+
+export function attachControllerErrorHandlers(target: any, errorHandlers: AppErrorHandler[]) {
+    registerControllerMetadata(target, { errorHandlers });
+}
+
+export function attachControllerMiddleware(target: any, middlewares: AppMiddelware[], before: boolean) {
+    registerControllerMetadata(target, {
+        middlewares: middlewares.map(x => {
+            return { before, middleware: x };
+        })
+    });
+}
+
+export function attachControllerAuthorization(target: any, options?: AuthorizeOptions) {
+    registerControllerMetadata(target, { authorize: true, authorization: options });
+}
+

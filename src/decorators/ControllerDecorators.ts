@@ -1,5 +1,7 @@
-import { ControllerOptions, MiddlewareOptions, AuthorizeOptions, ErrorHandlerOptions } from "./types/MethodMetadataTypes";
-import { registerControllerMetadata } from "./BaseDecorators";
+import { ControllerOptions, AuthorizeOptions } from "./types/MethodMetadataTypes";
+import { registerControllerMetadata, attachControllerMiddleware, attachControllerAuthorization, attachControllerErrorHandlers } from "./BaseDecorators";
+import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
+import { AppMiddelware } from "../middlewares/IMiddleware";
 
 export function Controller(options?: ControllerOptions) {
     return (target: any) => {
@@ -17,20 +19,26 @@ export function JsonController(path: string, options?: ControllerOptions) {
     }
 }
 
-export function ControllerMiddlewares(_options: MiddlewareOptions[]) {
-    return (_target: any) => {
-        throw new Error("Function not implemented");
+export function BeforeMiddlewares(options: AppMiddelware[]){
+    return (target: any)=>{
+        attachControllerMiddleware(target, options, true);
     }
 }
 
-export function ControllerAuthorize(_options: AuthorizeOptions[]) {
-    return (_target: any) => {
-        throw new Error("Function not implemented");
+export function AfterMiddlewares(options: AppMiddelware[]){
+    return (target: any)=>{
+        attachControllerMiddleware(target, options, false);
     }
 }
 
-export function ControllerErrorHandlers(_options: ErrorHandlerOptions[]) {
-    return (_target: any) => {
-        throw new Error("Function not implemented");
+export function ControllerAuthorize(options? : AuthorizeOptions) {
+    return (target: any) => {
+        attachControllerAuthorization(target, options);
+    }
+}
+
+export function ControllerErrorHandlers(options: AppErrorHandler[]) {
+    return (target: any) => {
+        attachControllerErrorHandlers(target, options);
     }
 }

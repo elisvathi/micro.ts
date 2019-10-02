@@ -2,13 +2,14 @@ import chalk from 'chalk';
 import { ServerOptions } from './types/ServerOptions';
 import { IBroker } from '../brokers/IBroker';
 import { GlobalMetadata, ControllerHandlers, ControllerMetadata } from '../decorators/types/ControllerMetadataTypes';
-import { getGlobalMetadata } from '../decorators/GlobalMetadata';
-import { MiddlewareFunction, IMiddleware } from '../middlewares/IMiddleware';
+import { getGlobalMetadata, getHandlerMetadata } from '../decorators/GlobalMetadata';
+import { MiddlewareFunction, IMiddleware, AppMiddelware } from '../middlewares/IMiddleware';
 import { BaseRouteDefinition, Action } from './types/BaseTypes';
 import { Container } from '../di/BaseContainer';
-import { MethodDescription } from '../decorators/types/MethodMetadataTypes';
+import { MethodDescription, MethodControllerOptions, MiddlewareOptions } from '../decorators/types/MethodMetadataTypes';
 import { NotAuthorized } from '../errors/MainAppErrror';
 import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types/ParamMetadataTypes';
+import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors/types/ErrorHandlerTypes';
 
 export class BaseServer {
     constructor(private options: ServerOptions) { }
@@ -21,7 +22,8 @@ export class BaseServer {
     private get controllersMetadata(): GlobalMetadata {
         return getGlobalMetadata();
     }
-    private async executeMiddleware(middleware: MiddlewareFunction | IMiddleware, def: BaseRouteDefinition, action: Action, controller: any): Promise<Action> {
+
+    private async executeMiddleware(middleware: AppMiddelware, def: BaseRouteDefinition, action: Action, controller: any): Promise<Action> {
         if ('do' in middleware) {
             const casted = middleware as IMiddleware;
             return casted.do(action, def, controller);
@@ -29,46 +31,124 @@ export class BaseServer {
         return (middleware as MiddlewareFunction)(action, def, controller);
     }
 
-    private async executeRequest(def: BaseRouteDefinition, action: Action, broker: IBroker){
+    private async executeErrorHandler(handler: AppErrorHandler, error: any, action: Action, def: BaseRouteDefinition, controller: any, broker: IBroker) {
+        if ('do' in handler) {
+            const casted = handler as IErrorHandler;
+            return casted.do(error, action, def, controller, broker);
+        }
+        return (handler as ErrorHandlerFunction)(error, action, def, controller, broker);
+    }
+
+    private async handleError(handlers: AppErrorHandler[], error: any, action: Action, def: BaseRouteDefinition, controllerInstance: any, broker: IBroker): Promise<boolean> {
+        for (let i = 0; i < handlers.length; i++) {
+            const result = await this.executeErrorHandler(handlers[i], error, action, def, controllerInstance, broker);
+            if (result === true) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private async executeRequest(def: BaseRouteDefinition, action: Action, broker: IBroker) {
+        const controllerInstance: any = Container.get(def.controllerCtor);
+        const methodControllerMetadata: MethodControllerOptions = getHandlerMetadata(def.controllerCtor, def.handlerName);
         try {
-            action = await this.handleRequest(def, action, broker);
-        }catch(err){
-            action.response = action.response || {};
-            action.response.statusCode = err.statusCode || 500;
-            action.response.is_error = true;
-            action.response.error = err;
+            action = await this.handleRequest(def, action, broker, controllerInstance, methodControllerMetadata);
+        } catch (err) {
+            const errorHandlers: AppErrorHandler[] = this.getErrorHandlers(methodControllerMetadata);
+            const handled = await this.handleError(errorHandlers, err, action, def, controllerInstance, broker);
+            if (!handled) {
+                action.response = action.response || {};
+                action.response.statusCode = err.statusCode || 500;
+                action.response.is_error = true;
+                action.response.error = err;
+            }
+        }
+        if (this.options.logRequests) {
+            const response = action.response || {};
+            const statusCode = response.statusCode || 200;
+            console.log(chalk.greenBright(`[${broker.constructor.name}]`),
+                chalk.blueBright(`[${def.method.toUpperCase()}]`),
+                chalk.green(`[${def.controller}]`),
+                chalk.yellow(`[${def.handlerName}]`),
+                `${action.request.path}`,
+                statusCode === 200 ? chalk.blue(`[${statusCode}]`) : chalk.red(`[${statusCode}]`));
         }
         return action;
     }
 
-    private async handleRequest(def: BaseRouteDefinition, action: Action, broker: IBroker) {
-        const controllerInstance: any = Container.get(def.controllerCtor);
-        const methodMetadata: MethodDescription = this.getSingleMethodMetadata(def.controllerCtor, def.handlerName);
-        if (this.options.authorizationChecker && methodMetadata.authorize) {
-            const authorized = await this.options.authorizationChecker(action, methodMetadata.authorization || {});
+    private async checkAuthorization(action: Action, methodMetadata: MethodControllerOptions) {
+        let shouldCheck = false;
+        if (methodMetadata.controller.authorize) { shouldCheck = true }
+        if (methodMetadata.method.authorize === false) {
+            shouldCheck = false;
+        } else if (methodMetadata.method.authorize === true) {
+            shouldCheck = true;
+        }
+        if (shouldCheck && this.options.authorizationChecker) {
+            const options = methodMetadata.method.authorization || methodMetadata.controller.authorization || {};
+            const authorized = await this.options.authorizationChecker(action, options);
             if (!authorized) {
-               throw new NotAuthorized("You are not authorized to make this request");
+                throw new NotAuthorized("You are not authorized to make this request");
             }
         }
+    }
+    private groupMiddlewares(middlewares: MiddlewareOptions[]): { before: AppMiddelware[], after: AppMiddelware[] } {
+        const result: { before: AppMiddelware[], after: AppMiddelware[] } = { before: [], after: [] };
+        middlewares.forEach(m => {
+            if (m.before) {
+                result.before.push(m.middleware);
+            } else {
+                result.after.push(m.middleware);
+            }
+        })
+        return result;
+    }
+
+    private getMiddlewares(methodMetadata: MethodControllerOptions): { before: any[], after: any[] } {
         const middlewares: { before: any[], after: any[] } = { before: [], after: [] };
-        if (methodMetadata.middlewares && methodMetadata.middlewares.length) {
-            methodMetadata.middlewares.forEach(x => {
-                if (x.before) {
-                    middlewares.before.push(x.middleware);
-                } else {
-                    middlewares.after.push(x.middleware);
-                }
-            });
+        let afterMiddlewares: any[] = [];
+        if (this.options.beforeMiddlewares && this.options.beforeMiddlewares.length > 0) {
+            middlewares.before.push(...this.options.beforeMiddlewares);
         }
+        if (this.options.afterMiddlewares && this.options.afterMiddlewares.length > 0) {
+            afterMiddlewares.push(this.options.afterMiddlewares);
+        }
+        if (methodMetadata.controller.middlewares && methodMetadata.controller.middlewares.length > 0) {
+            const groupedControllerMiddlewares = this.groupMiddlewares(methodMetadata.controller.middlewares);
+            middlewares.before.push(...groupedControllerMiddlewares.before);
+            afterMiddlewares.push(groupedControllerMiddlewares.after);
+        }
+        if (methodMetadata.method.middlewares && methodMetadata.method.middlewares.length > 0) {
+            const groupedMethodMiddleware = this.groupMiddlewares(methodMetadata.method.middlewares);
+            middlewares.before.push(...groupedMethodMiddleware.before);
+            afterMiddlewares.push(groupedMethodMiddleware.after);
+        }
+        // Reverse after middlewares so they go in the order of 1. Handler Middlewares, 2. Controller Middlewares, 3. Global Middlewares
+        afterMiddlewares = afterMiddlewares.reverse()
+        afterMiddlewares.forEach(a => {
+            middlewares.after.push(...a);
+        });
+        return middlewares;
+    }
+
+    private getErrorHandlers(methodMetadata: MethodControllerOptions) {
+        const result: AppErrorHandler[] = [];
+        result.push(...methodMetadata.method.errorHandlers || []);
+        result.push(...methodMetadata.controller.errorHandlers || []);
+        result.push(...this.options.errorHandlers || []);
+        return result;
+    }
+
+    private async handleRequest(def: BaseRouteDefinition, action: Action, broker: IBroker, controllerInstance: any, methodControllerMetadata: MethodControllerOptions) {
+        await this.checkAuthorization(action, methodControllerMetadata);
+        const middlewares = this.getMiddlewares(methodControllerMetadata);
         if (middlewares.before.length) {
             for (let i = 0; i < middlewares.before.length; i++) {
                 action = await this.executeMiddleware(middlewares.before[i], def, action, controllerInstance);
             }
         }
-        const args = await this.buildParams(action, methodMetadata, broker);
-        if (this.options.logRequests) {
-            console.log(chalk.greenBright(`[${broker.constructor.name}]`), chalk.blueBright(`[${def.method.toUpperCase()}]`), chalk.green(`[${def.controller}]`), chalk.yellow(`[${def.handlerName}]`), `${action.request.path}`);
-        }
+        const args = await this.buildParams(action, methodControllerMetadata.method, broker);
         let result = await controllerInstance[def.handlerName](...args);
         action.response = action.response || {};
         action.response.headers = action.response.headers || {};
@@ -147,18 +227,8 @@ export class BaseServer {
                 case ParamDecoratorType.User:
                     const user = await this.getUser(action);
                     return user;
-
             }
         }
-    }
-
-    private getSingleMethodMetadata(ctor: any, methodName: string): MethodDescription {
-        let ctorMetadata = this.controllersMetadata.controllers.get(ctor);
-        if (!ctorMetadata) {
-            return { name: methodName, params: [] };
-        }
-        const handlers: ControllerHandlers = (ctorMetadata as ControllerMetadata).handlers || {};
-        return handlers[methodName];
     }
 
     private addRoute(def: BaseRouteDefinition) {

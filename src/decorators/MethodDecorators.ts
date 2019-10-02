@@ -1,5 +1,6 @@
-import { AuthorizeOptions, MiddlewareOptions, ErrorHandlerOptions } from "./types/MethodMetadataTypes";
+import { AuthorizeOptions, MiddlewareOptions } from "./types/MethodMetadataTypes";
 import { attachHandlerAuthorization, attachHandlerMiddleware, attachHandlerErrorHandler } from "./BaseDecorators";
+import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
 
 export function Authorize(options?: AuthorizeOptions) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
@@ -8,8 +9,8 @@ export function Authorize(options?: AuthorizeOptions) {
 }
 
 export function AllowAnonymous() {
-    return (_target: any, _propertyKey: string, _descriptor: PropertyDescriptor) => {
-        throw new Error("Function not implemented");
+    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+        attachHandlerAuthorization(target, propertyKey, descriptor, undefined, false);
     }
 }
 
@@ -27,7 +28,7 @@ export function UseMiddlewares(options: MiddlewareOptions[]) {
  * Register error handler for the handler it decorates 
  * @param options
  */
-export function UseErrorHandler(options: ErrorHandlerOptions) {
+export function UseErrorHandler(options: AppErrorHandler[]) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         attachHandlerErrorHandler(target, propertyKey, descriptor, options);
     }

@@ -6,3 +6,5 @@ export interface IMiddleware {
 }
 
 export type MiddlewareFunction = (action: Action, def?: BaseRouteDefinition, controller?: any, broker?: IBroker) => Action | Promise<Action>;
+
+export type AppMiddelware = IMiddleware  | MiddlewareFunction;

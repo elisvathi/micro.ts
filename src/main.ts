@@ -1,9 +1,9 @@
 import { Service } from "./di/DiDecorators";
-import { JsonController } from "./decorators/ControllerDecorators";
+import { JsonController, BeforeMiddlewares, ControllerAuthorize } from "./decorators/ControllerDecorators";
 import { Get, Post, Delete } from "./decorators/RestDecorators";
-import { UseMiddlewares, Authorize } from "./decorators/MethodDecorators";
+import { UseMiddlewares, AllowAnonymous } from "./decorators/MethodDecorators";
 import { Action, BaseRouteDefinition } from "./server/types/BaseTypes";
-import { CurrentUser, Query, Headers, Body} from "./decorators/ParameterDecorators";
+import { CurrentUser, Query, Headers, Body } from "./decorators/ParameterDecorators";
 import { Container } from "./di/BaseContainer";
 import { HapiBroker } from "./brokers/HapiBroker";
 import { AmqpBroker } from "./brokers/AmqpBroker";
@@ -33,8 +33,8 @@ export class Thrive {
 }
 
 @JsonController("Voluum")
+@ControllerAuthorize()
 export class VoluumController {
-
     constructor(private serv: UserService) {
     }
 
@@ -43,17 +43,7 @@ export class VoluumController {
         before: true,
         middleware: (a: Action) => { a.request.qs = { num: Math.random(), value: (Math.random() < 0.5) ? true : false, ...a.request.qs }; return a; }
     }])
-    @UseMiddlewares([{
-        before: false,
-        middleware: (a: Action) => {
-            a.response = a.response || {};
-            a.response.body = { ok: true, result: a.response.body };
-            a.response.headers = a.response.headers || {};
-            a.response.headers['applied-middleware'] = 'applied';
-            return a;
-        }
-    }])
-    @Authorize()
+    @AllowAnonymous()
     public async trafficSources(@CurrentUser() _user: any, @Query() query: any, @Headers() _headers: any) {
         this.serv.setData(query);
         return this.serv.getData();
@@ -101,8 +91,14 @@ async function main() {
         logRequests: true,
         basePath: 'api',
         dev: true,
+        afterMiddlewares: [(action: Action) => {
+            action.response = action.response || {};
+            const currentBody = action.response.body;
+            action.response.body = { ok: true, result: currentBody };
+            return action;
+        }],
         currentUserChecker: (a: Action) => { return a.request.headers },
-        authorizationChecker: (_a: Action, _options: AuthorizeOptions) => { return true; }
+        authorizationChecker: (_a: Action, _options?: AuthorizeOptions) => { return false; }
     });
     await server.start();
 }

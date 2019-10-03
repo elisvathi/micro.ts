@@ -1,32 +1,32 @@
 {
     "name": "micro-node",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
+    "version": "0.0.1",
+    "description": "Microservice framework with Typescript",
+    "main": "lib/index.js",
     "scripts": {
-        "start": "npm run build && node --inspect=0.0.0.0:5858 ./lib/main.js",
+        "start": "npx ts-node --project=tsconfig.playground.json ./playground/playground.ts",
         "dev": "nodemon",
         "build": "./node_modules/typescript/bin/tsc -p tsconfig.json",
         "build:watch": "./node_modules/typescript/bin/tsc -w -p tsconfig.json",
         "lint": "./node_modules/tslint/bin/tslint -t stylish --project \"tsconfig.json\"",
         "test": "./node_modules/.bin/mocha -r ts-node/register tests/**/*.spec.ts",
-        "clean": "./node_modules/rimraf/bin.js build"
+        "clean": "./node_modules/rimraf/bin.js lib"
     },
     "keywords": [],
-    "author": "",
-    "license": "ISC",
+    "author": "Elis Vathi",
+    "license": "MIT",
     "dependencies": {
-        "@types/chalk": "^2.2.0",
-        "@types/hapi": "^18.0.2",
         "amqplib": "^0.5.5",
         "chalk": "^2.4.2",
         "hapi": "^18.1.0",
-        "joi": "^14.3.1",
-        "joi-typescript-validator": "0.0.4",
         "reflect-metadata": "^0.1.13"
     },
     "devDependencies": {
+        "@types/chalk": "^2.2.0",
+        "@types/hapi": "^18.0.2",
         "@types/amqplib": "^0.5.13",
+        "joi": "^14.3.1",
+        "joi-typescript-validator": "0.0.4",
         "@types/joi": "^14.3.3",
         "@types/node": "^12.7.8",
         "@types/reflect-metadata": "^0.1.0",

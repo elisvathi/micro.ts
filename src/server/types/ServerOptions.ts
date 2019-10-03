@@ -15,4 +15,5 @@ export interface ServerOptions {
     errorHandlers?: AppErrorHandler[];
     currentUserChecker?: (action: Action) => any;
     authorizationChecker?: (action: Action, options?: AuthorizeOptions) => boolean | Promise<boolean>;
+    validateFunction?: (value: any, type: any) => any | Promise<any>;
 }

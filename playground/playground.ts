@@ -1,19 +1,19 @@
-import { Service } from "./di/DiDecorators";
-import { JsonController, ControllerAuthorize, BeforeMiddlewares } from "./decorators/ControllerDecorators";
-import { Get, Post, Delete } from "./decorators/RestDecorators";
-import { UseMiddlewares, AllowAnonymous } from "./decorators/MethodDecorators";
-import { Action, BaseRouteDefinition } from "./server/types/BaseTypes";
-import { CurrentUser, Query, Headers } from "./decorators/ParameterDecorators";
-import { Container } from "./di/BaseContainer";
-import { HapiBroker } from "./brokers/HapiBroker";
-import { AmqpBroker } from "./brokers/AmqpBroker";
-import { DefinitionHandlerPair } from "./brokers/AbstractBroker";
-import { BaseServer } from "./server/BaseServer";
-import { AuthorizeOptions } from "./decorators/types/MethodMetadataTypes";
-import { IMiddleware } from "./middlewares/IMiddleware";
-import { IBroker } from "./brokers/IBroker";
-import { NotFound } from "./errors/MainAppErrror";
 import { Required, MinLength, getSchema } from "joi-typescript-validator";
+import { Service } from "../src/di/DiDecorators";
+import { JsonController, ControllerAuthorize, BeforeMiddlewares } from "../src/decorators/ControllerDecorators";
+import { Get, Delete, Post } from "../src/decorators/RestDecorators";
+import { Action, BaseRouteDefinition } from "../src/server/types/BaseTypes";
+import { IMiddleware } from "../src/middlewares/IMiddleware";
+import { IBroker } from "../src/brokers/IBroker";
+import { Container } from "../src/di/BaseContainer";
+import { UseMiddlewares, AllowAnonymous } from "../src/decorators/MethodDecorators";
+import { CurrentUser, Query , Headers} from "../src/decorators/ParameterDecorators";
+import { AuthorizeOptions } from "../src/decorators/types/MethodMetadataTypes";
+import { BaseServer } from "../src/server/BaseServer";
+import { DefinitionHandlerPair } from "../src/brokers/AbstractBroker";
+import { AmqpBroker } from "../src/brokers/AmqpBroker";
+import { HapiBroker } from "../src/brokers/HapiBroker";
+import { NotFound } from "../src/errors/MainAppErrror";
 import Joi from 'joi';
 
 class User {

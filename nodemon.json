@@ -1,6 +1,6 @@
 {
-  "watch": ["src"],
-  "ext": "ts",
-  "ignore": ["src/**/*.spec.ts", "build/**/*"],
-  "exec": "npm run start"
+    "watch": ["src", "playground"],
+    "ext": "ts",
+    "ignore": ["src/**/*.spec.ts", "build/**/*"],
+    "exec": "npm run start"
 }

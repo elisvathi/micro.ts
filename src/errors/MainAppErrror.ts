@@ -1,4 +1,3 @@
-
 export class MainAppError {
     statusCode!: number;
     code!: string;

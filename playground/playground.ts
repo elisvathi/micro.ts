@@ -7,12 +7,13 @@ import { IMiddleware } from "../src/middlewares/IMiddleware";
 import { IBroker } from "../src/brokers/IBroker";
 import { Container } from "../src/di/BaseContainer";
 import { UseMiddlewares, AllowAnonymous } from "../src/decorators/MethodDecorators";
-import { CurrentUser, Query , Headers} from "../src/decorators/ParameterDecorators";
+import { CurrentUser, Query, Headers, Header, Connection , Request} from "../src/decorators/ParameterDecorators";
 import { AuthorizeOptions } from "../src/decorators/types/MethodMetadataTypes";
 import { BaseServer } from "../src/server/BaseServer";
 import { DefinitionHandlerPair } from "../src/brokers/AbstractBroker";
 import { AmqpBroker } from "../src/brokers/AmqpBroker";
 import { HapiBroker } from "../src/brokers/HapiBroker";
+import { SocketIOBroker } from "../src/brokers/SocketIOBroker";
 import Joi from 'joi';
 import { NotFound } from "../src/errors/MainAppErrror";
 
@@ -74,8 +75,13 @@ export class VoluumController {
         middleware: beforeMiddleWare
     }])
     @AllowAnonymous()
-    public async trafficSources(@CurrentUser() _user: any, @Query() query: any, @Headers() _headers: any) {
-        this.serv.setData(query);
+    public async trafficSources(@Request() req: Action,
+                                @Query() query: any,
+                                @Headers() _headers: any,
+                                @Header("socket_id", {required: true}) socket_id: string,
+                                @Connection() con: any) {
+        this.serv.setData({socket_id});
+        con.emit(req.request.body.reply_to, this.serv.getData());
         return this.serv.getData();
     }
 
@@ -86,8 +92,8 @@ export class VoluumController {
 
     @Post({ path: "clear" })
     @AllowAnonymous()
-    public async removeData(@Query({required: true, validate: true}) data: User) {
-        return {data};
+    public async removeData(@Query({ required: true, validate: true }) data: User) {
+        return { data };
     }
 
     @Delete({ path: "clear-all" })
@@ -101,6 +107,7 @@ async function main() {
     const AmqpConfig = { url: 'amqp://localhost' };
     const hapi = new HapiBroker(HapiConfig);
     const amqp = new AmqpBroker(AmqpConfig)
+    const socket = new SocketIOBroker(hapi.getConnection().listener);
     amqp.setRouteMapper((def: BaseRouteDefinition) => {
         return `ms.Tracker.${def.controller}`
     });
@@ -117,11 +124,11 @@ async function main() {
 
     const server = new BaseServer({
         controllers: [VoluumController, Thrive],
-        brokers: [hapi, amqp],
+        brokers: [hapi, socket],
         logRequests: true,
         basePath: 'api',
         dev: true,
-        validateFunction : (value: any, type: any)=>{
+        validateFunction: (value: any, type: any) => {
             const schema = getSchema(type);
             return Joi.validate(value, schema);
         },

@@ -15,6 +15,10 @@ export class HapiBroker extends AbstractBroker {
         });
     }
 
+    public getConnection(): HapiServer {
+        return this.server;
+    }
+
     protected routeMapper: RouteMapper = (def: BaseRouteDefinition) => {
         let basePart: string = def.base;
         if (basePart.indexOf("/") !== 0) {
@@ -25,7 +29,7 @@ export class HapiBroker extends AbstractBroker {
             controllerPart = `/${controllerPart}`;
         }
         let handlerPart = def.handler;
-        if (handlerPart.indexOf("/") !== 0 && handlerPart !== "") {
+        if (handlerPart.indexOf("/") !== 0 && handlerPart.length > 0) {
             handlerPart = `/${handlerPart}`;
         }
         return `${basePart}${controllerPart}${handlerPart}`.replace("//", "/");

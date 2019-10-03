@@ -1,3 +1,5 @@
 src/
 playground/
 tests/
+.projectile
+docker-compose.yml

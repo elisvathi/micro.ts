@@ -215,7 +215,7 @@ export class BaseServer {
                     const params = action.request.params;
                     return this.validateParam(params, true, options.paramOptions!.validate || false, 'parameters', metadata.type);
                 case ParamDecoratorType.ParamField:
-                    const paramField =  action.request.params[options.name as string];
+                    const paramField = action.request.params[options.name as string];
                     return this.validateParam(paramField, true, false, options.name);
 
                 case ParamDecoratorType.Method:
@@ -243,13 +243,13 @@ export class BaseServer {
                     const query = action.request.qs;
                     return this.validateParam(query, options.queryOptions!.required || false, options.queryOptions!.validate || false, 'query', metadata.type);
                 case ParamDecoratorType.QueryField:
-                    const queryParam =  action.request.qs[options.name as string];
+                    const queryParam = action.request.qs[options.name as string];
                     return this.validateParam(queryParam, options.queryParamOptions!.required || false, false, options.name);
 
                 case ParamDecoratorType.User:
                     const user = await this.getUser(action);
                     const required = options.currentUserOptions!.required || false;
-                    if(required && !user){
+                    if (required && !user) {
                         throw new NotAuthorized("You are not authorized to access this resource");
                     }
                     return user;
@@ -292,7 +292,10 @@ export class BaseServer {
                 Object.keys(handlers).forEach((key) => {
                     const methodName = key;
                     const methodPath = (c.handlers as any)[key].metadata.path;
-                    const path = methodPath || methodName;
+                    let path = methodPath || methodName;
+                    if (methodPath === "") {
+                        path = methodPath;
+                    }
                     const reqMethod = (c.handlers as any)[key].metadata.method;
                     const routeDefinition: BaseRouteDefinition = {
                         base: basePath,

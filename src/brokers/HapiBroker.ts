@@ -14,9 +14,23 @@ export class HapiBroker extends AbstractBroker {
             address: options.address, port: options.port
         });
     }
+
     protected routeMapper: RouteMapper = (def: BaseRouteDefinition) => {
-        return `/${def.base}/${def.controller}/${def.handler}`;
+        let basePart: string = def.base;
+        if (basePart.indexOf("/") !== 0) {
+            basePart = `/${basePart}`;
+        }
+        let controllerPart = def.controller;
+        if (controllerPart.indexOf("/") !== 0) {
+            controllerPart = `/${controllerPart}`;
+        }
+        let handlerPart = def.handler;
+        if (handlerPart.indexOf("/") !== 0 && handlerPart !== "") {
+            handlerPart = `/${handlerPart}`;
+        }
+        return `${basePart}${controllerPart}${handlerPart}`.replace("//", "/");
     };
+
     protected requestMapper: RequestMapper = (r: HapiRequest) => {
         const act: Action = {
             request: {

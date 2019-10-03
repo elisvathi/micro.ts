@@ -13,8 +13,8 @@ import { BaseServer } from "../src/server/BaseServer";
 import { DefinitionHandlerPair } from "../src/brokers/AbstractBroker";
 import { AmqpBroker } from "../src/brokers/AmqpBroker";
 import { HapiBroker } from "../src/brokers/HapiBroker";
-import { NotFound } from "../src/errors/MainAppErrror";
 import Joi from 'joi';
+import { NotFound } from "../src/errors/MainAppErrror";
 
 class User {
     @Required()

@@ -1,5 +1,5 @@
 {
-    "name": "micro-node",
+    "name": "micro.ts",
     "version": "0.0.1",
     "description": "Microservice framework with Typescript",
     "main": "lib/index.js",

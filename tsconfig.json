@@ -9,7 +9,7 @@
         "rootDir": "./src",
         "removeComments": false,
         "esModuleInterop": true,
-        "types": ["node"],
+        "types": ["node", "mocha", "chai"],
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true
     },

@@ -38,6 +38,15 @@ export class AmqpBroker extends AbstractBroker {
     protected routeMapper: RouteMapper = (def: BaseRouteDefinition) => {
         return `${def.base}.${def.controller}.${def.handler}`.replace('/', '.');
     };
+
+    public getConnection(): Connection{
+        return this.connection;
+    }
+
+    public getChannel(): Channel{
+        return this.channel;
+    }
+
     private async registerRoutes() {
         this.registeredRoutes.forEach(async (value: DefinitionHandlerPair[], route: string) => {
             let json = false;

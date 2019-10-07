@@ -8,7 +8,7 @@ export interface BrokerConnection<T> {
 }
 
 export interface IBroker {
-    addRoute(def: BaseRouteDefinition, handler: (action: Action) => any): void | Promise<void>;
+    addRoute(def: BaseRouteDefinition, handler: (action: Action) => any): string | Promise<string>;
     setRequestMapper(requestMapper: RequestMapper): void;
     setRouteMapper(setRouteMapper: RouteMapper): void;
 

@@ -17,9 +17,9 @@ export class BaseContainer {
         this.singletonInstances.set(key, value);
     }
 
-    get<T>(key:  {new(...args: any[]):T}|string, scope? : string): T {
+    get<T = any>(key: { new(...args: any[]): T } | string | any, scope?: string): T {
         if (typeof key === 'string') {
-            if(scope) {
+            if (scope) {
                 return this.scopes[scope].get(key);
             }
             return this.singletonInstances.get(key);
@@ -42,14 +42,14 @@ export class BaseContainer {
             return this.get(x.type, serviceOptions.scope);
         });
         let value: any;
-        if(!!serviceOptions.scope || !!scope){
-            if(!!serviceOptions.scope && !!scope && scope !== serviceOptions.scope){
+        if (!!serviceOptions.scope || !!scope) {
+            if (!!serviceOptions.scope && !!scope && scope !== serviceOptions.scope) {
                 value = this.singletonInstances.get(key);
-            }else{
+            } else {
                 let sc = (serviceOptions.scope || scope) as string;
                 value = this.scopes[sc].get(key);
             }
-        }else {
+        } else {
             value = this.singletonInstances.get(key);
         }
         if (!value) {

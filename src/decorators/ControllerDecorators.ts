@@ -1,4 +1,4 @@
-import { ControllerOptions, AuthorizeOptions } from "./types/MethodMetadataTypes";
+import { ControllerOptions, AuthorizeOptions, BrokerFilter } from "./types/MethodMetadataTypes";
 import { registerControllerMetadata, attachControllerMiddleware, attachControllerAuthorization, attachControllerErrorHandlers } from "./BaseDecorators";
 import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
 import { AppMiddelware } from "../middlewares/IMiddleware";
@@ -19,19 +19,25 @@ export function JsonController(path: string, options?: ControllerOptions) {
     }
 }
 
-export function BeforeMiddlewares(options: AppMiddelware[]){
-    return (target: any)=>{
+export function ControllerFilterBroker(filter: BrokerFilter) {
+    return (target: any) => {
+        registerControllerMetadata(target, { brokersFilter: filter });
+    }
+}
+
+export function BeforeMiddlewares(options: AppMiddelware[]) {
+    return (target: any) => {
         attachControllerMiddleware(target, options, true);
     }
 }
 
-export function AfterMiddlewares(options: AppMiddelware[]){
-    return (target: any)=>{
+export function AfterMiddlewares(options: AppMiddelware[]) {
+    return (target: any) => {
         attachControllerMiddleware(target, options, false);
     }
 }
 
-export function ControllerAuthorize(options? : AuthorizeOptions) {
+export function ControllerAuthorize(options?: AuthorizeOptions) {
     return (target: any) => {
         attachControllerAuthorization(target, options);
     }

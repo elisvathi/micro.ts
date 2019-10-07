@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { ServerOptions } from './types/ServerOptions';
 import { IBroker } from '../brokers/IBroker';
-import { GlobalMetadata } from '../decorators/types/ControllerMetadataTypes';
+import { GlobalMetadata, ControllerMetadata } from '../decorators/types/ControllerMetadataTypes';
 import { getGlobalMetadata, getHandlerMetadata } from '../decorators/GlobalMetadata';
 import { MiddlewareFunction, IMiddleware, AppMiddelware } from '../middlewares/IMiddleware';
 import { BaseRouteDefinition, Action } from './types/BaseTypes';
@@ -10,6 +10,18 @@ import { MethodDescription, MethodControllerOptions, MiddlewareOptions } from '.
 import { NotAuthorized, BadRequest } from '../errors/MainAppErrror';
 import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types/ParamMetadataTypes';
 import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors/types/ErrorHandlerTypes';
+
+interface RegisterMethodParams {
+    methodName: string;
+    desc: MethodDescription;
+    basePath: string;
+    controllerPath: string;
+    ctor: any;
+    isJson: boolean;
+    brokers: IBroker[];
+    routes: any[];
+    controllerName: string;
+}
 
 export class BaseServer {
     constructor(private options: ServerOptions) { }
@@ -257,14 +269,22 @@ export class BaseServer {
         }
     }
 
-    private addRoute(def: BaseRouteDefinition) {
-        if (this.options.brokers) {
-            this.options.brokers.forEach((broker) => {
-                broker.addRoute(def, (action: Action) => {
+    private async addRoute(def: BaseRouteDefinition, brokers: IBroker[], params: ParamDescription[]) {
+        const result: any = {};
+        if (brokers && brokers.length) {
+            for (let i = 0; i < brokers.length; i++) {
+                const broker = brokers[i];
+                const name = broker.constructor.name;
+                const route = await broker.addRoute(def, (action: Action) => {
                     return this.executeRequest(def, action, broker);
                 });
-            });
+                result[name] = route;
+                const brokerServerInfo = this._serverInfo.get(broker) || [];
+                brokerServerInfo.push({ route, def, params });
+                this._serverInfo.set(broker, brokerServerInfo);
+            }
         }
+        return result;
     }
 
     public async start() {
@@ -276,42 +296,91 @@ export class BaseServer {
             console.log("SERVER STARTED");
         }
     }
-    public buildRoutes() {
-        let controllers = this.controllersMetadata.controllers;
-        const routes: { method: string, path: string }[] = [];
-        const basePath = this.options.basePath || "";
-        controllers.forEach((c) => {
-            if (this.options.controllers.includes(c.ctor)) {
-                const name = c.name;
-                let options = c.options;
-                options = options || {};
-                const cPath = options.path;
-                const isJon = options.json;
-                const controllerPath = cPath || name;
-                const handlers = c.handlers as any;
-                Object.keys(handlers).forEach((key) => {
-                    const methodName = key;
-                    const methodPath = (c.handlers as any)[key].metadata.path;
-                    let path = methodPath || methodName;
-                    if (methodPath === "") {
-                        path = methodPath;
-                    }
-                    const reqMethod = (c.handlers as any)[key].metadata.method;
-                    const routeDefinition: BaseRouteDefinition = {
-                        base: basePath,
-                        controller: controllerPath,
-                        controllerCtor: c.ctor,
-                        handler: path,
-                        handlerName: methodName,
-                        method: reqMethod,
-                        consumers: (c.handlers as any)[key].metadata.consumers,
-                        json: isJon
-                    };
-                    this.addRoute(routeDefinition);
-                    routes.push({ method: reqMethod.toUpperCase(), path: `${basePath}/${controllerPath}/${path}` })
-                });
+    private _serverInfo: Map<IBroker, { route: string, def: BaseRouteDefinition, params: ParamDescription[] }[]> = new Map<IBroker, { route: string, def: BaseRouteDefinition, params: ParamDescription[] }[]>();
+
+    public get serverInfo(): Map<IBroker, { route: string, def: BaseRouteDefinition, params: ParamDescription[] }[]> {
+        return this._serverInfo;
+    }
+
+    private async buildSingleMethodRoute({ methodName, desc, basePath, controllerPath, ctor, isJson, brokers, routes, controllerName }: RegisterMethodParams) {
+        const metadata = desc.metadata || {};
+        const methodPath = metadata.path;
+        let path = methodPath || methodName;
+        if (methodPath === "") {
+            path = methodPath;
+        }
+        const reqMethod = metadata.method;
+        const handlerBrokersFilter = metadata.brokers;
+        let methodBrokers = [...brokers];
+        if (handlerBrokersFilter) {
+            methodBrokers = methodBrokers.filter(handlerBrokersFilter);
+        }
+        const routeDefinition: BaseRouteDefinition = {
+            base: basePath,
+            controller: controllerPath,
+            controllerCtor: ctor,
+            handler: path,
+            handlerName: methodName,
+            method: reqMethod || 'get',
+            consumers: metadata.consumers,
+            json: isJson
+        };
+        const results = await this.addRoute(routeDefinition, methodBrokers, desc.params || []);
+        console.log(results);
+        const brokerNames = methodBrokers.map(x => {
+            return x.constructor.name;
+        }).join(", ");
+        routes.push({
+            brokers: brokerNames,
+            method: (reqMethod || 'get').toUpperCase(),
+            handler: `${controllerName}.${methodName}`,
+            ...results
+        })
+    }
+
+    private async buildSingleControllerRoute(c: ControllerMetadata, basePath: string, routes: any[], brokers: IBroker[]) {
+        if (this.options.controllers.includes(c.ctor)) {
+            const name = c.name;
+            let options = c.options;
+            options = options || {};
+            let controllerBrokers = [...brokers];
+            if (options.brokersFilter) {
+                controllerBrokers = controllerBrokers.filter(options.brokersFilter)
             }
-        });
+            const cPath = options.path;
+            const isJson = !!options.json;
+            const controllerPath = cPath || name;
+            const handlers = c.handlers as any;
+            await Promise.all(Object.keys(handlers).map(async (key) => {
+                await this.buildSingleMethodRoute({
+                    methodName: key,
+                    desc: (c.handlers || {})[key],
+                    basePath,
+                    controllerPath,
+                    ctor: c.ctor,
+                    isJson,
+                    brokers: controllerBrokers,
+                    routes, controllerName: name
+                });
+            }));
+        }
+
+    }
+
+    private async buildAllControllers(controllers: ControllerMetadata[]) {
+        const routes: { brokers: string, method: string, [key: string]: any }[] = [];
+        const basePath = this.options.basePath || "";
+        let brokers = this.options.brokers || [];
+        await Promise.all(controllers.map(async (c) => {
+            await this.buildSingleControllerRoute(c, basePath, routes, brokers);
+        }));
+        return routes;
+    }
+
+    public async buildRoutes() {
+        let controllers = this.controllersMetadata.controllers;
+        const routes = await this.buildAllControllers(Array.from(controllers.values()));
         console.table(routes);
     }
+
 }

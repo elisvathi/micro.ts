@@ -1,4 +1,4 @@
-import { MethodOptions, MethodDescription, AuthorizeOptions, MiddlewareOptions, ControllerOptions } from "./types/MethodMetadataTypes";
+import { MethodOptions, MethodDescription, AuthorizeOptions, MiddlewareOptions, ControllerOptions, BrokerFilter } from "./types/MethodMetadataTypes";
 import { getGlobalMetadata } from "./GlobalMetadata";
 import { ParamDescription, ParamOptions } from "./types/ParamMetadataTypes";
 import { ControllerMetadata } from "./types/ControllerMetadataTypes";
@@ -12,7 +12,8 @@ export function registerHandlerMetadata(target: any, propertyKey: string, _descr
     controller = controller || {};
     controller[propertyKey] = controller[propertyKey] || { params: [] };
     controller[propertyKey].name = propertyKey;
-    controller[propertyKey].metadata = options;
+    controller[propertyKey].metadata = controller[propertyKey].metadata || {};
+    controller[propertyKey].metadata = { ...controller[propertyKey].metadata, ...options };
     controller[propertyKey].params = [];
     const existingParams = metadata.parameters.get(target);
     if (existingParams && existingParams[propertyKey]) {
@@ -63,6 +64,10 @@ export function attachHandlerMiddleware(target: any, propertyKey: string, _descr
     handlerObject.middlewares.push(...options);
     controller[propertyKey] = handlerObject;
     metadata.methods.set(target, controller);
+}
+
+export function attachHandlerBrokersFitler(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options: BrokerFilter) {
+    registerHandlerMetadata(target, propertyKey, _descriptor, { brokers: options });
 }
 
 export function attachHandlerErrorHandler(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options: AppErrorHandler[]) {

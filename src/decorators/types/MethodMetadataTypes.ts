@@ -1,35 +1,36 @@
 import { ParamDescription } from "./ParamMetadataTypes";
 import { AppMiddelware } from "../../middlewares/IMiddleware";
 import { AppErrorHandler } from "../../errors/types/ErrorHandlerTypes";
-
-export interface MethodDescription{
-    name? : string;
-    metadata? : MethodOptions;
-    params : ParamDescription[];
+import { IBroker } from "../../brokers";
+export type BrokerFilter = (broker: IBroker) => boolean;
+export interface MethodDescription {
+    name?: string;
+    metadata?: MethodOptions;
+    params: ParamDescription[];
     authorize?: boolean;
-    authorization? : AuthorizeOptions;
-    middlewares? : MiddlewareOptions[];
-    errorHandlers? : AppErrorHandler[];
+    authorization?: AuthorizeOptions;
+    middlewares?: MiddlewareOptions[];
+    errorHandlers?: AppErrorHandler[];
 }
 
 export interface MethodOptions {
     method?: string;
     path?: string;
-    brokers?: any[];
+    brokers?: BrokerFilter;
     consumers?: number;
 }
 
 export interface ControllerOptions {
     json?: boolean;
     path?: string;
-    brokers?: any[];
-    authorize? : boolean;
-    authorization? : AuthorizeOptions;
+    brokersFilter?: BrokerFilter;
+    authorize?: boolean;
+    authorization?: AuthorizeOptions;
     middlewares?: MiddlewareOptions[];
     errorHandlers?: AppErrorHandler[];
 }
 
-export interface MethodControllerOptions  {
+export interface MethodControllerOptions {
     method: MethodDescription;
     controller: ControllerOptions;
 }
@@ -41,4 +42,6 @@ export interface MiddlewareOptions {
 
 export interface ErrorHandlerOptions { }
 
-export interface AuthorizeOptions { }
+export interface AuthorizeOptions {
+    [key: string]: any;
+}

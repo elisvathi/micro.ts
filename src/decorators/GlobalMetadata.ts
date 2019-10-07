@@ -21,10 +21,10 @@ export function getHandlerMetadata(ctor: any, methodName: string): MethodControl
     if (!ctorMetadata) {
         const methodDesc: MethodDescription = { name: methodName, params: [] };
         const controllerOptions: ControllerOptions = {};
-        return {method: methodDesc, controller: controllerOptions};
+        return { method: methodDesc, controller: controllerOptions };
     }
     const handlers: ControllerHandlers = (ctorMetadata as ControllerMetadata).handlers || {};
-    const methodDescription =  handlers[methodName];
+    const methodDescription = handlers[methodName];
     const controllerDescription = ctorMetadata.options;
-    return {method: methodDescription, controller: controllerDescription || {}};
+    return { method: methodDescription, controller: controllerDescription || {} };
 }

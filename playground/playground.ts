@@ -1,20 +1,20 @@
 import { Required, MinLength, getSchema } from "joi-typescript-validator";
 import { Service } from "../src/di/DiDecorators";
-import { JsonController, ControllerAuthorize, BeforeMiddlewares } from "../src/decorators/ControllerDecorators";
+import { JsonController, ControllerAuthorize, BeforeMiddlewares, ControllerFilterBroker } from "../src/decorators/ControllerDecorators";
 import { Get, Delete, Post } from "../src/decorators/RestDecorators";
 import { Action, BaseRouteDefinition } from "../src/server/types/BaseTypes";
 import { IMiddleware } from "../src/middlewares/IMiddleware";
 import { IBroker } from "../src/brokers/IBroker";
 import { Container } from "../src/di/BaseContainer";
-import { UseMiddlewares, AllowAnonymous } from "../src/decorators/MethodDecorators";
-import { CurrentUser, Query, Headers, Header, Connection , Request} from "../src/decorators/ParameterDecorators";
+import { UseMiddlewares, AllowAnonymous, FilterBrokers } from "../src/decorators/MethodDecorators";
+import { Query, Headers, Header, Connection, Request } from "../src/decorators/ParameterDecorators";
 import { AuthorizeOptions } from "../src/decorators/types/MethodMetadataTypes";
 import { BaseServer } from "../src/server/BaseServer";
 import { DefinitionHandlerPair } from "../src/brokers/AbstractBroker";
 import { AmqpBroker } from "../src/brokers/AmqpBroker";
 import { HapiBroker } from "../src/brokers/HapiBroker";
 import { SocketIOBroker } from "../src/brokers/SocketIOBroker";
-import Joi from 'joi';
+import * as Joi from 'joi';
 import { NotFound } from "../src/errors/MainAppErrror";
 
 class User {
@@ -36,6 +36,7 @@ class UserService {
     }
 }
 @JsonController("Thrive")
+@ControllerFilterBroker((broker: IBroker) => broker.constructor.name === 'SocketIOBroker')
 export class Thrive {
 
     constructor() { }
@@ -75,12 +76,13 @@ export class VoluumController {
         middleware: beforeMiddleWare
     }])
     @AllowAnonymous()
+    @FilterBrokers((broker: IBroker) => { return broker.constructor.name !== 'HapiBroker' })
     public async trafficSources(@Request() req: Action,
-                                @Query() query: any,
-                                @Headers() _headers: any,
-                                @Header("socket_id", {required: true}) socket_id: string,
-                                @Connection() con: any) {
-        this.serv.setData({socket_id});
+        @Query() query: any,
+        @Headers() _headers: any,
+        @Header("socket_id", { required: true }) socket_id: string,
+        @Connection() con: any) {
+        this.serv.setData({ socket_id });
         con.emit(req.request.body.reply_to, this.serv.getData());
         return this.serv.getData();
     }
@@ -108,6 +110,9 @@ async function main() {
     const hapi = new HapiBroker(HapiConfig);
     const amqp = new AmqpBroker(AmqpConfig)
     const socket = new SocketIOBroker(hapi.getConnection().listener);
+    socket.setRouteMapper((def: BaseRouteDefinition) => {
+        return def.handler;
+    })
     amqp.setRouteMapper((def: BaseRouteDefinition) => {
         return `ms.Tracker.${def.controller}`
     });
@@ -143,5 +148,4 @@ async function main() {
     });
     await server.start();
 }
-
 main().catch(console.log);

@@ -1,5 +1,6 @@
 import { Action, BaseRouteDefinition } from "../server/types/BaseTypes";
 import { IBroker, RouteMapper, RequestMapper } from "./IBroker";
+import { NotFound } from "../errors";
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
 export type DefinitionHandlerPair = {
@@ -34,13 +35,12 @@ export abstract class AbstractBroker implements IBroker {
         let allHandlers = this.registeredRoutes.get(route);
         allHandlers = allHandlers || [];
         if(allHandlers.length === 0){
-            // TODO: THROW NOT FOUND
-            throw new Error("Not found");
+            throw new NotFound("Not found");
         }
         return this.actionToRouteMapper(route, action, allHandlers);
     }
 
-    public addRoute(def: BaseRouteDefinition, handler: ActionHandler): void | Promise<void> {
+    public addRoute(def: BaseRouteDefinition, handler: ActionHandler): string | Promise<string> {
         const route = this.routeMapper(def);
         let registered = this.registeredRoutes.get(route);
         if (!registered) {
@@ -48,6 +48,7 @@ export abstract class AbstractBroker implements IBroker {
         }
         registered.push({ def, handler });
         this.registeredRoutes.set(route, registered);
+        return route;
     }
 
     abstract start(): Promise<void>;

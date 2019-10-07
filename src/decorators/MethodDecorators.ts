@@ -1,5 +1,5 @@
-import { AuthorizeOptions, MiddlewareOptions } from "./types/MethodMetadataTypes";
-import { attachHandlerAuthorization, attachHandlerMiddleware, attachHandlerErrorHandler } from "./BaseDecorators";
+import { AuthorizeOptions, MiddlewareOptions, BrokerFilter } from "./types/MethodMetadataTypes";
+import { attachHandlerAuthorization, attachHandlerMiddleware, attachHandlerErrorHandler, attachHandlerBrokersFitler } from "./BaseDecorators";
 import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
 
 export function Authorize(options?: AuthorizeOptions) {
@@ -31,5 +31,12 @@ export function UseMiddlewares(options: MiddlewareOptions[]) {
 export function UseErrorHandler(options: AppErrorHandler[]) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         attachHandlerErrorHandler(target, propertyKey, descriptor, options);
+    }
+}
+
+
+export function FilterBrokers(brokers: BrokerFilter) {
+    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) =>{
+        attachHandlerBrokersFitler(target, propertyKey, descriptor, brokers);
     }
 }

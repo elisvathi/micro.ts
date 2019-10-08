@@ -7,7 +7,7 @@ import { IMiddleware } from "../src/middlewares/IMiddleware";
 import { IBroker } from "../src/brokers/IBroker";
 import { Container } from "../src/di/BaseContainer";
 import { UseMiddlewares, AllowAnonymous, FilterBrokers } from "../src/decorators/MethodDecorators";
-import { Query, Headers, Header, Connection, Request } from "../src/decorators/ParameterDecorators";
+import { Query, Headers, Header, Connection, Request, Body } from "../src/decorators/ParameterDecorators";
 import { AuthorizeOptions } from "../src/decorators/types/MethodMetadataTypes";
 import { BaseServer } from "../src/server/BaseServer";
 import { DefinitionHandlerPair } from "../src/brokers/AbstractBroker";
@@ -94,7 +94,8 @@ export class VoluumController {
 
     @Post({ path: "clear" })
     @AllowAnonymous()
-    public async removeData(@Query({ required: true, validate: true }) data: User) {
+    @FilterBrokers((broker: IBroker) => { return broker.constructor === HapiBroker })
+    public async removeData(@Body({ required: true, validate: true }) data: User) {
         return { data };
     }
 
@@ -107,7 +108,7 @@ export class VoluumController {
 async function main() {
     const HapiConfig = { address: '0.0.0.0', port: 8080 };
     const AmqpConfig = { url: 'amqp://localhost' };
-    const hapi = new HapiBroker(HapiConfig);
+    const hapi = new HapiBroker(HapiConfig, true);
     const amqp = new AmqpBroker(AmqpConfig)
     const socket = new SocketIOBroker(hapi.getConnection().listener);
     socket.setRouteMapper((def: BaseRouteDefinition) => {

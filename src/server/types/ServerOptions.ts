@@ -10,10 +10,11 @@ export interface ServerOptions {
     brokers?: IBroker[];
     dev?: boolean;
     logRequests?: boolean;
+    logErrors? : boolean;
     beforeMiddlewares?: AppMiddelware[];
     afterMiddlewares?: AppMiddelware[];
     errorHandlers?: AppErrorHandler[];
-    currentUserChecker?: (action: Action) => any;
+    currentUserChecker?: (action: Action, broker?: IBroker) => any;
     authorizationChecker?: (action: Action, options?: AuthorizeOptions) => boolean | Promise<boolean>;
     validateFunction?: (value: any, type: any) => any | Promise<any>;
 }

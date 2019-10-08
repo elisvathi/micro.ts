@@ -74,6 +74,9 @@ export class BaseServer {
                 action.response.statusCode = err.statusCode || 500;
                 action.response.is_error = true;
                 action.response.error = err;
+                if(this.options.logErrors && action.response.statusCode === 500){
+                    console.log(action);
+                }
             }
         }
         if (this.options.logRequests) {
@@ -181,11 +184,11 @@ export class BaseServer {
         }));
     }
 
-    private async getUser(action: Action): Promise<any> {
+    private async getUser(action: Action, broker: IBroker): Promise<any> {
         if (!this.options.currentUserChecker) {
             return null;
         }
-        return this.options.currentUserChecker(action);
+        return this.options.currentUserChecker(action, broker);
     }
 
     private async validateParam(value: any, required: boolean, validate: boolean, name?: any, type?: any): Promise<any> {
@@ -259,7 +262,7 @@ export class BaseServer {
                     return this.validateParam(queryParam, options.queryParamOptions!.required || false, false, options.name);
 
                 case ParamDecoratorType.User:
-                    const user = await this.getUser(action);
+                    const user = await this.getUser(action, broker);
                     const required = options.currentUserOptions!.required || false;
                     if (required && !user) {
                         throw new NotAuthorized("You are not authorized to access this resource");
@@ -326,7 +329,6 @@ export class BaseServer {
             json: isJson
         };
         const results = await this.addRoute(routeDefinition, methodBrokers, desc.params || []);
-        console.log(results);
         const brokerNames = methodBrokers.map(x => {
             return x.constructor.name;
         }).join(", ");

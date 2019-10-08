@@ -8,10 +8,10 @@ export class HapiBroker extends AbstractBroker {
         private options: {
             address: string;
             port: number;
-        }) {
+        }, cors: boolean | any = false) {
         super();
         this.server = new HapiServer({
-            address: options.address, port: options.port
+            address: options.address, port: options.port, routes: { cors }
         });
     }
 

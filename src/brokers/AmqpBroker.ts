@@ -69,7 +69,7 @@ export class AmqpBroker extends AbstractBroker {
                             if (result && message.properties.replyTo && message.properties.correlationId) {
                                 await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId);
                             }
-                            await this.channel.ack(message);
+                            this.channel.ack(message);
                         }
                     });
                 }
@@ -84,7 +84,7 @@ export class AmqpBroker extends AbstractBroker {
             headers.error = true;
         }
         headers.statusCode = response.statusCode;
-        await this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), { correlationId, headers });
+        this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), { correlationId, headers });
     }
     public async start(): Promise<void> {
         this.connection = await connect(this.options.url);

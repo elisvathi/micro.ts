@@ -13,7 +13,7 @@ export function registerHandlerMetadata(target: any, propertyKey: string, _descr
     controller[propertyKey] = controller[propertyKey] || { params: [] };
     controller[propertyKey].name = propertyKey;
     controller[propertyKey].metadata = controller[propertyKey].metadata || {};
-    controller[propertyKey].metadata = { ...controller[propertyKey].metadata, ...options };
+    controller[propertyKey].metadata = { ...controller[propertyKey].metadata || {}, ...options || {} };
     controller[propertyKey].params = [];
     const existingParams = metadata.parameters.get(target);
     if (existingParams && existingParams[propertyKey]) {
@@ -24,7 +24,6 @@ export function registerHandlerMetadata(target: any, propertyKey: string, _descr
             controller[propertyKey].params.push(...paramtypes.map(x => { return { type: x } }));
         }
     }
-    metadata.parameters.delete(target);
     metadata.methods.set(target, controller);
 }
 

@@ -29,6 +29,19 @@ export interface BaseRouteDefinition {
     handler: string;
     handlerName: string;
     method: string;
-    consumers?: number;
     json?: boolean;
+    queueOptions?: QueueOptions;
+}
+export interface QueueOptions{
+    consumers?: number;
+    exclusive?: boolean;
+    durable?: boolean;
+    autoDelete?: boolean;
+    arguments?: any;
+    messageTtl?: number;
+    expires?: number;
+    deadLetterExchange?: string;
+    deadLetterRoutingKey?: string;
+    maxLength?: number;
+    maxPriority?: number;
 }

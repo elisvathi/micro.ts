@@ -69,6 +69,5 @@ export class SocketIOBroker extends AbstractBroker {
                 });
             });
         });
-        // throw new Error("Method not implemented.");
     }
 }

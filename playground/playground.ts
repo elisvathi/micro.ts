@@ -40,17 +40,20 @@ class UserService {
 export class Thrive {
 
     constructor() { }
-    @Get({ consumers: 20 })
+    @Get()
     getTrafficSources() { }
 }
 
 function beforeMiddleWare(a: Action) {
-    a.request.qs = { num: Math.random(), value: (Math.random() < 0.5) ? true : false, ...a.request.qs }; return a;
+    a.request.qs = { num: Math.random(), value: (Math.random() < 0.5) ? true : false, ...a.request.qs };
+    console.log("CALLED BEFORE");
+    return a;
 }
 
 @Service()
 class TrackerMiddleware implements IMiddleware {
-    constructor() { }
+    constructor() {
+    }
     num: number = 0;
     do(action: Action, def?: BaseRouteDefinition | undefined, controller?: VoluumController, broker?: IBroker): Action | Promise<Action> {
         controller!.login(this.num);
@@ -61,7 +64,7 @@ class TrackerMiddleware implements IMiddleware {
 
 @JsonController("Voluum")
 @ControllerAuthorize()
-@BeforeMiddlewares([Container.get(TrackerMiddleware)])
+@BeforeMiddlewares([TrackerMiddleware])
 export class VoluumController {
     constructor(private serv: UserService) {
     }
@@ -70,10 +73,10 @@ export class VoluumController {
         console.log("Called login " + num);
     };
 
-    @Get()
+    @Get({queueOptions: {consumers: 1, messageTtl: 15}})
     @UseMiddlewares([{
         before: true,
-        middleware: beforeMiddleWare
+        middleware: beforeMiddleWare,
     }])
     @AllowAnonymous()
     @FilterBrokers((broker: IBroker) => { return broker.constructor.name !== 'HapiBroker' })
@@ -87,9 +90,10 @@ export class VoluumController {
         return this.serv.getData();
     }
 
-    @Get({ consumers: 2 })
+    @Get()
+    @AllowAnonymous()
     public async trackerView() {
-        throw new NotFound();
+        return {ok: true};
     }
 
     @Post({ path: "clear" })
@@ -130,7 +134,7 @@ async function main() {
 
     const server = new BaseServer({
         controllers: [VoluumController, Thrive],
-        brokers: [hapi, socket],
+        brokers: [hapi, socket, amqp],
         logRequests: true,
         basePath: 'api',
         dev: true,
@@ -138,12 +142,6 @@ async function main() {
             const schema = getSchema(type);
             return Joi.validate(value, schema);
         },
-        afterMiddlewares: [(action: Action) => {
-            action.response = action.response || {};
-            const currentBody = action.response.body;
-            action.response.body = { ok: true, result: currentBody };
-            return action;
-        }],
         currentUserChecker: (a: Action) => { return {}; },
         authorizationChecker: (_a: Action, _options?: AuthorizeOptions) => { return false; }
     });

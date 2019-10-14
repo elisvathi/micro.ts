@@ -1,7 +1,7 @@
 import { AbstractBroker, DefinitionHandlerPair } from "./AbstractBroker";
 import { Connection, Channel, connect, Message, ConsumeMessage} from 'amqplib';
 import { RequestMapper, RouteMapper } from "./IBroker";
-import { Action, BaseRouteDefinition } from "../server/types/BaseTypes";
+import { Action, BaseRouteDefinition, QueueOptions } from "../server/types/BaseTypes";
 
 export class AmqpBroker extends AbstractBroker {
     private connection!: Connection;
@@ -51,15 +51,20 @@ export class AmqpBroker extends AbstractBroker {
         this.registeredRoutes.forEach(async (value: DefinitionHandlerPair[], route: string) => {
             let json = false;
             let totalConsumers = 0;
+            let queueOptions: QueueOptions = {};
             value.forEach(v => {
-                const consumers = v.def.consumers || 1;
+                if(!queueOptions && v.def.queueOptions){
+                    queueOptions = {...v.def.queueOptions};
+                    delete queueOptions.consumers;
+                }
+                const consumers = v.def.queueOptions? v.def.queueOptions.consumers || 1 : 1;
                 if (v.def.json) {
                     json = true;
                 }
                 totalConsumers += consumers;
             });
             if (totalConsumers > 0) {
-                await this.channel.assertQueue(route, { autoDelete: true });
+                await this.channel.assertQueue(route, queueOptions);
                 for (let i = 0; i < totalConsumers; i++) {
                     await this.channel.consume(route, async (message: ConsumeMessage | null) => {
                         if (message) {

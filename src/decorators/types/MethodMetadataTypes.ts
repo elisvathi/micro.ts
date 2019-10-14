@@ -2,6 +2,7 @@ import { ParamDescription } from "./ParamMetadataTypes";
 import { AppMiddelware } from "../../middlewares/IMiddleware";
 import { AppErrorHandler } from "../../errors/types/ErrorHandlerTypes";
 import { IBroker } from "../../brokers";
+import { QueueOptions } from "../../server";
 export type BrokerFilter = (broker: IBroker) => boolean;
 export interface MethodDescription {
     name?: string;
@@ -17,7 +18,7 @@ export interface MethodOptions {
     method?: string;
     path?: string;
     brokers?: BrokerFilter;
-    consumers?: number;
+    queueOptions?: QueueOptions;
 }
 
 export interface ControllerOptions {

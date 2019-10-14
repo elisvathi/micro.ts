@@ -53,23 +53,31 @@ export class HapiBroker extends AbstractBroker {
     private registerRoutes() {
         this.registeredRoutes.forEach(async (value: DefinitionHandlerPair[], route: string) => {
             if (value.length > 0) {
-                this.server.route({
-                    method: value[0].def.method,
-                    path: route,
-                    handler: async (r: HapiRequest, h: ResponseToolkit) => {
-                        const action = this.requestMapper(r);
-                        const handler = this.actionToRouteMapper(route, action, value);
-                        const result: Action = await handler(action);
-                        result.response = result.response || {};
-                        const body = result.response.body || result.response.error;
-                        let hapiResponse = h.response(body).code(result.response.statusCode || 200);
-                        const headers = result.response.headers || {};
-                        Object.keys(headers).forEach(h => {
-                            hapiResponse = hapiResponse.header(h, headers[h])
-                        });
-                        return hapiResponse;
+                const methods:any = {};
+                value.forEach(pair=>{
+                    if(!methods[pair.def.method]){
+                        methods[pair.def.method] = pair;
                     }
                 });
+                Object.keys(methods).forEach((method: string)=>{
+                    this.server.route({
+                        method: method,
+                        path: route,
+                        handler: async (r: HapiRequest, h: ResponseToolkit) => {
+                            const action = this.requestMapper(r);
+                            const handler = this.actionToRouteMapper(route, action, value);
+                            const result: Action = await handler(action);
+                            result.response = result.response || {};
+                            const body = result.response.body || result.response.error;
+                            let hapiResponse = h.response(body).code(result.response.statusCode || 200);
+                            const headers = result.response.headers || {};
+                            Object.keys(headers).forEach(h => {
+                                hapiResponse = hapiResponse.header(h, headers[h])
+                            });
+                            return hapiResponse;
+                        }
+                    });
+                })
             }
         });
     }

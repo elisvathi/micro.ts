@@ -6,53 +6,96 @@ import { Service } from "../di/DiDecorators";
 import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
 import { AppMiddelware } from "../middlewares/IMiddleware";
 
+/**
+ * Registers or appends metadata to the method 
+ * If the parameters of that method are not registered (from decorations) it saves only the types of the parameters
+ * @param target Target controller
+ * @param propertyKey method name
+ * @param _descriptor method descriptor
+ * @param options Options to attach
+ */
 export function registerHandlerMetadata(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options: MethodOptions) {
     const metadata = getGlobalMetadata();
+    // Get registered or default
     let controller: { [key: string]: MethodDescription } = metadata.methods.get(target) as { [key: string]: MethodDescription };
     controller = controller || {};
     controller[propertyKey] = controller[propertyKey] || { params: [] };
     controller[propertyKey].name = propertyKey;
     controller[propertyKey].metadata = controller[propertyKey].metadata || {};
+    // Attach to existing options, necessary if method is decorated with more than 1 annotation
     controller[propertyKey].metadata = { ...controller[propertyKey].metadata || {}, ...options || {} };
     controller[propertyKey].params = [];
+    // If the parameters of the method are registered copy save them to the method method metadata ...
     const existingParams = metadata.parameters.get(target);
     if (existingParams && existingParams[propertyKey]) {
         controller[propertyKey].params = existingParams[propertyKey] as ParamDescription[];
     } else {
+        // ... or get only the parameter types if they are not registered
         const paramtypes: any[] = Reflect.getOwnMetadata('design:paramtypes', target, propertyKey);
         if (paramtypes && paramtypes.length) {
             controller[propertyKey].params.push(...paramtypes.map(x => { return { type: x } }));
         }
     }
+    // Save the new metadata to the global metadata structure
     metadata.methods.set(target, controller);
 }
 
+/**
+ * Register metadata for a single parameter
+ * @param target Target controller
+ * @param propertyKey Method name
+ * @param index Parameter Index
+ * @param options Parameter options
+ */
 export function registerParamMetadata(target: any, propertyKey: string, index: number, options?: ParamOptions) {
     const metadata = getGlobalMetadata();
+    // Get existing method parameters or default
     let controller: { [key: string]: ParamDescription[] } = metadata.parameters.get(target) as { [key: string]: ParamDescription[] };
     controller = controller || {};
     controller[propertyKey] = controller[propertyKey] || [];
+    // Get types for the parameters of the method
     const paramtypes: any[] = Reflect.getOwnMetadata('design:paramtypes', target, propertyKey);
+    // If no metadata registered save only the parameter types
     if (paramtypes && paramtypes.length > 0 && controller[propertyKey].length === 0) {
         controller[propertyKey].push(...paramtypes.map(x => { return { type: x } }));
     }
+    // Set the metadata for the current parameter using index
     controller[propertyKey][index].options = options;
     metadata.parameters.set(target, controller);
 }
 
+/**
+ * Sets or unsets the authorized property for the method
+ * attaches authorization options and enabled flag to the method
+ * @param target Target controller
+ * @param propertyKey Method name
+ * @param _descriptor Method descriptor
+ * @param options Authorization options
+ * @param active Used to disable in case it's enabled by its controller
+ */
 export function attachHandlerAuthorization(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options?: AuthorizeOptions, active: boolean = true) {
     const metadata = getGlobalMetadata();
+    // Get registered metadata or default
     let controller: { [key: string]: MethodDescription } = metadata.methods.get(target) as { [key: string]: MethodDescription };
     controller = controller || {};
     controller[propertyKey] = controller[propertyKey] || { params: [] };
     const handlerObject = controller[propertyKey] || {};
+    // Sets authorization options
     handlerObject.authorize = active;
     handlerObject.authorization = handlerObject.authorization || [];
     handlerObject.authorization = options;
     controller[propertyKey] = handlerObject;
+    // Saves appended metadata
     metadata.methods.set(target, controller);
 }
 
+/**
+ * Attaches middlewares to the method
+ * @param target
+ * @param propertyKey
+ * @param _descriptor
+ * @param options
+ */
 export function attachHandlerMiddleware(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options: MiddlewareOptions[]) {
     const metadata = getGlobalMetadata();
     let controller: { [key: string]: MethodDescription } = metadata.methods.get(target) as { [key: string]: MethodDescription };

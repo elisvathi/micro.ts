@@ -6,7 +6,7 @@ import { getGlobalMetadata, getHandlerMetadata } from '../decorators/GlobalMetad
 import { MiddlewareFunction, IMiddleware, AppMiddelware } from '../middlewares/IMiddleware';
 import { BaseRouteDefinition, Action } from './types/BaseTypes';
 import { Container } from '../di/BaseContainer';
-import { MethodDescription, MethodControllerOptions, MiddlewareOptions } from '../decorators/types/MethodMetadataTypes';
+import { MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions } from '../decorators/types/MethodMetadataTypes';
 import { NotAuthorized, BadRequest } from '../errors/MainAppErrror';
 import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types/ParamMetadataTypes';
 import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors/types/ErrorHandlerTypes';
@@ -36,8 +36,8 @@ export class BaseServer {
     }
 
     private async executeMiddleware(middleware: AppMiddelware, def: BaseRouteDefinition, action: Action, controller: any): Promise<Action> {
-        if ('do' in middleware) {
-            const casted = middleware as IMiddleware;
+        if (middleware.prototype && ('do' in middleware.prototype)) {
+            const casted = Container.get(middleware.prototype.constructor);
             return casted.do(action, def, controller);
         }
         return (middleware as MiddlewareFunction)(action, def, controller);
@@ -74,7 +74,7 @@ export class BaseServer {
                 action.response.statusCode = err.statusCode || 500;
                 action.response.is_error = true;
                 action.response.error = err;
-                if(this.options.logErrors && action.response.statusCode === 500){
+                if (this.options.logErrors && action.response.statusCode === 500) {
                     console.log(action);
                 }
             }
@@ -255,7 +255,10 @@ export class BaseServer {
                     return this.validateParam(headerParam, options.headerParamOptions!.required || false, false, options.name);
 
                 case ParamDecoratorType.Query:
-                    const query = action.request.qs;
+                    let query = action.request.qs;
+                    if (Object.keys(query).length === 0) {
+                        query = undefined;
+                    }
                     return this.validateParam(query, options.queryOptions!.required || false, options.queryOptions!.validate || false, 'query', metadata.type);
                 case ParamDecoratorType.QueryField:
                     const queryParam = action.request.qs[options.name as string];
@@ -306,7 +309,7 @@ export class BaseServer {
     }
 
     private async buildSingleMethodRoute({ methodName, desc, basePath, controllerPath, ctor, isJson, brokers, routes, controllerName }: RegisterMethodParams) {
-        const metadata = desc.metadata || {};
+        const metadata: MethodOptions = desc.metadata || {};
         const methodPath = metadata.path;
         let path = methodPath || methodName;
         if (methodPath === "") {
@@ -325,7 +328,7 @@ export class BaseServer {
             handler: path,
             handlerName: methodName,
             method: reqMethod || 'get',
-            consumers: metadata.consumers,
+            queueOptions: metadata.queueOptions,
             json: isJson
         };
         const results = await this.addRoute(routeDefinition, methodBrokers, desc.params || []);

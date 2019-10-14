@@ -25,6 +25,14 @@ export function Put(options?: MethodOptions) {
     }
 }
 
+export function Options(options?: MethodOptions) {
+    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+        options = options || {};
+        options.method = 'options';
+        registerHandlerMetadata(target, propertyKey, descriptor, options);
+    }
+}
+
 export function Patch(options?: MethodOptions) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         options = options || {};

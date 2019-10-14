@@ -2,12 +2,20 @@ import { AuthorizeOptions, MiddlewareOptions, BrokerFilter } from "./types/Metho
 import { attachHandlerAuthorization, attachHandlerMiddleware, attachHandlerErrorHandler, attachHandlerBrokersFitler } from "./BaseDecorators";
 import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
 
+/**
+ * Use this decorator to guard the method by filtering the request through authorizationChecker server function 
+ * Throws NotAuthorized error if the authorizationChecker returns false
+ * @param options
+ */
 export function Authorize(options?: AuthorizeOptions) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         attachHandlerAuthorization(target, propertyKey, descriptor, options);
     }
 }
 
+/**
+ * Overrides the controller Authorization guard by disabling it for the methods it decorates
+ */
 export function AllowAnonymous() {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
         attachHandlerAuthorization(target, propertyKey, descriptor, undefined, false);
@@ -35,6 +43,10 @@ export function UseErrorHandler(options: AppErrorHandler[]) {
 }
 
 
+/**
+ * Filter controller brokers for this methods 
+ * @param brokers Filter function, applied to the list of brokers enabled for this method's controller
+ */
 export function FilterBrokers(brokers: BrokerFilter) {
     return (target: any, propertyKey: string, descriptor: PropertyDescriptor) =>{
         attachHandlerBrokersFitler(target, propertyKey, descriptor, brokers);

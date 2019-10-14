@@ -16,6 +16,15 @@ export abstract class AbstractBroker implements IBroker {
     protected routeMapper!: RouteMapper;
     protected requestMapper!: RequestMapper;
     protected actionToRouteMapper: ActionToRouteMapper = (route: string, action: Action, pairs: DefinitionHandlerPair[]) => {
+        const method = action.request.method;
+        if(method){
+            const filtered = pairs.filter(x=>{
+                return x.def.method === method;
+            });
+            if(filtered.length){
+                return filtered[0].handler;
+            }
+        }
         return pairs[0].handler;
     }
 

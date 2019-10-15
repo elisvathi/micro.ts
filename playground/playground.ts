@@ -1,12 +1,11 @@
 import { Required, MinLength, getSchema } from "joi-typescript-validator";
 import { Service } from "../src/di/DiDecorators";
-import { JsonController, ControllerAuthorize, BeforeMiddlewares, ControllerFilterBroker } from "../src/decorators/ControllerDecorators";
+import { JsonController, BeforeMiddlewares } from "../src/decorators/ControllerDecorators";
 import { Get, Delete, Post } from "../src/decorators/RestDecorators";
 import { Action, BaseRouteDefinition } from "../src/server/types/BaseTypes";
 import { IMiddleware } from "../src/middlewares/IMiddleware";
 import { IBroker } from "../src/brokers/IBroker";
-import { Container } from "../src/di/BaseContainer";
-import { UseMiddlewares, AllowAnonymous, FilterBrokers } from "../src/decorators/MethodDecorators";
+import { AllowAnonymous, FilterBrokers, Authorize } from "../src/decorators/MethodDecorators";
 import { Query, Headers, Header, Connection, Request, Body } from "../src/decorators/ParameterDecorators";
 import { AuthorizeOptions } from "../src/decorators/types/MethodMetadataTypes";
 import { BaseServer } from "../src/server/BaseServer";
@@ -15,7 +14,6 @@ import { AmqpBroker } from "../src/brokers/AmqpBroker";
 import { HapiBroker } from "../src/brokers/HapiBroker";
 import { SocketIOBroker } from "../src/brokers/SocketIOBroker";
 import * as Joi from 'joi';
-import { NotFound } from "../src/errors/MainAppErrror";
 
 class User {
     @Required()
@@ -36,7 +34,7 @@ class UserService {
     }
 }
 @JsonController("Thrive")
-@ControllerFilterBroker((broker: IBroker) => broker.constructor.name === 'SocketIOBroker')
+@FilterBrokers((broker: IBroker) => broker.constructor.name === 'SocketIOBroker')
 export class Thrive {
 
     constructor() { }
@@ -63,7 +61,7 @@ class TrackerMiddleware implements IMiddleware {
 }
 
 @JsonController("Voluum")
-@ControllerAuthorize()
+@Authorize()
 @BeforeMiddlewares([TrackerMiddleware])
 export class VoluumController {
     constructor(private serv: UserService) {
@@ -73,11 +71,8 @@ export class VoluumController {
         console.log("Called login " + num);
     };
 
-    @Get({queueOptions: {consumers: 1, messageTtl: 15}})
-    @UseMiddlewares([{
-        before: true,
-        middleware: beforeMiddleWare,
-    }])
+    @Get("trafficSources", {queueOptions: {consumers: 1, messageTtl: 15}})
+    @BeforeMiddlewares([beforeMiddleWare])
     @AllowAnonymous()
     @FilterBrokers((broker: IBroker) => { return broker.constructor.name !== 'HapiBroker' })
     public async trafficSources(@Request() req: Action,
@@ -96,14 +91,14 @@ export class VoluumController {
         return {ok: true};
     }
 
-    @Post({ path: "clear" })
+    @Post("clear")
     @AllowAnonymous()
     @FilterBrokers((broker: IBroker) => { return broker.constructor === HapiBroker })
     public async removeData(@Body({ required: true, validate: true }) data: User) {
         return { data };
     }
 
-    @Delete({ path: "clear-all" })
+    @Delete("clear-all")
     public async removeAllData() {
 
     }

@@ -1,5 +1,5 @@
-import { AuthorizeOptions, MiddlewareOptions, BrokerFilter } from "./types/MethodMetadataTypes";
-import { attachHandlerAuthorization, attachHandlerMiddleware, attachHandlerErrorHandler, attachHandlerBrokersFitler } from "./BaseDecorators";
+import { AuthorizeOptions, BrokerFilter } from "./types/MethodMetadataTypes";
+import { attachHandlerAuthorization, attachHandlerErrorHandler, attachHandlerBrokersFitler, attachControllerAuthorization, attachControllerErrorHandlers, registerControllerMetadata } from "./BaseDecorators";
 import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
 
 /**
@@ -8,8 +8,12 @@ import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
  * @param options
  */
 export function Authorize(options?: AuthorizeOptions) {
-    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-        attachHandlerAuthorization(target, propertyKey, descriptor, options);
+    return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
+        if (propertyKey) {
+            attachHandlerAuthorization(target, propertyKey as string, descriptor as PropertyDescriptor, options);
+        } else {
+            attachControllerAuthorization(target, options);
+        }
     }
 }
 
@@ -23,32 +27,29 @@ export function AllowAnonymous() {
 }
 
 /**
- * Registers middlewares for the handler it decorates
+ * Register error handler for the handler it decorates
  * @param options
  */
-export function UseMiddlewares(options: MiddlewareOptions[]) {
-    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-        attachHandlerMiddleware(target, propertyKey, descriptor, options);
+export function UseErrorHandlers(options: AppErrorHandler[]) {
+    return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
+        if (propertyKey) {
+            attachHandlerErrorHandler(target, propertyKey as string, descriptor as PropertyDescriptor, options);
+        } else {
+            attachControllerErrorHandlers(target, options);
+        }
     }
 }
 
 /**
- * Register error handler for the handler it decorates 
- * @param options
- */
-export function UseErrorHandler(options: AppErrorHandler[]) {
-    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-        attachHandlerErrorHandler(target, propertyKey, descriptor, options);
-    }
-}
-
-
-/**
- * Filter controller brokers for this methods 
+ * Filter controller brokers for this methods
  * @param brokers Filter function, applied to the list of brokers enabled for this method's controller
  */
 export function FilterBrokers(brokers: BrokerFilter) {
-    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) =>{
-        attachHandlerBrokersFitler(target, propertyKey, descriptor, brokers);
+    return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
+        if (propertyKey) {
+            attachHandlerBrokersFitler(target, propertyKey as string, descriptor as PropertyDescriptor, brokers);
+        } else {
+            registerControllerMetadata(target, { brokersFilter: brokers });
+        }
     }
 }

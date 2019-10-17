@@ -17,6 +17,13 @@ export class BaseContainer {
         this.singletonInstances.set(key, value);
     }
 
+    setScoped(scope: string, key: any, value: any){
+        if(!this.scopes[scope]){
+            this.scopes[scope] = new Map<any, any>();
+        }
+        this.scopes[scope].set(key, value);
+    }
+
     get<T = any>(key: { new(...args: any[]): T } | string | any, scope?: string): T {
         if (typeof key === 'string') {
             if (scope) {
@@ -47,6 +54,9 @@ export class BaseContainer {
                 value = this.singletonInstances.get(key);
             } else {
                 let sc = (serviceOptions.scope || scope) as string;
+                if(!this.scopes[sc]){
+                    this.scopes[sc] = new Map<any, any>();
+                }
                 value = this.scopes[sc].get(key);
             }
         } else {
@@ -57,6 +67,9 @@ export class BaseContainer {
             if (!serviceOptions.transient && !serviceOptions.scope) {
                 this.singletonInstances.set(key, value);
             } else if (serviceOptions.scope) {
+                if(!this.scopes[serviceOptions.scope]){
+                    this.scopes[serviceOptions.scope] = new Map<any, any>();
+                }
                 this.scopes[serviceOptions.scope].set(key, value);
             }
         }

@@ -3,7 +3,7 @@ import { ServerOptions } from './types/ServerOptions';
 import { IBroker } from '../brokers/IBroker';
 import { GlobalMetadata, ControllerMetadata } from '../decorators/types/ControllerMetadataTypes';
 import { getGlobalMetadata, getHandlerMetadata } from '../decorators/GlobalMetadata';
-import { MiddlewareFunction, IMiddleware, AppMiddelware } from '../middlewares/IMiddleware';
+import { MiddlewareFunction, AppMiddelware, IMiddleware } from '../middlewares/IMiddleware';
 import { BaseRouteDefinition, Action } from './types/BaseTypes';
 import { Container } from '../di/BaseContainer';
 import { MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions } from '../decorators/types/MethodMetadataTypes';
@@ -35,12 +35,12 @@ export class BaseServer {
         return getGlobalMetadata();
     }
 
-    private async executeMiddleware(middleware: AppMiddelware, def: BaseRouteDefinition, action: Action, controller: any): Promise<Action> {
+    private async executeMiddleware(middleware: AppMiddelware, def: BaseRouteDefinition, action: Action, controller: any, broker: IBroker): Promise<Action> {
         if (middleware.prototype && ('do' in middleware.prototype)) {
-            const casted = Container.get(middleware.prototype.constructor);
-            return casted.do(action, def, controller);
+            const casted: IMiddleware = Container.get(middleware.prototype.constructor);
+            return casted.do(action, def, controller, broker);
         }
-        return (middleware as MiddlewareFunction)(action, def, controller);
+        return (middleware as MiddlewareFunction)(action, def, controller, broker);
     }
 
     private async executeErrorHandler(handler: AppErrorHandler, error: any, action: Action, def: BaseRouteDefinition, controller: any, broker: IBroker) {
@@ -160,7 +160,7 @@ export class BaseServer {
         const middlewares = this.getMiddlewares(methodControllerMetadata);
         if (middlewares.before.length) {
             for (let i = 0; i < middlewares.before.length; i++) {
-                action = await this.executeMiddleware(middlewares.before[i], def, action, controllerInstance);
+                action = await this.executeMiddleware(middlewares.before[i], def, action, controllerInstance, broker);
             }
         }
         const args = await this.buildParams(action, methodControllerMetadata.method, broker);
@@ -171,7 +171,7 @@ export class BaseServer {
         action.response.body = result;
         if (middlewares.after.length) {
             for (let i = 0; i < middlewares.after.length; i++) {
-                action = await this.executeMiddleware(middlewares.after[i], def, action, controllerInstance);
+                action = await this.executeMiddleware(middlewares.after[i], def, action, controllerInstance, broker);
             }
         }
         return action;
@@ -243,7 +243,7 @@ export class BaseServer {
                 case ParamDecoratorType.RawRequest:
                     return action.request.raw;
                 case ParamDecoratorType.ContainerInject:
-                    return Container.get(options.name as string);
+                    return Container.get(options.name as any);
                 case ParamDecoratorType.Broker:
                     return broker;
 

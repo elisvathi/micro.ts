@@ -3,9 +3,12 @@ import { attachHandlerAuthorization, attachHandlerErrorHandler, attachHandlerBro
 import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
 
 /**
- * Use this decorator to guard the method by filtering the request through authorizationChecker server function 
+ * Use this decorator to guard the method or if used on a controller, guard all controller methods,
+ * by filtering the request through authorizationChecker server function
+ * If used on a controller you can bypass this check by usig AllowAnonymous decorator on a method
  * Throws NotAuthorized error if the authorizationChecker returns false
- * @param options
+ * @param options Allows any nested value inside authorize options, 
+ * this object, if exists,  will be passed in the authorizationChecker function
  */
 export function Authorize(options?: AuthorizeOptions) {
     return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {

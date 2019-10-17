@@ -12,6 +12,10 @@ import { RequestBodyOptions,
          ContainerInjectOptions } from "./types/ParamMetadataTypes";
 import { registerParamMetadata } from "./BaseDecorators";
 
+/**
+ * Injects the Action request body to the handler 
+ * @param options options to validate the parameter
+ */
 export function Body(options?: RequestBodyOptions) {
     return (target: any, propertyKey: string, parameterIndex: number) => {
         const newOptions: ParamOptions = {
@@ -22,6 +26,11 @@ export function Body(options?: RequestBodyOptions) {
     }
 }
 
+/**
+ * Injects a single value using the given key on the Action request body root level 
+ * @param name Key of the body object to inject
+ * @param options Specify if the field is required 
+ */
 export function BodyParam(name: string, options?: RequestBodyParamOptions) {
     return (target: any, propertyKey: string, parameterIndex: number) => {
         const newOptions: ParamOptions = {
@@ -33,6 +42,11 @@ export function BodyParam(name: string, options?: RequestBodyParamOptions) {
     }
 }
 
+/**
+ * Injects a single value using the given key on the Action request params root level 
+ * @param name Key of the param object to inject
+ * @param options Specify if the field is required 
+ */
 export function Param(name: string, options?: RequestSingleParamOptions) {
     return (target: any, propertyKey: string, parameterIndex: number) => {
         const newOptions: ParamOptions = {

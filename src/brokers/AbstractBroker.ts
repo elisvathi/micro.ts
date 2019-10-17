@@ -1,6 +1,6 @@
-import { Action, BaseRouteDefinition } from "../server/types/BaseTypes";
-import { IBroker, RouteMapper, RequestMapper } from "./IBroker";
 import { NotFound } from "../errors";
+import { Action, BaseRouteDefinition } from "../server/types/BaseTypes";
+import { IBroker, RequestMapper, RouteMapper } from "./IBroker";
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
 export type DefinitionHandlerPair = {

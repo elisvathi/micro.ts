@@ -5,7 +5,7 @@ import { Action } from "../server/types/BaseTypes";
 import { DefinitionHandlerPair } from "./AbstractBroker";
 
 export class TopicBasedAmqpBroker extends AmqpBroker {
-  constructor(options: { url: string }, private topic: string) {
+  constructor(options: { url: string }, private topic: string = 'base-topic') {
     super(options);
   }
   public get baseTopic(): string {

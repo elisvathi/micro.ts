@@ -5,12 +5,15 @@ import { Action } from "../server/types/BaseTypes";
 import { DefinitionHandlerPair } from "./AbstractBroker";
 
 export class TopicBasedAmqpBroker extends AmqpBroker {
-  private _baseTopic: string = "base-topic";
-  public get baseTopic(): string {
-    return this._baseTopic;
+  constructor(options: { url: string }, private topic: string) {
+    super(options);
   }
+  public get baseTopic(): string {
+    return this.topic;
+  }
+
   public set baseTopic(value: string) {
-    this._baseTopic = value;
+    this.topic = value;
   }
 
   protected requestMapper: RequestMapper = (r: Message, queue: string, routingKey: string, json: boolean) => {
@@ -30,9 +33,9 @@ export class TopicBasedAmqpBroker extends AmqpBroker {
   };
 
   protected async consumeMessage(route: string,
-                                         message: ConsumeMessage | null,
-                                         value: DefinitionHandlerPair[],
-                                         json: boolean) {
+    message: ConsumeMessage | null,
+    value: DefinitionHandlerPair[],
+    json: boolean) {
     if (message) {
       const routingKey = message.fields.routingKey;
       const mapped: Action = this.requestMapper(message, route, routingKey, json);
@@ -45,9 +48,9 @@ export class TopicBasedAmqpBroker extends AmqpBroker {
     }
   }
 
-  protected async registerSingleRoute(value: DefinitionHandlerPair[], route: string){
+  protected async registerSingleRoute(value: DefinitionHandlerPair[], route: string) {
     const result = await super.registerSingleRoute(value, route);
-    if(result){
+    if (result) {
       await this.channel.bindQueue(route, this.baseTopic, this.getQueuePattern(route));
     }
     return result;

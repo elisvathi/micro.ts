@@ -32,6 +32,16 @@ interface RegisterMethodParams {
   controllerName: string;
 }
 
+interface ValidateParamParams {
+  isObject: boolean;
+  notEmpty?: boolean;
+  value: any;
+  required: boolean;
+  validate: boolean;
+  name?: any;
+  type?: any;
+}
+
 export class BaseServer {
   constructor(private options: ServerOptions) { }
 
@@ -289,9 +299,14 @@ export class BaseServer {
    * @param name Key of the value in case is a single key option
    * @param type Type of parameter to use in validation
    */
-  private async validateParam(value: any, required: boolean, validate: boolean, name?: any, type?: any): Promise<any> {
+  private async validateParam({value, required, validate, name, type, isObject, notEmpty}: ValidateParamParams): Promise<any> {
     if (required && !value) {
       throw new BadRequest(`${name} is required`);
+    }
+    if(isObject && notEmpty){
+      if(!!value && Object.keys(value).length === 0){
+        throw new BadRequest(`${name} must not be empty`);
+      }
     }
     if (validate && !!value && this.options.validateFunction) {
       try {
@@ -320,17 +335,38 @@ export class BaseServer {
 
         case ParamDecoratorType.Body:
           const body = action.request.body;
-          return this.validateParam(body, options.bodyOptions!.required || false, options.bodyOptions!.validate || false, 'body', metadata.type);
+          return this.validateParam({
+            value: body,
+            required: options.bodyOptions!.required || false,
+            validate: options.bodyOptions!.validate || false,
+            isObject: true,
+            notEmpty: options.bodyOptions!.notEmpty || false,
+            name: 'body',
+            type: metadata.type
+          });
         case ParamDecoratorType.BodyField:
-          const bodyField = action.request.body[options.name as string]
-          return this.validateParam(bodyField, options.bodyParamOptions!.required || false, false, options.name);
+          const bodyField = action.request.body[options.name as string];
+          return this.validateParam({
+            value: bodyField,
+            isObject: false,
+            required: options.bodyParamOptions!.required || false,
+            validate: false,
+            name: options.name
+          });
 
         case ParamDecoratorType.Params:
           const params = action.request.params;
-          return this.validateParam(params, true, options.paramOptions!.validate || false, 'parameters', metadata.type);
+          return this.validateParam({
+            value: params,
+            isObject: true,
+            required: true,
+            validate: options.paramOptions!.validate || false,
+            name: 'parameters',
+            type: metadata.type
+          });
         case ParamDecoratorType.ParamField:
           const paramField = action.request.params[options.name as string];
-          return this.validateParam(paramField, true, false, options.name);
+          return this.validateParam({value: paramField, isObject: false, required: true, validate: false, name: options.name});
 
         case ParamDecoratorType.Method:
           return action.request.method;
@@ -348,20 +384,45 @@ export class BaseServer {
 
         case ParamDecoratorType.Header:
           const headers = action.request.headers;
-          return this.validateParam(headers, options.headerOptions!.validate || false, false, 'headers', metadata.type);
+          return this.validateParam({
+            value: headers,
+            isObject: true,
+            notEmpty: options.headerOptions!.notEmpty || false,
+            required: options.headerOptions!.validate || false,
+            validate: false,
+            name: 'headers',
+            type: metadata.type
+          });
         case ParamDecoratorType.HeaderField:
           const headerParam = action.request.headers[options.name as string]
-          return this.validateParam(headerParam, options.headerParamOptions!.required || false, false, options.name);
+          return this.validateParam({
+            value: headerParam,
+            isObject: false,
+            required: options.headerParamOptions!.required || false,
+            validate: false,
+            name: options.name
+          });
 
         case ParamDecoratorType.Query:
           let query = action.request.qs;
-          if (Object.keys(query).length === 0) {
-            query = undefined;
-          }
-          return this.validateParam(query, options.queryOptions!.required || false, options.queryOptions!.validate || false, 'query', metadata.type);
+          return this.validateParam({
+            value: query,
+            isObject: true,
+            notEmpty: options.queryOptions!.notEmpty || false,
+            required: options.queryOptions!.required || false,
+            validate: options.queryOptions!.validate || false,
+            name: 'query',
+            type: metadata.type
+          });
         case ParamDecoratorType.QueryField:
           const queryParam = action.request.qs[options.name as string];
-          return this.validateParam(queryParam, options.queryParamOptions!.required || false, false, options.name);
+          return this.validateParam({
+            value: queryParam,
+            isObject: false,
+            required: options.queryParamOptions!.required || false,
+            validate: false,
+            name: options.name
+          });
 
         case ParamDecoratorType.User:
           const user = await this.getUser(action, broker);

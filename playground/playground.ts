@@ -3,7 +3,7 @@ import {Action} from "../src/server/types";
 import {AuthorizeOptions} from "../src/decorators/types";
 import {BaseServer} from "../src/server";
 import {HapiBroker} from "../src/brokers";
-import {JsonController, Param, Post, Get, Params, Body, Headers, AfterMiddlewares} from '../src';
+import {JsonController, Param, Post, Get, Params, Body, Headers, AfterMiddlewares, Query} from '../src';
 import {TopicBasedAmqpBroker} from '../src/brokers/TopicBasedAmqpBroker';
 import * as Joi from 'joi';
 import {ExpressBroker} from "../src/brokers/ExpressBroker";
@@ -21,16 +21,9 @@ class ParamsRequest {
 export class TestController {
 
   @Get("parameter/:platform/:userId", {queueOptions: {autoDelete: true, durable: false}})
-  @AfterMiddlewares([(a: Action)=>{
-    a.response = a.response || {};
-    a.response.headers = a.response.headers || {};
-    a.response.headers['X-ELIS_VATHI'] = "ELIS VATHI";
-    return a ;
-  }])
-  public parameterTest(@Params({validate: true}) params: ParamsRequest, @Body() body: any,
+  public parameterTest(@Params({validate: true}) params: ParamsRequest, @Query({notEmpty: true}) body: any,
                        @Headers() headers: any) {
-    console.log("Params are", params, body);
-    return {body, params, headers}
+    return {body, params}
   }
 
 }

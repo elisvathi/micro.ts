@@ -1,6 +1,6 @@
 import {HttpBroker, RestMethods} from "./HttpBroker";
 import koa from 'koa'
-import Router, {RouterContext} from 'koa-router';
+import Router from 'koa-router';
 import bodyParser from "koa-bodyparser";
 import {Action} from "../server/types";
 import {DefinitionHandlerPair} from "./AbstractBroker";

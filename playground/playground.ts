@@ -3,10 +3,11 @@ import {Action} from "../src/server/types";
 import {AuthorizeOptions} from "../src/decorators/types";
 import {BaseServer} from "../src/server";
 import {HapiBroker} from "../src/brokers";
-import {JsonController, Param, Post, Get, Params, Body, Headers} from '../src';
+import {JsonController, Param, Post, Get, Params, Body, Headers, AfterMiddlewares} from '../src';
 import {TopicBasedAmqpBroker} from '../src/brokers/TopicBasedAmqpBroker';
 import * as Joi from 'joi';
 import {ExpressBroker} from "../src/brokers/ExpressBroker";
+import {KoaBroker} from "../src/brokers/KoaBroker";
 
 class ParamsRequest {
   @Required()
@@ -20,6 +21,12 @@ class ParamsRequest {
 export class TestController {
 
   @Get("parameter/:platform/:userId", {queueOptions: {autoDelete: true, durable: false}})
+  @AfterMiddlewares([(a: Action)=>{
+    a.response = a.response || {};
+    a.response.headers = a.response.headers || {};
+    a.response.headers['X-ELIS_VATHI'] = "ELIS VATHI";
+    return a ;
+  }])
   public parameterTest(@Params({validate: true}) params: ParamsRequest, @Body() body: any,
                        @Headers() headers: any) {
     console.log("Params are", params, body);
@@ -29,13 +36,13 @@ export class TestController {
 }
 
 async function main() {
-  const HapiConfig = {address: '0.0.0.0', port: 8080};
+  const HttpConfig = {address: '0.0.0.0', port: 8080};
   const AmqpConfig = {url: 'amqp://localhost'};
-  const hapi = new ExpressBroker(HapiConfig);
+  const httpBroker = new KoaBroker(HttpConfig);
   const amqp = new TopicBasedAmqpBroker(AmqpConfig);
   const server = new BaseServer({
     controllers: [TestController],
-    brokers: [hapi],
+    brokers: [httpBroker],
     logRequests: true,
     basePath: 'api',
     errorHandlers: [(err: any) => {

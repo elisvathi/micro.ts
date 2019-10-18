@@ -1,9 +1,8 @@
 import {AbstractBroker, DefinitionHandlerPair} from "./AbstractBroker";
-import {HttpBroker} from "./HttpBroker";
+import {HttpBroker, RestMethods} from "./HttpBroker";
 import express, {Application, Request, NextFunction, Response} from 'express'
 import {Action} from "../server/types";
 
-export type RestMethods = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options';
 
 export class ExpressBroker extends HttpBroker<Application, Request, Response> {
   constructor(private options: { address: string, port: number }) {
@@ -54,9 +53,8 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response> {
   async start(): Promise<void> {
     this.registerRoutes();
     await new Promise((resolve, reject)=>{
-      this.server.listen(this.options.port, this.options.address, (arg)=>{
-        console.log(arg) ;
-        resolve(arg);
+      this.server.listen(this.options.port, this.options.address, ()=>{
+        resolve();
       });
     });
     console.log(`Server listening on address ${this.options.address} and port ${this.options.port}`);

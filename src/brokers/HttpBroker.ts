@@ -2,6 +2,7 @@ import {AbstractBroker, DefinitionHandlerPair} from "./AbstractBroker";
 import {RouteMapper} from "./IBroker";
 import {Action, BaseRouteDefinition} from "../server/types";
 
+export type RestMethods = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options';
 export abstract class HttpBroker<ServerType, RequestType, ContextType> extends AbstractBroker {
 
   public getConnection(): ServerType {

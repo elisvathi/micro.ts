@@ -13,8 +13,8 @@ export type ActionToRouteMapper = (route: string,
 
 export abstract class AbstractBroker implements IBroker {
     protected registeredRoutes: Map<string, DefinitionHandlerPair[]> = new Map<string, DefinitionHandlerPair[]>();
-    protected routeMapper!: RouteMapper;
-    protected requestMapper!: RequestMapper;
+    protected abstract routeMapper: RouteMapper;
+    protected abstract requestMapper: RequestMapper;
     protected actionToRouteMapper: ActionToRouteMapper = (route: string, action: Action, pairs: DefinitionHandlerPair[]) => {
         const method = action.request.method;
         if(method){

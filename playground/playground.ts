@@ -1,137 +1,45 @@
-import { Required, MinLength, getSchema } from "joi-typescript-validator";
-import { Service } from "../src/di/DiDecorators";
-import { JsonController, BeforeMiddlewares } from "../src/decorators/ControllerDecorators";
-import { Get, Delete, Post } from "../src/decorators/RestDecorators";
-import { Action, BaseRouteDefinition } from "../src/server/types/BaseTypes";
-import { IMiddleware } from "../src/middlewares/IMiddleware";
-import { IBroker } from "../src/brokers/IBroker";
-import { AllowAnonymous, FilterBrokers, Authorize } from "../src/decorators/MethodDecorators";
-import { Query, Headers, Header, Connection, Request, Body } from "../src/decorators/ParameterDecorators";
-import { AuthorizeOptions } from "../src/decorators/types/MethodMetadataTypes";
-import { BaseServer } from "../src/server/BaseServer";
-import { DefinitionHandlerPair } from "../src/brokers/AbstractBroker";
-import { AmqpBroker } from "../src/brokers/AmqpBroker";
-import { HapiBroker } from "../src/brokers/HapiBroker";
-import { SocketIOBroker } from "../src/brokers/SocketIOBroker";
+import { getSchema, Required , ValidOptions} from "joi-typescript-validator";
+import { Action } from "../src/server/types";
+import { AuthorizeOptions } from "../src/decorators/types";
+import { BaseServer } from "../src/server";
+import { HapiBroker } from "../src/brokers";
+import { JsonController, Param, Post, Get, Params, Body } from '../src';
+import { TopicBasedAmqpBroker } from '../src/brokers/TopicBasedAmqpBroker';
 import * as Joi from 'joi';
 
-class User {
+class ParamsRequest {
     @Required()
-    @MinLength(3)
-    public name!: string;
+    @ValidOptions('mobile', 'adult', 'native')
+    platform!: string;
+    @Required()
+    userId!: number;
 }
 
-@Service()
-class UserService {
-    private data: any[] = [];
+@JsonController("test")
+export class TestController {
 
-    getData() {
-        return this.data;
+    @Get("parameter/:platform/:userId", { queueOptions: { autoDelete: true, durable: false } })
+    public parameterTest(@Params({ validate: true }) params: ParamsRequest, @Body() body: any) {
+        console.log("Params are", params, body);
+        return {body, params}
     }
 
-    setData(headers: any) {
-        this.data.push(headers);
-    }
-}
-@JsonController("Thrive")
-@FilterBrokers((broker: IBroker) => broker.constructor.name === 'SocketIOBroker')
-export class Thrive {
-
-    constructor() { }
-    @Get()
-    getTrafficSources() { }
-}
-
-function beforeMiddleWare(a: Action) {
-    a.request.qs = { num: Math.random(), value: (Math.random() < 0.5) ? true : false, ...a.request.qs };
-    console.log("CALLED BEFORE");
-    return a;
-}
-
-@Service()
-class TrackerMiddleware implements IMiddleware {
-    constructor() {
-    }
-    num: number = 0;
-    do(action: Action, def?: BaseRouteDefinition | undefined, controller?: VoluumController, broker?: IBroker): Action | Promise<Action> {
-        controller!.login(this.num);
-        this.num++;
-        return action;
-    }
-}
-
-@JsonController("Voluum")
-@Authorize()
-@BeforeMiddlewares([TrackerMiddleware])
-export class VoluumController {
-    constructor(private serv: UserService) {
-    }
-
-    public login(num: number) {
-        console.log("Called login " + num);
-    };
-
-    @Get("trafficSources", { queueOptions: { consumers: 1, messageTtl: 15 } })
-    @BeforeMiddlewares([beforeMiddleWare])
-    @AllowAnonymous()
-    @FilterBrokers((broker: IBroker) => { return broker.constructor.name !== 'HapiBroker' })
-    public async trafficSources(@Request() req: Action,
-        @Query() query: any,
-        @Headers() _headers: any,
-        @Header("socket_id", { required: true }) socket_id: string,
-        @Connection() con: any) {
-        this.serv.setData({ socket_id });
-        con.emit(req.request.body.reply_to, this.serv.getData());
-        return this.serv.getData();
-    }
-
-    @Get()
-    @AllowAnonymous()
-    public async trackerView() {
-        return { ok: true };
-    }
-
-    @Post("clear")
-    @AllowAnonymous()
-    @FilterBrokers((broker: IBroker) => { return broker.constructor === HapiBroker })
-    public async removeData(@Body({ required: true, validate: true }) data: User) {
-        return { data };
-    }
-
-    @Delete("clear-all")
-    public async removeAllData() {
-
-    }
 }
 
 async function main() {
     const HapiConfig = { address: '0.0.0.0', port: 8080 };
     const AmqpConfig = { url: 'amqp://localhost' };
     const hapi = new HapiBroker(HapiConfig, true);
-    const amqp = new AmqpBroker(AmqpConfig)
-    const socket = new SocketIOBroker(hapi.getConnection().listener);
-    socket.setRouteMapper((def: BaseRouteDefinition) => {
-        return def.handler;
-    })
-    amqp.setRouteMapper((def: BaseRouteDefinition) => {
-        return `ms.Tracker.${def.controller}`
-    });
-    amqp.setActionToHandlerMapper((_route: string, action: Action, pairs: DefinitionHandlerPair[]) => {
-        const body = action.request.body;
-        const method = body.method;
-        let filtered = pairs.find(x => x.def.handlerName === method);
-        if (!filtered) {
-            filtered = pairs[0];
-        }
-        action.request.method = filtered.def.method;
-        return filtered.handler;
-    });
-
+    const amqp = new TopicBasedAmqpBroker(AmqpConfig);
     const server = new BaseServer({
-        controllers: [VoluumController, Thrive],
-        brokers: [hapi, socket, amqp],
+        controllers: [TestController],
+        brokers: [hapi, amqp],
         logRequests: true,
         basePath: 'api',
+        errorHandlers: [(err: any) => {
+            console.log(err);
+            return false;
+        }],
         dev: true,
         validateFunction: (value: any, type: any) => {
             const schema = getSchema(type);

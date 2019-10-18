@@ -60,5 +60,16 @@ export abstract class AbstractBroker implements IBroker {
         return route;
     }
 
+    protected extractParamNames(path: string, separator = "/") {
+        const spl = path.split(separator);
+        return spl.map(x => {
+            const value: { name: string, param: boolean } = { name: x, param: false };
+            if (x.length > 0 && x[0] === ":") {
+                value.name = x.substr(1);
+                value.param = true;
+            }
+            return value;
+        });
+    }
     abstract start(): Promise<void>;
 }

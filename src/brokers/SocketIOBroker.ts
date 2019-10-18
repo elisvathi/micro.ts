@@ -2,14 +2,14 @@ import { AbstractBroker } from "./AbstractBroker";
 import Socket, { Server as SocketServer } from 'socket.io';
 import * as http from 'http';
 import { RouteMapper, RequestMapper } from "./IBroker";
-import { BaseRouteDefinition, Action } from "../server/types/BaseTypes";
+import { BaseRouteDefinition, Action } from "../server/types";
 
 export interface SocketIOPayload {
 
 }
 
 export class SocketIOBroker extends AbstractBroker {
-    private server!: SocketServer;
+    private readonly server!: SocketServer;
     constructor(listener: http.Server) {
         super();
         this.server = Socket(listener);
@@ -54,6 +54,9 @@ export class SocketIOBroker extends AbstractBroker {
         return act;
     };
 
+    /**
+     * Start listening
+     */
     async start() {
         this.server.on('connection', (socket) => {
             const clientId = socket.client.id;

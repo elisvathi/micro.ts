@@ -29,6 +29,11 @@ export class HapiBroker extends AbstractBroker {
             controllerPart = `/${controllerPart}`;
         }
         let handlerPart = def.handler;
+        const params = this.extractParamNames(handlerPart);
+        handlerPart = params.map(x=>{
+            if(x.param){ return `{${x.name}}`}
+            return x.name;
+        }).join('/')
         if (handlerPart.indexOf("/") !== 0 && handlerPart.length > 0) {
             handlerPart = `/${handlerPart}`;
         }

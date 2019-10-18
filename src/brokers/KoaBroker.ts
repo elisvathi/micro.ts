@@ -26,7 +26,7 @@ export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context> {
   }
 
   protected registerHandler(value: DefinitionHandlerPair[], route: string, method: RestMethods): void {
-    this.router[method](route, async (ctx: koa.Context, next): Promise<any> =>{
+    this.router[method](route, async (ctx: koa.Context): Promise<any> =>{
       const action = this.requestMapper(ctx);
       const handler = this.actionToRouteMapper(route, action, value);
       const result: Action = await handler(action);

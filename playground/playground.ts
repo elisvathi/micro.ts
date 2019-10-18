@@ -8,6 +8,7 @@ import {TopicBasedAmqpBroker} from '../src/brokers/TopicBasedAmqpBroker';
 import * as Joi from 'joi';
 import {ExpressBroker} from "../src/brokers/ExpressBroker";
 import {KoaBroker} from "../src/brokers/KoaBroker";
+import {FastifyBroker} from "../src/brokers/FastifyBroker";
 
 class ParamsRequest {
   @Required()
@@ -31,7 +32,7 @@ export class TestController {
 async function main() {
   const HttpConfig = {address: '0.0.0.0', port: 8080};
   const AmqpConfig = {url: 'amqp://localhost'};
-  const httpBroker = new KoaBroker(HttpConfig);
+  const httpBroker = new FastifyBroker(HttpConfig);
   const amqp = new TopicBasedAmqpBroker(AmqpConfig);
   const server = new BaseServer({
     controllers: [TestController],

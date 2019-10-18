@@ -7,4 +7,4 @@ export interface IErrorHandler {
 
 export type ErrorHandlerFunction = (error: any, action: Action, def?: BaseRouteDefinition, controller?: any, broker?: IBroker) => boolean | Promise<boolean>;
 
-export type AppErrorHandler = IErrorHandler | ErrorHandlerFunction;
+export type AppErrorHandler = { new(...args: any[]): IErrorHandler } | ErrorHandlerFunction;

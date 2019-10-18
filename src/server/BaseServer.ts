@@ -12,21 +12,35 @@ import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorator
 import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors/types/ErrorHandlerTypes';
 
 interface RegisterMethodParams {
+    /** Name of the method */
     methodName: string;
+    /** Method metadata */
     desc: MethodDescription;
+    /** Base path of the app */
     basePath: string;
+    /** Controller path */
     controllerPath: string;
+    /** Controller constructor */
     ctor: any;
+    /** Is JSON controller */
     isJson: boolean;
+    /** List of filtered brokers */
     brokers: IBroker[];
+    /** List of routes */
     routes: any[];
+    /** Name of the controller class */
     controllerName: string;
 }
 
 export class BaseServer {
     constructor(private options: ServerOptions) { }
+
     private brokers: IBroker[] = [];
 
+    /**
+     * Add a broker to the app 
+     * @param broker
+     */
     public addBroker(broker: IBroker) {
         this.brokers.push(broker);
     }
@@ -35,6 +49,14 @@ export class BaseServer {
         return getGlobalMetadata();
     }
 
+    /**
+     * Execute a single middleware and return its result
+     * @param middleware Middleware function or IMiddleware instance to execute
+     * @param def Route definition on which the middleware is being called from
+     * @param action The action object, with the state of the action just before this middleware is being executed
+     * @param controller The controller instance
+     * @param broker The broker instance
+     */
     private async executeMiddleware(middleware: AppMiddelware, def: BaseRouteDefinition, action: Action, controller: any, broker: IBroker): Promise<Action> {
         if (middleware.prototype && ('do' in middleware.prototype)) {
             const casted: IMiddleware = Container.get(middleware.prototype.constructor);
@@ -43,14 +65,32 @@ export class BaseServer {
         return (middleware as MiddlewareFunction)(action, def, controller, broker);
     }
 
+    /**
+     * Execute the error handler and return its result as a boolean
+     * @param handler Error handler function or IErrorHandler instance
+     * @param error Error object
+     * @param action Action object up to the state before the error
+     * @param def Route definition where the error was thrown
+     * @param controller The controller instance
+     * @param broker The broker instance
+     */
     private async executeErrorHandler(handler: AppErrorHandler, error: any, action: Action, def: BaseRouteDefinition, controller: any, broker: IBroker) {
-        if ('do' in handler) {
-            const casted = handler as IErrorHandler;
+        if (handler.prototype && ('do' in handler.prototype)) {
+            const casted: IErrorHandler = Container.get(handler.prototype.constructor);
             return casted.do(error, action, def, controller, broker);
         }
         return (handler as ErrorHandlerFunction)(error, action, def, controller, broker);
     }
 
+    /**
+     * If an error was thrown, the error object will go through all the error handlers sequentially until on of the handlers returns true
+     * @param handlers List of handlers to execute
+     * @param error Error object
+     * @param action Action state on the moment the error was thrown
+     * @param def Route definition where the error was thrown
+     * @param controllerInstance The controller instance
+     * @param broker The broker instance
+     */
     private async handleError(handlers: AppErrorHandler[], error: any, action: Action, def: BaseRouteDefinition, controllerInstance: any, broker: IBroker): Promise<boolean> {
         for (let i = 0; i < handlers.length; i++) {
             const result = await this.executeErrorHandler(handlers[i], error, action, def, controllerInstance, broker);
@@ -61,6 +101,12 @@ export class BaseServer {
         return false;
     }
 
+    /**
+     * Execute the request (passing through all the middlewares)  and handle errors if thrown any
+     * @param def Route definition
+     * @param action Action from the broker
+     * @param broker Broker instance
+     */
     private async executeRequest(def: BaseRouteDefinition, action: Action, broker: IBroker) {
         const controllerInstance: any = Container.get(def.controllerCtor);
         const methodControllerMetadata: MethodControllerOptions = getHandlerMetadata(def.controllerCtor, def.handlerName);
@@ -79,6 +125,9 @@ export class BaseServer {
                 }
             }
         }
+        /*
+         * Log the request info if enabled
+         */
         if (this.options.logRequests) {
             const response = action.response || {};
             const statusCode = response.statusCode || 200;
@@ -92,6 +141,12 @@ export class BaseServer {
         return action;
     }
 
+    /**
+     * Checks if the action for the handler handler needs to pass through authorizationChecker function,
+     * And executes the the authorizationChecker function, with the corresponding arguments
+     * @param action Action object at the time of invocation
+     * @param methodMetadata Metadata for the handler to check if the request should get filtered by authorization checker
+     */
     private async checkAuthorization(action: Action, methodMetadata: MethodControllerOptions) {
         let shouldCheck = false;
         if (methodMetadata.controller.authorize) { shouldCheck = true }
@@ -108,6 +163,11 @@ export class BaseServer {
             }
         }
     }
+
+    /**
+     * Group an array of middleware options , with the before flag, into to groups, before middlewares and after middlewares
+     * @param middlewares List of middlware options
+     */
     private groupMiddlewares(middlewares: MiddlewareOptions[]): { before: AppMiddelware[], after: AppMiddelware[] } {
         const result: { before: AppMiddelware[], after: AppMiddelware[] } = { before: [], after: [] };
         middlewares.forEach(m => {
@@ -120,6 +180,19 @@ export class BaseServer {
         return result;
     }
 
+    /**
+     * Get all middlewares for a specific handlers,
+     * The sorting of middlewares in this method determines the sequence of the middleware executions
+     * Before the handler is executed middlewares are executed on this order:
+     * 1. App before middlewares,
+     * 2. Controller before middlewares,
+     * 3. Handler before middlewares
+     * After the handler is executed after middlewares are executed in this order
+     * 1. Handler after middlewares
+     * 2. Controller's after middlewares
+     * 3. App's after middlewares
+     * @param methodMetadata
+     */
     private getMiddlewares(methodMetadata: MethodControllerOptions): { before: any[], after: any[] } {
         const middlewares: { before: any[], after: any[] } = { before: [], after: [] };
         let afterMiddlewares: any[] = [];
@@ -147,6 +220,10 @@ export class BaseServer {
         return middlewares;
     }
 
+    /**
+     * Build error handlers for the route, using first the method error handlers, then controller error handlers, and app-level error handlers
+     * @param methodMetadata Metadata for the handler
+     */
     private getErrorHandlers(methodMetadata: MethodControllerOptions) {
         const result: AppErrorHandler[] = [];
         result.push(...methodMetadata.method.errorHandlers || []);
@@ -155,6 +232,14 @@ export class BaseServer {
         return result;
     }
 
+    /**
+     * Handle the before middlewares execution, handler execution, and after middlewares exeuction
+     * @param def Route definition
+     * @param action The action object from the broker
+     * @param broker The broker instance
+     * @param controllerInstance The controller instance (needs to be passed into the middlewares)
+     * @param methodControllerMetadata Handler metadata
+     */
     private async handleRequest(def: BaseRouteDefinition, action: Action, broker: IBroker, controllerInstance: any, methodControllerMetadata: MethodControllerOptions) {
         await this.checkAuthorization(action, methodControllerMetadata);
         const middlewares = this.getMiddlewares(methodControllerMetadata);
@@ -177,6 +262,12 @@ export class BaseServer {
         return action;
     }
 
+    /**
+     * Build the arguments list for the handler 
+     * @param action Action object
+     * @param metadata
+     * @param broker
+     */
     private async buildParams(action: Action,
         metadata: MethodDescription, broker: IBroker): Promise<any[]> {
         return Promise.all(metadata.params.map(async (p) => {
@@ -184,6 +275,11 @@ export class BaseServer {
         }));
     }
 
+    /**
+     * Execute currentUserChecker function, to get the user from a request, and inject it if required int the handlers arguments 
+     * @param action Action object with the request
+     * @param broker Broker instance
+     */
     private async getUser(action: Action, broker: IBroker): Promise<any> {
         if (!this.options.currentUserChecker) {
             return null;
@@ -191,6 +287,14 @@ export class BaseServer {
         return this.options.currentUserChecker(action, broker);
     }
 
+    /**
+     * Validate a single method argument
+     * @param value Value of the argument
+     * @param required If true and value is empty value it throws bad request
+     * @param validate If true, and the validate function throws it throws bad request
+     * @param name Key of the value in case is a single key option
+     * @param type Type of parameter to use in validation
+     */
     private async validateParam(value: any, required: boolean, validate: boolean, name?: any, type?: any): Promise<any> {
         if (required && !value) {
             throw new BadRequest(`${name} is required`);
@@ -205,11 +309,12 @@ export class BaseServer {
         }
         return value;
     }
+
     /**
      * Switches through all the cases of param types and maps the correct information
-     * @param action
-     * @param metadata
-     * @param broker
+     * @param action Action object after all before middlewares executed
+     * @param metadata Metadata for the handler
+     * @param broker Broker instance
      */
     private async buildSingleParam(action: Action,
         metadata: ParamDescription, broker: IBroker): Promise<any> {
@@ -275,6 +380,12 @@ export class BaseServer {
         }
     }
 
+    /**
+     * Adds route to its corresponding brokers 
+     * @param def Route definition
+     * @param brokers List of brokers enabled for this handler
+     * @param params List of parameters required for this handler (to be used when generating API specifications)
+     */
     private async addRoute(def: BaseRouteDefinition, brokers: IBroker[], params: ParamDescription[]) {
         const result: any = {};
         if (brokers && brokers.length) {
@@ -293,6 +404,10 @@ export class BaseServer {
         return result;
     }
 
+    /**
+     * Registers all routes to the brokers
+     * Initializes all brokers
+     */
     public async start() {
         this.buildRoutes();
         if (this.options.brokers) {
@@ -302,12 +417,17 @@ export class BaseServer {
             console.log("SERVER STARTED");
         }
     }
+
     private _serverInfo: Map<IBroker, { route: string, def: BaseRouteDefinition, params: ParamDescription[] }[]> = new Map<IBroker, { route: string, def: BaseRouteDefinition, params: ParamDescription[] }[]>();
 
     public get serverInfo(): Map<IBroker, { route: string, def: BaseRouteDefinition, params: ParamDescription[] }[]> {
         return this._serverInfo;
     }
 
+    /**
+     * Build route for a single handler 
+     * @param param0
+     */
     private async buildSingleMethodRoute({ methodName, desc, basePath, controllerPath, ctor, isJson, brokers, routes, controllerName }: RegisterMethodParams) {
         const metadata: MethodOptions = desc.metadata || {};
         const methodPath = metadata.path;
@@ -343,10 +463,17 @@ export class BaseServer {
         })
     }
 
-    private async buildSingleControllerRoute(c: ControllerMetadata, basePath: string, routes: any[], brokers: IBroker[]) {
-        if (this.options.controllers.includes(c.ctor)) {
-            const name = c.name;
-            let options = c.options;
+    /**
+     * Build routes for a single controller
+     * @param controllerMetadata Controller metadata
+     * @param basePath Base path of the app
+     * @param routes All the routes of the controller
+     * @param brokers All the brokers filtered for this controller
+     */
+    private async buildSingleControllerRoute(controllerMetadata: ControllerMetadata, basePath: string, routes: any[], brokers: IBroker[]) {
+        if (this.options.controllers.includes(controllerMetadata.ctor)) {
+            const name = controllerMetadata.name;
+            let options = controllerMetadata.options;
             options = options || {};
             let controllerBrokers = [...brokers];
             if (options.brokersFilter) {
@@ -355,14 +482,14 @@ export class BaseServer {
             const cPath = options.path;
             const isJson = !!options.json;
             const controllerPath = cPath || name;
-            const handlers = c.handlers as any;
+            const handlers = controllerMetadata.handlers as any;
             await Promise.all(Object.keys(handlers).map(async (key) => {
                 await this.buildSingleMethodRoute({
                     methodName: key,
-                    desc: (c.handlers || {})[key],
+                    desc: (controllerMetadata.handlers || {})[key],
                     basePath,
                     controllerPath,
-                    ctor: c.ctor,
+                    ctor: controllerMetadata.ctor,
                     isJson,
                     brokers: controllerBrokers,
                     routes, controllerName: name
@@ -372,6 +499,10 @@ export class BaseServer {
 
     }
 
+    /**
+     * Build all the routes for all the app's controllers 
+     * @param controllers Metadata for all registered controllers
+     */
     private async buildAllControllers(controllers: ControllerMetadata[]) {
         const routes: { brokers: string, method: string, [key: string]: any }[] = [];
         const basePath = this.options.basePath || "";
@@ -382,6 +513,10 @@ export class BaseServer {
         return routes;
     }
 
+    /**
+     * Gets all the controllers metadata and build all the routes
+     * Displays route table on the screen
+     */
     public async buildRoutes() {
         let controllers = this.controllersMetadata.controllers;
         const routes = await this.buildAllControllers(Array.from(controllers.values()));

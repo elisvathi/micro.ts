@@ -1,11 +1,12 @@
 {
   "name": "@micro.ts/core",
-  "version": "0.0.30",
+  "version": "0.0.32",
   "description": "Microservice framework with Typescript",
   "main": "lib/index.js",
   "scripts": {
     "start": "npx ts-node --project=tsconfig.playground.json ./playground/playground.ts",
-    "update": "npx npm-auto-version && npm run build && npm publish",
+    "update": "npx npm-auto-version && npm run build && npm run push && npm publish",
+    "push": "git push origin --tags",
     "dev": "nodemon",
     "build": "./node_modules/typescript/bin/tsc -p tsconfig.json",
     "build:watch": "./node_modules/typescript/bin/tsc -w -p tsconfig.json",

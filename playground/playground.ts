@@ -71,7 +71,7 @@ export class VoluumController {
         console.log("Called login " + num);
     };
 
-    @Get("trafficSources", {queueOptions: {consumers: 1, messageTtl: 15}})
+    @Get("trafficSources", { queueOptions: { consumers: 1, messageTtl: 15 } })
     @BeforeMiddlewares([beforeMiddleWare])
     @AllowAnonymous()
     @FilterBrokers((broker: IBroker) => { return broker.constructor.name !== 'HapiBroker' })
@@ -88,7 +88,7 @@ export class VoluumController {
     @Get()
     @AllowAnonymous()
     public async trackerView() {
-        return {ok: true};
+        return { ok: true };
     }
 
     @Post("clear")
@@ -141,5 +141,8 @@ async function main() {
         authorizationChecker: (_a: Action, _options?: AuthorizeOptions) => { return false; }
     });
     await server.start();
+    amqp.getConnection().on('close', () => {
+        console.log("CLOSED");
+    });
 }
 main().catch(console.log);

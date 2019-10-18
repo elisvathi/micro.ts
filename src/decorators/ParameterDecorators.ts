@@ -1,15 +1,17 @@
-import { RequestBodyOptions,
-         ParamOptions,
-         ParamDecoratorType,
-         RequestBodyParamOptions,
-         RequestSingleParamOptions,
-         RequestParamsOptions,
-         RequestQueryOptions,
-         RequestQueryParamOptions,
-         RequestHeaderOptions,
-         RequestHeaderParamOptions,
-         CurrentUserOptions,
-         ContainerInjectOptions } from "./types/ParamMetadataTypes";
+import {
+    RequestBodyOptions,
+    ParamOptions,
+    ParamDecoratorType,
+    RequestBodyParamOptions,
+    RequestSingleParamOptions,
+    RequestParamsOptions,
+    RequestQueryOptions,
+    RequestQueryParamOptions,
+    RequestHeaderOptions,
+    RequestHeaderParamOptions,
+    CurrentUserOptions,
+    ContainerInjectOptions
+} from "./types/ParamMetadataTypes";
 import { registerParamMetadata } from "./BaseDecorators";
 
 /**
@@ -58,6 +60,10 @@ export function Param(name: string, options?: RequestSingleParamOptions) {
     }
 }
 
+/**
+ * Inject params value of the Action object on the handler
+ * @param options Specify if  params object needs to be validated
+ */
 export function Params(options?: RequestParamsOptions) {
     return (target: any, propertyKey: string, parameterIndex: number) => {
         const newOptions: ParamOptions = {
@@ -68,6 +74,10 @@ export function Params(options?: RequestParamsOptions) {
     }
 }
 
+/**
+ * Inject query object of the Action object on the handler
+ * @param options Specify if the query object needs to be validated, or required if it should absolutely exist
+ */
 export function Query(options?: RequestQueryOptions) {
     return (target: any, propertyKey: string, parameterIndex: number) => {
         const newOptions: ParamOptions = {

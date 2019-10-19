@@ -7,7 +7,13 @@ services:
       - "15672:15672"
       - "5672:5672"
       - "5671:5671"
-    environment: 
+    environment:
       RABBITMQ_DEFAULT_PASS: "guest"
       RABBITMQ_DEFAULT_USER: "guest"
       RABBITMQ_DEFAULT_VHOST: "/"
+  redis:
+    image: redis:latest
+    container_name: ms-mobile-redis
+    ports:
+      - "6379:6379"
+

@@ -51,7 +51,7 @@ export class TopicBasedAmqpBroker extends AmqpBroker {
   protected async registerSingleRoute(value: DefinitionHandlerPair[], route: string) {
     const result = await super.registerSingleRoute(value, route);
     if (result) {
-      await this.channel.bindQueue(route, this.baseTopic, this.getQueuePattern(route));
+      await this.channel.bindQueue(route, this.baseTopic, TopicBasedAmqpBroker.getQueuePattern(route));
     }
     return result;
   }
@@ -61,7 +61,7 @@ export class TopicBasedAmqpBroker extends AmqpBroker {
     super.registerRoutes();
   }
 
-  private getQueuePattern(queue: string) {
+  private static getQueuePattern(queue: string) {
     return queue.split(".").map(x => {
       if (x.length > 0 && x[0] === ':') {
         return '#'

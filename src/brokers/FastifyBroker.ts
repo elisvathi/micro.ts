@@ -1,4 +1,4 @@
-import {HttpBroker, RestMethods} from "./HttpBroker";
+import {HttpBroker, HttpVerbs} from "./HttpBroker";
 import fastify, {FastifyRequest, FastifyReply, FastifyInstance, FastifyContext} from "fastify";
 import {Action} from "../server/types";
 import {DefinitionHandlerPair} from "./AbstractBroker";
@@ -30,7 +30,7 @@ export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, F
     return `:${paramName}`;
   }
 
-  protected registerHandler(value: DefinitionHandlerPair[], route: string, method: RestMethods): void {
+  protected registerHandler(value: DefinitionHandlerPair[], route: string, method: HttpVerbs): void {
     this.server[method](route, async (req: FastifyRequest, res: FastifyReply<any>) => {
       const action = this.requestMapper(req);
       const handler = this.actionToRouteMapper(route, action, value);

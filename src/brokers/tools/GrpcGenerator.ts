@@ -1,9 +1,9 @@
-import { Service } from "../../di/DiDecorators";
+import { Service } from "../../di";
 import { getGlobalMetadata } from "../../decorators/GlobalMetadata";
 
 function isPrimitive(type: string) {
-    const prims = ['String', 'Number', 'Boolean'];
-    return prims.includes(type);
+    const primitives = ['String', 'Number', 'Boolean'];
+    return primitives.includes(type);
 }
 @Service()
 export class GrpcGenerator {
@@ -15,8 +15,8 @@ export class GrpcGenerator {
         const metadata = getGlobalMetadata();
         let str = "";
         metadata.controllers.forEach(x => {
-            str += `service ${x.name} {\n\n`
-            const handlers = x.handlers || {}
+            str += `service ${x.name} {\n\n`;
+            const handlers = x.handlers || {};
             Object.keys(handlers).forEach((key: string) => {
                 // const metadata = handlers[key].metadata || {};
                 const params = handlers[key].params;

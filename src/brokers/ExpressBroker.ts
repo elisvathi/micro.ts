@@ -1,5 +1,5 @@
 import {DefinitionHandlerPair} from "./AbstractBroker";
-import {HttpBroker, RestMethods} from "./HttpBroker";
+import {HttpBroker, HttpVerbs} from "./HttpBroker";
 import express, { Application, Request, Response} from 'express'
 import {Action} from "../server/types";
 
@@ -30,7 +30,7 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response> {
     return `:${paramName}`;
   }
 
-  protected registerHandler(value: DefinitionHandlerPair[], route: string, method: RestMethods): void {
+  protected registerHandler(value: DefinitionHandlerPair[], route: string, method: HttpVerbs): void {
     this.server[method](route, async (req: Request, res: Response) => {
       const action = this.requestMapper(req);
       const handler = this.actionToRouteMapper(route, action, value);

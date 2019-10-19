@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { ServiceOptions, InjectOptions } from './types/DiOptionsTypes';
+import { ServiceOptions, InjectOptions } from './types';
 
 export class BaseContainer {
     serviceOptions: Map<any, ServiceOptions> = new Map<any, ServiceOptions>();

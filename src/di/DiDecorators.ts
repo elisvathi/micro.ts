@@ -1,4 +1,4 @@
-import { ServiceOptions } from "./types/DiOptionsTypes";
+import { ServiceOptions } from "./types";
 import { Container } from "./BaseContainer";
 
 /**

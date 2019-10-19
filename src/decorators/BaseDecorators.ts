@@ -4,10 +4,10 @@ import { ParamDescription, ParamOptions } from "./types/ParamMetadataTypes";
 import { ControllerMetadata } from "./types/ControllerMetadataTypes";
 import { Service } from "../di/DiDecorators";
 import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
-import { AppMiddelware } from "../middlewares/IMiddleware";
+import { AppMiddleware } from "../middlewares/IMiddleware";
 
 /**
- * Registers or appends metadata to the method 
+ * Registers or appends metadata to the method
  * If the parameters of that method are not registered (from decorations) it saves only the types of the parameters
  * @param target Target controller
  * @param propertyKey method name
@@ -160,7 +160,7 @@ export function attachControllerErrorHandlers(target: any, errorHandlers: AppErr
     registerControllerMetadata(target, { errorHandlers });
 }
 
-export function attachControllerMiddleware(target: any, middlewares: AppMiddelware[], before: boolean) {
+export function attachControllerMiddleware(target: any, middlewares: AppMiddleware[], before: boolean) {
     registerControllerMetadata(target, {
         middlewares: middlewares.map(x => {
             return { before, middleware: x };

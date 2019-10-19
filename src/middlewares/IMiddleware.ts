@@ -1,5 +1,5 @@
-import { Action, BaseRouteDefinition } from "../server/types/BaseTypes";
-import { IBroker } from "../brokers/IBroker";
+import { Action, BaseRouteDefinition } from "../server/types";
+import { IBroker } from "../brokers";
 
 export interface IMiddleware {
     do(action: Action, def?: BaseRouteDefinition, controller?: any, broker?: IBroker): Action | Promise<Action>;
@@ -7,4 +7,4 @@ export interface IMiddleware {
 
 export type MiddlewareFunction = (action: Action, def?: BaseRouteDefinition, controller?: any, broker?: IBroker) => Action | Promise<Action>;
 
-export type AppMiddelware = { new(...args: any[]): IMiddleware }| MiddlewareFunction;
+export type AppMiddleware = { new(...args: any[]): IMiddleware }| MiddlewareFunction;

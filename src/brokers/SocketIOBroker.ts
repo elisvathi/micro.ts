@@ -44,7 +44,7 @@ export class SocketIOBroker extends AbstractBroker {
                 params: {},
                 path,
                 headers: {...headers, socket_id: clientId},
-                method: 'get',
+                method: 'post',
                 body,
                 qs: query,
                 raw: { clientId, query, body, headers, path },

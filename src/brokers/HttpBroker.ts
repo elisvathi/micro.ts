@@ -1,8 +1,8 @@
 import {AbstractBroker, DefinitionHandlerPair} from "./AbstractBroker";
 import {RouteMapper} from "./IBroker";
 import {Action, BaseRouteDefinition} from "../server/types";
+export type HttpVerbs = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options';
 
-export type RestMethods = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options';
 export abstract class HttpBroker<ServerType, RequestType, ContextType> extends AbstractBroker {
 
   public getConnection(): ServerType {
@@ -18,6 +18,11 @@ export abstract class HttpBroker<ServerType, RequestType, ContextType> extends A
   protected abstract registerHandler(value: DefinitionHandlerPair[], route: string, method: string): void;
 
   protected abstract requestMapper: (r: RequestType) => Action;
+
+  /**
+   * Maps from route definition to broker-specific route
+   * @param def Route definition
+   */
   protected routeMapper: RouteMapper = (def: BaseRouteDefinition) => {
     let basePart: string = def.base;
     if (basePart.indexOf("/") !== 0) {
@@ -34,7 +39,7 @@ export abstract class HttpBroker<ServerType, RequestType, ContextType> extends A
         return this.paramWrapper(x.name);
       }
       return x.name;
-    }).join('/')
+    }).join('/');
     if (handlerPart.indexOf("/") !== 0 && handlerPart.length > 0) {
       handlerPart = `/${handlerPart}`;
     }

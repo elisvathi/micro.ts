@@ -3,7 +3,7 @@ import { ServerOptions } from './types';
 import { IBroker } from '../brokers';
 import { GlobalMetadata, ControllerMetadata } from '../decorators';
 import { getGlobalMetadata, getHandlerMetadata } from '../decorators/GlobalMetadata';
-import { MiddlewareFunction, AppMiddelware, IMiddleware } from '../middlewares/IMiddleware';
+import { MiddlewareFunction, AppMiddleware, IMiddleware } from '../middlewares/IMiddleware';
 import { BaseRouteDefinition, Action } from './types/BaseTypes';
 import { Container } from '../di/BaseContainer';
 import { MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions } from '../decorators/types/MethodMetadataTypes';
@@ -57,7 +57,7 @@ export class BaseServer {
    * @param controller The controller instance
    * @param broker The broker instance
    */
-  private static async executeMiddleware(middleware: AppMiddelware, def: BaseRouteDefinition, action: Action, controller: any, broker: IBroker): Promise<Action> {
+  private static async executeMiddleware(middleware: AppMiddleware, def: BaseRouteDefinition, action: Action, controller: any, broker: IBroker): Promise<Action> {
     if (middleware.prototype && ('do' in middleware.prototype)) {
       const casted: IMiddleware = Container.get(middleware.prototype.constructor);
       return casted.do(action, def, controller, broker);
@@ -168,8 +168,8 @@ export class BaseServer {
    * Group an array of middleware options , with the before flag, into to groups, before middlewares and after middlewares
    * @param middlewares List of middleware options
    */
-  private groupMiddlewares(middlewares: MiddlewareOptions[]): { before: AppMiddelware[], after: AppMiddelware[] } {
-    const result: { before: AppMiddelware[], after: AppMiddelware[] } = { before: [], after: [] };
+  private groupMiddlewares(middlewares: MiddlewareOptions[]): { before: AppMiddleware[], after: AppMiddleware[] } {
+    const result: { before: AppMiddleware[], after: AppMiddleware[] } = { before: [], after: [] };
     middlewares.forEach(m => {
       if (m.before) {
         result.before.push(m.middleware);
@@ -213,7 +213,7 @@ export class BaseServer {
       afterMiddlewares.push(groupedMethodMiddleware.after);
     }
     // Reverse after middlewares so they go in the order of 1. Handler Middlewares, 2. Controller Middlewares, 3. Global Middlewares
-    afterMiddlewares = afterMiddlewares.reverse()
+    afterMiddlewares = afterMiddlewares.reverse();
     afterMiddlewares.forEach(a => {
       middlewares.after.push(...a);
     });
@@ -298,6 +298,8 @@ export class BaseServer {
    * @param validate If true, and the validate function throws it throws bad request
    * @param name Key of the value in case is a single key option
    * @param type Type of parameter to use in validation
+   * @param isObject if the value is a key-value object
+   * @param notEmpty if the value should not be empty
    */
   private async validateParam({value, required, validate, name, type, isObject, notEmpty}: ValidateParamParams): Promise<any> {
     if (required && !value) {
@@ -394,7 +396,7 @@ export class BaseServer {
             type: metadata.type
           });
         case ParamDecoratorType.HeaderField:
-          const headerParam = action.request.headers[options.name as string]
+          const headerParam = action.request.headers[options.name as string];
           return this.validateParam({
             value: headerParam,
             isObject: false,
@@ -464,7 +466,7 @@ export class BaseServer {
    * Initializes all brokers
    */
   public async start() {
-    this.buildRoutes();
+    await this.buildRoutes();
     if (this.options.brokers) {
       await Promise.all(this.options.brokers.map(async (x) => {
         await x.start();
@@ -481,7 +483,15 @@ export class BaseServer {
 
   /**
    * Build route for a single handler
-   * @param param0
+   * @param methodName Name of the method
+   * @param desc Method metadata
+   * @param basePath Base path of the app
+   * @param controllerPath Path of the controller
+   * @param ctor Controller constructor function
+   * @param isJson Is JsonController
+   * @param brokers List of brokers enabled for the controller
+   * @param routes Routes to append to the result
+   * @param controllerName Name of the controller
    */
   private async buildSingleMethodRoute({ methodName, desc, basePath, controllerPath, ctor, isJson, brokers, routes, controllerName }: RegisterMethodParams) {
     const metadata: MethodOptions = desc.metadata || {};

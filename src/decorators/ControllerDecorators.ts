@@ -1,6 +1,6 @@
 import { ControllerOptions } from "./types/MethodMetadataTypes";
 import { registerControllerMetadata, attachControllerMiddleware, attachHandlerMiddleware } from "./BaseDecorators";
-import { AppMiddelware } from "../middlewares/IMiddleware";
+import { AppMiddleware } from "../middlewares/IMiddleware";
 
 export function Controller(options?: ControllerOptions) {
     return (target: any) => {
@@ -10,7 +10,7 @@ export function Controller(options?: ControllerOptions) {
 }
 
 /**
- * Controller where all the data are treated as valid JSON 
+ * Controller where all the data are treated as valid JSON
  * @param path Controller path
  * @param options Controller Options
  */
@@ -27,7 +27,7 @@ export function JsonController(path: string, options?: ControllerOptions) {
  * Use this decorator to attach middlewares that are executed before the method middlewares and handler is executed
  * @param options List of middlewares to execute before any method of this controller
  */
-export function BeforeMiddlewares(options: AppMiddelware[]) {
+export function BeforeMiddlewares(options: AppMiddleware[]) {
     return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
         if (!propertyKey) {
             attachControllerMiddleware(target, options, true);
@@ -41,9 +41,9 @@ export function BeforeMiddlewares(options: AppMiddelware[]) {
 
 /**
  * Use this decorator to attach middlewares to the controller that are executed after successfully handled method , and method middlewares
- * @param options List of middlewares to execute 
+ * @param options List of middlewares to execute
  */
-export function AfterMiddlewares(options: AppMiddelware[]) {
+export function AfterMiddlewares(options: AppMiddleware[]) {
     return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
         if (!propertyKey) {
             attachControllerMiddleware(target, options, false);

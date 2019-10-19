@@ -1,4 +1,4 @@
-import {HttpBroker, RestMethods} from "./HttpBroker";
+import {HttpBroker, HttpVerbs} from "./HttpBroker";
 import koa from 'koa'
 import Router from 'koa-router';
 import bodyParser from "koa-bodyparser";
@@ -25,7 +25,7 @@ export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context> {
     return ctx;
   }
 
-  protected registerHandler(value: DefinitionHandlerPair[], route: string, method: RestMethods): void {
+  protected registerHandler(value: DefinitionHandlerPair[], route: string, method: HttpVerbs): void {
     this.router[method](route, async (ctx: koa.Context): Promise<any> =>{
       const action = this.requestMapper(ctx);
       const handler = this.actionToRouteMapper(route, action, value);

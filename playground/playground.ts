@@ -2,13 +2,11 @@ import {getSchema, Required, ValidOptions} from "joi-typescript-validator";
 import {Action} from "../src/server/types";
 import {AuthorizeOptions} from "../src/decorators/types";
 import {BaseServer} from "../src/server";
-import {HapiBroker} from "../src/brokers";
 import {JsonController, Param, Post, Get, Params, Body, Headers, AfterMiddlewares, Query} from '../src';
 import {TopicBasedAmqpBroker} from '../src/brokers/TopicBasedAmqpBroker';
 import * as Joi from 'joi';
-import {ExpressBroker} from "../src/brokers/ExpressBroker";
-import {KoaBroker} from "../src/brokers/KoaBroker";
 import {FastifyBroker} from "../src/brokers/FastifyBroker";
+import {RedisBroker} from "../src/brokers/RedisBroker";
 
 class ParamsRequest {
   @Required()
@@ -22,7 +20,7 @@ class ParamsRequest {
 export class TestController {
 
   @Get("parameter/:platform/:userId", {queueOptions: {autoDelete: true, durable: false}})
-  public parameterTest(@Params({validate: true}) params: ParamsRequest, @Query({notEmpty: true}) body: any,
+  public parameterTest(@Params({validate: true}) params: ParamsRequest, @Body({notEmpty: false}) body: any,
                        @Headers() headers: any) {
     return {body, params}
   }
@@ -32,15 +30,18 @@ export class TestController {
 async function main() {
   const HttpConfig = {address: '0.0.0.0', port: 8080};
   const AmqpConfig = {url: 'amqp://localhost'};
+  const RedisConfig = {url: 'redis://localhost:6379/1'};
   const httpBroker = new FastifyBroker(HttpConfig);
+  const redisBroker = new RedisBroker(RedisConfig);
   const amqp = new TopicBasedAmqpBroker(AmqpConfig);
   const server = new BaseServer({
     controllers: [TestController],
-    brokers: [httpBroker],
+    brokers: [httpBroker, redisBroker],
     logRequests: true,
+    logErrors: false,
     basePath: 'api',
     errorHandlers: [(err: any) => {
-      console.log(err);
+      // console.log(err);
       return false;
     }],
     dev: true,

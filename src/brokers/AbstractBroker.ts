@@ -1,5 +1,5 @@
 import { NotFound } from "../errors";
-import { Action, BaseRouteDefinition } from "../server/types/BaseTypes";
+import { Action, BaseRouteDefinition } from "../server/types";
 import { IBroker, RequestMapper, RouteMapper } from "./IBroker";
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
@@ -26,7 +26,7 @@ export abstract class AbstractBroker implements IBroker {
             }
         }
         return pairs[0].handler;
-    }
+    };
 
     public setRequestMapper(requestMapper: RequestMapper): void {
         this.requestMapper = requestMapper;

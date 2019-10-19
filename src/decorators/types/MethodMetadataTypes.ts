@@ -1,5 +1,5 @@
 import { ParamDescription } from "./ParamMetadataTypes";
-import { AppMiddelware } from "../../middlewares/IMiddleware";
+import { AppMiddleware } from "../../middlewares/IMiddleware";
 import { AppErrorHandler } from "../../errors/types/ErrorHandlerTypes";
 import { IBroker } from "../../brokers";
 import { QueueOptions } from "../../server";
@@ -38,7 +38,7 @@ export interface MethodControllerOptions {
 
 export interface MiddlewareOptions {
     before?: boolean;
-    middleware: AppMiddelware;
+    middleware: AppMiddleware;
 }
 
 export interface ErrorHandlerOptions { }

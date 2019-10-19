@@ -1,7 +1,7 @@
 import { AbstractBroker, DefinitionHandlerPair } from "./AbstractBroker";
 import { Connection, Channel, connect, Message, ConsumeMessage } from 'amqplib';
 import { RequestMapper, RouteMapper } from "./IBroker";
-import { Action, BaseRouteDefinition, QueueOptions } from "../server/types/BaseTypes";
+import { Action, BaseRouteDefinition, QueueOptions } from "../server/types";
 
 export class AmqpBroker extends AbstractBroker {
   protected connection!: Connection;

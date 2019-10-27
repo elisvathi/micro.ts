@@ -1,19 +1,17 @@
-import {Server as HapiServer, Request as HapiRequest, ResponseToolkit} from 'hapi';
-import {AbstractBroker, DefinitionHandlerPair} from './AbstractBroker';
-import {RouteMapper, RequestMapper} from './IBroker';
-import {BaseRouteDefinition, Action} from '../server/types/BaseTypes';
+import {Server as HapiServer, Request as HapiRequest, ResponseToolkit, ServerOptions as HapiServerOptions} from 'hapi';
+import {DefinitionHandlerPair} from './AbstractBroker';
+import {RequestMapper} from './IBroker';
+import {Action} from '../server/types/BaseTypes';
 import {HttpBroker} from "./HttpBroker";
+import {IConfiguration} from "../server/StartupBase";
 
-export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseToolkit> {
-  constructor(
-    private options: {
-      address: string;
-      port: number;
-    }, cors: boolean | any = false) {
-    super();
-    this.server = new HapiServer({
-      address: options.address, port: options.port, routes: {cors}
-    });
+export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseToolkit, HapiServerOptions> {
+
+  constructor(config: IConfiguration) {
+    super(config);
+  }
+  construct(){
+    this.server = new HapiServer(this.config);
   }
 
   protected requestMapper: RequestMapper = (r: HapiRequest) => {
@@ -58,9 +56,10 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
 
 
   public async start(): Promise<void> {
+    this.construct();
     this.registerRoutes();
     await this.server.start();
-    console.log(`Server listening on address ${this.options.address} and port ${this.options.port}`);
+    console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 
   protected paramWrapper(paramName: string): string {

@@ -1,12 +1,13 @@
 import {DefinitionHandlerPair} from "./AbstractBroker";
-import {HttpBroker, HttpVerbs} from "./HttpBroker";
+import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "./HttpBroker";
 import express, { Application, Request, Response} from 'express'
 import {Action} from "../server/types";
+import {IConfiguration} from "../server/StartupBase";
 
 
-export class ExpressBroker extends HttpBroker<Application, Request, Response> {
-  constructor(private options: { address: string, port: number }) {
-    super();
+export class ExpressBroker extends HttpBroker<Application, Request, Response, IHttpListnerConfig> {
+  constructor(config: IConfiguration) {
+    super(config);
     this.server = express();
   }
 
@@ -53,10 +54,10 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response> {
   async start(): Promise<void> {
     this.registerRoutes();
     await new Promise((resolve, reject)=>{
-      this.server.listen(this.options.port, this.options.address, ()=>{
+      this.server.listen(this.config.port as number, this.config.address as string, ()=>{
         resolve();
       });
     });
-    console.log(`Server listening on address ${this.options.address} and port ${this.options.port}`);
+    console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 }

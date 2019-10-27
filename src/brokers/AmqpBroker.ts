@@ -1,16 +1,15 @@
 import { AbstractBroker, DefinitionHandlerPair } from "./AbstractBroker";
-import { Connection, Channel, connect, Message, ConsumeMessage } from 'amqplib';
+import { Connection, Channel, connect, Message, ConsumeMessage ,Options} from 'amqplib';
 import { RequestMapper, RouteMapper } from "./IBroker";
 import { Action, BaseRouteDefinition, QueueOptions } from "../server/types";
+import {IConfiguration} from "../server/StartupBase";
+export type IAmqpConfig =  string | Options.Connect;
 
-export class AmqpBroker extends AbstractBroker {
+export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
   protected connection!: Connection;
   protected channel!: Channel;
-  constructor(
-    private options: {
-      url: string;
-    }) {
-    super();
+  constructor(config: IConfiguration) {
+    super(config);
   }
   protected requestMapper: RequestMapper = (r: Message, queue: string, json: boolean) => {
     const payloadString = r.content.toString();
@@ -112,10 +111,13 @@ export class AmqpBroker extends AbstractBroker {
     headers.statusCode = response.statusCode;
     this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), { correlationId, headers });
   }
+  protected get connectionConfig(): IAmqpConfig{
+    return this.config;
+  }
   public async start(): Promise<void> {
-    this.connection = await connect(this.options.url);
+    this.connection = await connect(this.connectionConfig);
     this.channel = await this.connection.createChannel();
     await this.registerRoutes();
-    console.log(`AMQP Connected on path ${this.options.url}`);
+    console.log(`AMQP Connected on ${this.config}`);
   }
 }

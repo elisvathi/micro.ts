@@ -14,14 +14,14 @@ export interface BrokerConnection<T> {
     connection: T;
 }
 
-export interface IBroker {
+export interface IBroker<TConfig = any> {
     /**
-     * Register routes before the brokers starts 
+     * Register routes before the brokers starts
      * Saves the route in a broker level Map object, using its resulting route as a key and an array of handler definitions
      * If the resulting route has more than one handler registered, it is recommended to set the ActionToRoute mapper object,
      * to filter out the correct handler from the list of multiple handlers
-     * @param def 
-     * @param handler 
+     * @param def
+     * @param handler
      */
     addRoute(def: BaseRouteDefinition, handler: (action: Action) => any): string | Promise<string>;
     setRequestMapper(requestMapper: RequestMapper): void;

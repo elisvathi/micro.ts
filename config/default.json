@@ -1,0 +1,26 @@
+{
+  "http": {
+    "hapi": {
+      "port": 8080,
+      "address": "0.0.0.0"
+    },
+    "express": {
+      "port": 8081,
+      "address": "0.0.0.0"
+    },
+    "koa": {
+      "port": 8082,
+      "address": "0.0.0.0"
+    },
+    "fastify": {
+      "port": 8083,
+      "address": "0.0.0.0"
+    }
+  },
+  "amqp": {
+    "url": "amqp://localhost"
+  },
+  "redis": {
+    "url": "redis//localhost"
+  }
+}

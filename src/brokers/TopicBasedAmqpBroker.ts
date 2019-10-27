@@ -1,19 +1,20 @@
-import { AmqpBroker } from "./AmqpBroker";
+import {AmqpBroker, IAmqpConfig} from "./AmqpBroker";
 import { RequestMapper } from "./IBroker";
-import { Message, ConsumeMessage } from "amqplib";
+import {Message, ConsumeMessage, connect} from "amqplib";
 import { Action } from "../server/types/BaseTypes";
 import { DefinitionHandlerPair } from "./AbstractBroker";
-
-export class TopicBasedAmqpBroker extends AmqpBroker {
-  constructor(options: { url: string }, private topic: string = 'base-topic') {
-    super(options);
+import {IConfiguration} from "../server/StartupBase";
+export interface TopicBasedAmqpConfig {
+  connection: IAmqpConfig;
+  topic: string;
+}
+export class TopicBasedAmqpBroker extends AmqpBroker<TopicBasedAmqpConfig> {
+  constructor(config:IConfiguration) {
+    super(config);
   }
+
   public get baseTopic(): string {
-    return this.topic;
-  }
-
-  public set baseTopic(value: string) {
-    this.topic = value;
+    return this.config.topic;
   }
 
   protected requestMapper: RequestMapper = (r: Message, queue: string, routingKey: string, json: boolean) => {
@@ -72,6 +73,10 @@ export class TopicBasedAmqpBroker extends AmqpBroker {
 
   private extractQueueParamNames(queue: string) {
     return this.extractParamNames(queue, '.');
+  }
+
+  protected get connectionConfig(): IAmqpConfig{
+    return this.config.connection;
   }
 
 }

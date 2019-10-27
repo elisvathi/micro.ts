@@ -2,14 +2,19 @@ import {AbstractBroker} from "./AbstractBroker";
 import {RequestMapper, RouteMapper} from "./IBroker";
 import IORedis, {Redis} from "ioredis";
 import {Action, BaseRouteDefinition} from "../server/types";
+import {IConfiguration} from "../server/StartupBase";
+export type RedisConfig = string;
+export class RedisBroker extends AbstractBroker<RedisConfig> {
+  private server!: Redis;
+  private subscriber!: Redis;
 
-export class RedisBroker extends AbstractBroker {
-  private readonly server: Redis;
-  private readonly subscriber: Redis;
-  constructor(private redisConfig: { url: string }) {
-    super();
-    this.server = new IORedis(this.redisConfig.url)
-    this.subscriber = new IORedis(this.redisConfig.url);
+  constructor(config: IConfiguration) {
+    super(config);
+  }
+
+  construct(){
+    this.server = new IORedis(this.config);
+    this.subscriber = new IORedis(this.config);
   }
   protected requestMapper: RequestMapper = (path: string, fullPath: string, body: any)=>{
       const action: Action = {
@@ -74,13 +79,14 @@ export class RedisBroker extends AbstractBroker {
   }
 
   public async start(): Promise<void> {
+    this.construct();
     const routes:string[] = [];
     this.registeredRoutes.forEach((def, key)=>{
       routes.push(key);
     });
     await new Promise((resolve, reject)=>{
       this.subscriber.on('connect', ()=>{
-        console.log(`Redis connected on ${this.redisConfig.url}`);
+        console.log(`Redis connected on ${this.config}`);
         resolve();
       });
       this.subscriber.on('error', (err)=>{

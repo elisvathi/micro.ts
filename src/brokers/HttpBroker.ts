@@ -3,21 +3,26 @@ import {RouteMapper} from "./IBroker";
 import {Action, BaseRouteDefinition} from "../server/types";
 export type HttpVerbs = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options';
 
-export abstract class HttpBroker<ServerType, RequestType, ContextType> extends AbstractBroker {
+export interface IHttpListnerConfig {
+  address?: string;
+  port?: string | number;
+}
 
-  public getConnection(): ServerType {
+export abstract class HttpBroker<TServer, TRequest, TContext, TConfig extends IHttpListnerConfig> extends AbstractBroker<TConfig> {
+
+  public getConnection(): TServer {
     return this.server;
   }
 
-  protected server!: ServerType;
+  protected server!: TServer;
 
   protected abstract paramWrapper(paramName: string): string;
 
-  protected abstract respond(result: Action, ctx: ContextType): any;
+  protected abstract respond(result: Action, ctx: TContext): any;
 
   protected abstract registerHandler(value: DefinitionHandlerPair[], route: string, method: string): void;
 
-  protected abstract requestMapper: (r: RequestType) => Action;
+  protected abstract requestMapper: (r: TRequest) => Action;
 
   /**
    * Maps from route definition to broker-specific route

@@ -1,14 +1,15 @@
-import {HttpBroker, HttpVerbs} from "./HttpBroker";
+import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "./HttpBroker";
 import koa from 'koa'
 import Router from 'koa-router';
 import bodyParser from "koa-bodyparser";
 import {Action} from "../server/types";
 import {DefinitionHandlerPair} from "./AbstractBroker";
+import {IConfiguration} from "../server/StartupBase";
 
-export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context> {
+export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpListnerConfig> {
   private readonly router: Router;
-  constructor(private options: {address: string, port: number}){
-   super();
+  constructor(config: IConfiguration){
+   super(config);
    this.server = new koa();
    this.router = new Router();
   }
@@ -54,8 +55,8 @@ export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context> {
     this.registerRoutes();
     this.server.use(bodyParser());
     this.server.use(this.router.routes());
-    this.server.listen(this.options.port, this.options.address);
-    console.log(`Server listening on address ${this.options.address} and port ${this.options.port}`);
+    this.server.listen(this.config.port as number, this.config.address as string);
+    console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 
 

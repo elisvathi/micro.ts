@@ -1,12 +1,13 @@
-import {HttpBroker, HttpVerbs} from "./HttpBroker";
+import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "./HttpBroker";
 import fastify, {FastifyRequest, FastifyReply, FastifyInstance, FastifyContext} from "fastify";
 import {Action} from "../server/types";
 import {DefinitionHandlerPair} from "./AbstractBroker";
+import {IConfiguration} from "../server/StartupBase";
 
-export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, FastifyReply<any>> {
+export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, FastifyReply<any>, IHttpListnerConfig> {
 
-  constructor(private options: { address: string, port: number }) {
-    super();
+  constructor(config: IConfiguration) {
+    super(config);
     this.server = fastify();
   };
 
@@ -50,7 +51,7 @@ export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, F
 
   async start(): Promise<void> {
     this.registerRoutes();
-    await this.server.listen(this.options.port, this.options.address);
-    console.log(`Server listening on address ${this.options.address} and port ${this.options.port}`);
+    await this.server.listen(Number(this.config.port || 8080), this.config.address);
+    console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 }

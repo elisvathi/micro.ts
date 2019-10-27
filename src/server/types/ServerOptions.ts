@@ -1,6 +1,6 @@
 import {IBroker} from "../../brokers/IBroker";
 import {AppMiddleware} from "../../middlewares/IMiddleware";
-import {Action} from "./BaseTypes";
+import { Action, Class} from "./BaseTypes";
 import {AuthorizeOptions} from "../../decorators/types/MethodMetadataTypes";
 import {AppErrorHandler} from "../../errors/types/ErrorHandlerTypes";
 
@@ -12,7 +12,7 @@ export interface ServerOptions {
   /**
    * List of controller classes to be used by the server
    */
-  controllers: any[];
+  controllers: Class<any>[];
   /**
    * List of the broker instances to be used by the server
    */

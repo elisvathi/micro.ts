@@ -40,7 +40,6 @@ export class RedisBroker extends AbstractBroker {
   };
 
   private async consumeMessage(path: string, fullPath: string, message: string){
-    console.log("MESSAGE", message);
     const handlerPairs = this.registeredRoutes.get(path);
     if(handlerPairs){
       let body: any;
@@ -59,7 +58,6 @@ export class RedisBroker extends AbstractBroker {
       action.request.params = this.parseParams(fullPath, originalPath);
       const handler = this.actionToRouteMapper(path, action, handlerPairs);
       const result = await handler(action);
-      console.log("RESULT IS", result.response);
       await this.server.del(path);
     }
   }
@@ -72,7 +70,6 @@ export class RedisBroker extends AbstractBroker {
         returnValue[param.name] = patternSplit[index];
       }
     });
-    console.log("PARAMS", {fullPath, originalPath, returnValue});
     return returnValue;
   }
 

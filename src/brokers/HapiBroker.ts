@@ -64,7 +64,7 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
   }
 
   protected paramWrapper(paramName: string): string {
-    return `{${paramName}`;
+    return `{${paramName}}`;
   }
 
 }

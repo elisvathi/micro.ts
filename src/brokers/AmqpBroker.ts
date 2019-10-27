@@ -73,7 +73,7 @@ export class AmqpBroker extends AbstractBroker {
     let totalConsumers = 0;
     let queueOptions: QueueOptions = {};
     value.forEach(v => {
-      if (!queueOptions && v.def.queueOptions) {
+      if (Object.keys(queueOptions).length == 0 && v.def.queueOptions) {
         queueOptions = { ...v.def.queueOptions };
         delete queueOptions.consumers;
       }

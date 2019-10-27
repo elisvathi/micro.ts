@@ -2,7 +2,7 @@ import {getSchema, Required, ValidOptions} from "joi-typescript-validator";
 import {Action} from "../src/server/types";
 import {AuthorizeOptions} from "../src/decorators/types";
 import {BaseServer} from "../src/server";
-import {JsonController, Param, Post, Get, Params, Body, Headers, AfterMiddlewares, Query} from '../src';
+import { JsonController, Param, Post, Get, Params, Body, Headers, AfterMiddlewares, Query, AmqpBroker} from '../src';
 import {TopicBasedAmqpBroker} from '../src/brokers/TopicBasedAmqpBroker';
 import * as Joi from 'joi';
 import {FastifyBroker} from "../src/brokers/FastifyBroker";
@@ -33,10 +33,10 @@ async function main() {
   const RedisConfig = {url: 'redis://localhost:6379/1'};
   const httpBroker = new FastifyBroker(HttpConfig);
   const redisBroker = new RedisBroker(RedisConfig);
-  const amqp = new TopicBasedAmqpBroker(AmqpConfig);
+  const amqp = new AmqpBroker(AmqpConfig);
   const server = new BaseServer({
     controllers: [TestController],
-    brokers: [httpBroker, redisBroker],
+    brokers: [amqp],
     logRequests: true,
     logErrors: false,
     basePath: 'api',

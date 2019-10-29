@@ -1,8 +1,9 @@
 import {DefinitionHandlerPair} from "./AbstractBroker";
 import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "./HttpBroker";
-import express, { Application, Request, Response} from 'express'
+import express, {Application, Request, Response} from 'express'
 import {Action} from "../server/types";
-import {IConfiguration} from "../server/StartupBase";
+import {IConfiguration} from "../server/IConfiguration";
+import {BrokerBuilder} from "../server/broker-builders/BrokerBuilder";
 
 
 export class ExpressBroker extends HttpBroker<Application, Request, Response, IHttpListnerConfig> {
@@ -59,5 +60,12 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
       });
     });
     console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
+  }
+}
+
+export class ExpressBrokerBuilder extends BrokerBuilder<ExpressBroker, IHttpListnerConfig> {
+  constructor(config: IConfiguration) {
+    super();
+    this.broker = new ExpressBroker(config);
   }
 }

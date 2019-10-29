@@ -3,7 +3,6 @@ import {AppMiddleware} from "../../middlewares/IMiddleware";
 import { Action, Class} from "./BaseTypes";
 import {AuthorizeOptions} from "../../decorators/types/MethodMetadataTypes";
 import {AppErrorHandler} from "../../errors/types/ErrorHandlerTypes";
-
 export interface ServerOptions {
   /**
    * Base path for all the server endpoints

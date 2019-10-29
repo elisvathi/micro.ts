@@ -2,7 +2,7 @@ import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "./HttpBroker";
 import fastify, {FastifyRequest, FastifyReply, FastifyInstance, FastifyContext} from "fastify";
 import {Action} from "../server/types";
 import {DefinitionHandlerPair} from "./AbstractBroker";
-import {IConfiguration} from "../server/StartupBase";
+import {IConfiguration} from "../server/IConfiguration";
 
 export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, FastifyReply<any>, IHttpListnerConfig> {
 

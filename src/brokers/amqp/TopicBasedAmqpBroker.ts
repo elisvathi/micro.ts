@@ -3,7 +3,7 @@ import { RequestMapper } from "./IBroker";
 import {Message, ConsumeMessage, connect} from "amqplib";
 import { Action } from "../server/types/BaseTypes";
 import { DefinitionHandlerPair } from "./AbstractBroker";
-import {IConfiguration} from "../server/StartupBase";
+import {IConfiguration} from "../server/IConfiguration";
 export interface TopicBasedAmqpConfig {
   connection: IAmqpConfig;
   topic: string;

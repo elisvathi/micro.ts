@@ -3,7 +3,7 @@ import {DefinitionHandlerPair} from './AbstractBroker';
 import {RequestMapper} from './IBroker';
 import {Action} from '../server/types/BaseTypes';
 import {HttpBroker} from "./HttpBroker";
-import {IConfiguration} from "../server/StartupBase";
+import {IConfiguration} from "../server/IConfiguration";
 
 export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseToolkit, HapiServerOptions> {
 

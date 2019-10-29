@@ -1,15 +1,15 @@
 import chalk from 'chalk';
 import { ServerOptions } from './types';
-import { IBroker } from '../brokers';
 import { GlobalMetadata, ControllerMetadata } from '../decorators';
 import { getGlobalMetadata, getHandlerMetadata } from '../decorators/GlobalMetadata';
-import { MiddlewareFunction, AppMiddleware, IMiddleware } from '../middlewares/IMiddleware';
-import { BaseRouteDefinition, Action } from './types/BaseTypes';
-import { Container } from '../di/BaseContainer';
-import { MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions } from '../decorators/types/MethodMetadataTypes';
-import { NotAuthorized, BadRequest } from '../errors/MainAppErrror';
-import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types/ParamMetadataTypes';
-import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors/types/ErrorHandlerTypes';
+import { MiddlewareFunction, AppMiddleware, IMiddleware } from '..';
+import { BaseRouteDefinition, Action } from './types';
+import { Container } from '../di';
+import { MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions } from '../decorators/types';
+import { NotAuthorized, BadRequest } from '../errors';
+import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types';
+import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors';
+import {IBroker} from "../brokers/IBroker";
 
 interface RegisterMethodParams {
   /** Name of the method */
@@ -176,7 +176,7 @@ export class BaseServer {
       } else {
         result.after.push(m.middleware);
       }
-    })
+    });
     return result;
   }
 
@@ -196,20 +196,44 @@ export class BaseServer {
   private getMiddlewares(methodMetadata: MethodControllerOptions): { before: any[], after: any[] } {
     const middlewares: { before: any[], after: any[] } = { before: [], after: [] };
     let afterMiddlewares: any[] = [];
+    /**
+     * App level before middlewares
+     */
     if (this.options.beforeMiddlewares && this.options.beforeMiddlewares.length > 0) {
       middlewares.before.push(...this.options.beforeMiddlewares);
     }
+    /**
+     * App level after middlwares
+     */
     if (this.options.afterMiddlewares && this.options.afterMiddlewares.length > 0) {
       afterMiddlewares.push(this.options.afterMiddlewares);
     }
+    /**
+     * Controller level middlewares
+     */
     if (methodMetadata.controller.middlewares && methodMetadata.controller.middlewares.length > 0) {
       const groupedControllerMiddlewares = this.groupMiddlewares(methodMetadata.controller.middlewares);
+      /**
+       * Insert each item to the before middlewares
+       */
       middlewares.before.push(...groupedControllerMiddlewares.before);
+      /**
+       * Insert the whole group to to the after middlwares
+       */
       afterMiddlewares.push(groupedControllerMiddlewares.after);
     }
+    /**
+     * Handler level middlwares
+     */
     if (methodMetadata.method.middlewares && methodMetadata.method.middlewares.length > 0) {
       const groupedMethodMiddleware = this.groupMiddlewares(methodMetadata.method.middlewares);
+      /**
+       * Insert each item to the before middlewares
+       */
       middlewares.before.push(...groupedMethodMiddleware.before);
+      /**
+       * Insert the whole group to to the after middlwares
+       */
       afterMiddlewares.push(groupedMethodMiddleware.after);
     }
     // Reverse after middlewares so they go in the order of 1. Handler Middlewares, 2. Controller Middlewares, 3. Global Middlewares
@@ -226,8 +250,17 @@ export class BaseServer {
    */
   private getErrorHandlers(methodMetadata: MethodControllerOptions) {
     const result: AppErrorHandler[] = [];
+    /**
+     * Handler level error handlers
+     */
     result.push(...methodMetadata.method.errorHandlers || []);
+    /**
+     * Controller level error handlers
+     */
     result.push(...methodMetadata.controller.errorHandlers || []);
+    /**
+     * App level error handlers
+     */
     result.push(...this.options.errorHandlers || []);
     return result;
   }
@@ -245,19 +278,40 @@ export class BaseServer {
                               broker: IBroker,
                               controllerInstance: any,
                               methodControllerMetadata: MethodControllerOptions) {
+    /**
+     * If route requires authorization, check it with the autorization function
+     */
     await this.checkAuthorization(action, methodControllerMetadata);
+    /**
+     * Build middlewares
+     */
     const middlewares = this.getMiddlewares(methodControllerMetadata);
+    /**
+     * Execute before middlewares
+     */
     if (middlewares.before.length) {
       for (let i = 0; i < middlewares.before.length; i++) {
         action = await BaseServer.executeMiddleware(middlewares.before[i], def, action, controllerInstance, broker);
       }
     }
+    /**
+     * Build handler parameters
+     */
     const args = await this.buildParams(action, methodControllerMetadata.method, broker);
+    /**
+     * Execute the handler
+     */
     let result = await controllerInstance[def.handlerName](...args);
+    /**
+     * Build response
+     */
     action.response = action.response || {};
     action.response.headers = action.response.headers || {};
     action.response.statusCode = 200;
     action.response.body = result;
+    /**
+     * Execute after middlewares
+     */
     if (middlewares.after.length) {
       for (let i = 0; i < middlewares.after.length; i++) {
         action = await BaseServer.executeMiddleware(middlewares.after[i], def, action, controllerInstance, broker);
@@ -335,6 +389,9 @@ export class BaseServer {
       const options: ParamOptions = metadata.options as ParamOptions;
       switch (options.decoratorType) {
 
+        /**
+         * Inject the request body
+         */
         case ParamDecoratorType.Body:
           const body = action.request.body;
           return this.validateParam({
@@ -346,6 +403,9 @@ export class BaseServer {
             name: 'body',
             type: metadata.type
           });
+        /**
+         * Inject only a named field of the body
+         */
         case ParamDecoratorType.BodyField:
           const bodyField = action.request.body[options.name as string];
           return this.validateParam({
@@ -356,6 +416,9 @@ export class BaseServer {
             name: options.name
           });
 
+        /**
+         * Inject the request parameters
+         */
         case ParamDecoratorType.Params:
           const params = action.request.params;
           return this.validateParam({
@@ -366,24 +429,48 @@ export class BaseServer {
             name: 'parameters',
             type: metadata.type
           });
+        /**
+         * Inject only a named parameter
+         */
         case ParamDecoratorType.ParamField:
           const paramField = action.request.params[options.name as string];
           return this.validateParam({value: paramField, isObject: false, required: true, validate: false, name: options.name});
 
+        /**
+         * Inject the request method
+         */
         case ParamDecoratorType.Method:
           return action.request.method;
 
+        /**
+         * Inject the broker connection
+         */
         case ParamDecoratorType.Connection:
           return action.connection;
+        /**
+         * Inject the full action
+         */
         case ParamDecoratorType.Request:
           return action;
+        /**
+         * Inject the broker's raw request
+         */
         case ParamDecoratorType.RawRequest:
           return action.request.raw;
+        /**
+         * Inject a specified instance from the container
+         */
         case ParamDecoratorType.ContainerInject:
           return Container.get(options.name as any);
+        /**
+         * Inject the broker
+         */
         case ParamDecoratorType.Broker:
           return broker;
 
+        /**
+         * Inject all the request headers
+         */
         case ParamDecoratorType.Header:
           const headers = action.request.headers;
           return this.validateParam({
@@ -395,6 +482,9 @@ export class BaseServer {
             name: 'headers',
             type: metadata.type
           });
+        /**
+         * Inject only a named header
+         */
         case ParamDecoratorType.HeaderField:
           const headerParam = action.request.headers[options.name as string];
           return this.validateParam({
@@ -405,6 +495,9 @@ export class BaseServer {
             name: options.name
           });
 
+        /**
+         * Inject the request query
+         */
         case ParamDecoratorType.Query:
           let query = action.request.qs;
           return this.validateParam({
@@ -416,6 +509,9 @@ export class BaseServer {
             name: 'query',
             type: metadata.type
           });
+        /**
+         * Inject only a named query field
+         */
         case ParamDecoratorType.QueryField:
           const queryParam = action.request.qs[options.name as string];
           return this.validateParam({
@@ -425,7 +521,9 @@ export class BaseServer {
             validate: false,
             name: options.name
           });
-
+        /**
+         * Inject the user object
+         */
         case ParamDecoratorType.User:
           const user = await this.getUser(action, broker);
           const required = options.currentUserOptions!.required || false;

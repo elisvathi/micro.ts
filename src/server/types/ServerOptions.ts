@@ -1,8 +1,8 @@
 import {IBroker} from "../../brokers/IBroker";
-import {AppMiddleware} from "../../middlewares/IMiddleware";
+import {AppMiddleware} from "../..";
 import { Action, Class} from "./BaseTypes";
-import {AuthorizeOptions} from "../../decorators/types/MethodMetadataTypes";
-import {AppErrorHandler} from "../../errors/types/ErrorHandlerTypes";
+import {AuthorizeOptions} from "../../decorators/types";
+import {AppErrorHandler} from "../../errors";
 export interface ServerOptions {
   /**
    * Base path for all the server endpoints

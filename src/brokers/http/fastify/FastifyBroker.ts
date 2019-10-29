@@ -2,14 +2,9 @@ import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "../HttpBroker";
 import fastify, {FastifyRequest, FastifyReply, FastifyInstance, FastifyContext} from "fastify";
 import {Action} from "../../../server/types";
 import {DefinitionHandlerPair} from "../../AbstractBroker";
-import {IConfiguration} from "../../../server/IConfiguration";
 
 export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, FastifyReply<any>, IHttpListnerConfig> {
-
-  constructor(config: IConfiguration) {
-    super(config);
-    this.server = fastify();
-  };
+  protected server!: FastifyInstance;
 
   protected requestMapper: (r: fastify.FastifyRequest) => Action = (r: FastifyRequest) => {
     const action: Action = {
@@ -53,5 +48,9 @@ export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, F
     this.registerRoutes();
     await this.server.listen(Number(this.config.port || 8080), this.config.address);
     console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
+  }
+
+  protected construct(): void {
+    this.server = fastify();
   }
 }

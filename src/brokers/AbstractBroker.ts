@@ -1,7 +1,7 @@
-import { NotFound } from "../errors";
-import { Action, BaseRouteDefinition } from "../server/types";
-import { IBroker, RequestMapper, RouteMapper } from "./IBroker";
-import { IConfiguration } from "../server/IConfiguration";
+import {NotFound} from "../errors";
+import {Action, BaseRouteDefinition} from "../server/types";
+import {IBroker, RequestMapper, RouteMapper} from "./IBroker";
+import {IConfiguration} from "../server/IConfiguration";
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
 export type DefinitionHandlerPair = {
@@ -9,24 +9,22 @@ export type DefinitionHandlerPair = {
   handler: ActionHandler
 }
 export type ActionToRouteMapper = (route: string,
-  action: Action,
-  pairs: DefinitionHandlerPair[]) => ActionHandler;
+                                   action: Action,
+                                   pairs: DefinitionHandlerPair[]) => ActionHandler;
 export type ConfigResolver<T> = (config: IConfiguration) => T;
-export abstract class AbstractBroker<TConfig> implements IBroker {
-  private absoluteConfig?: TConfig;
-  private appConfiguration?: IConfiguration;
 
-  constructor(config: TConfig)
-  constructor(config: IConfiguration)
-  constructor(orConfig: TConfig | IConfiguration) {
-    if ('getByPath' in orConfig && (typeof orConfig['getByPath'] === 'function')) {
-      this.appConfiguration = orConfig as IConfiguration;
-    } else {
-      this.absoluteConfig = orConfig as TConfig;
+export abstract class AbstractBroker<TConfig> implements IBroker {
+  // private absoluteConfig?: TConfig;
+  public appConfiguration?: IConfiguration;
+
+  constructor(public absoluteConfig?: TConfig) {
+    if(absoluteConfig) {
+      this.construct();
     }
   }
 
-  protected get config(): TConfig {
+  protected abstract construct(): void;
+  get config(): TConfig {
     if (this.absoluteConfig) {
       return this.absoluteConfig;
     }
@@ -40,6 +38,7 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
   protected abstract routeMapper: RouteMapper;
   protected abstract requestMapper: RequestMapper;
   private configResolver!: ConfigResolver<TConfig>;
+
   protected actionToRouteMapper: ActionToRouteMapper = (route: string, action: Action, pairs: DefinitionHandlerPair[]) => {
     const method = action.request.method;
     if (method) {
@@ -53,11 +52,15 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
     return pairs[0].handler;
   };
 
-  public setConfigResolver(resolver: ConfigResolver<TConfig>) {
+  public setConfigResolver(cfg: IConfiguration, resolver: ConfigResolver<TConfig>) {
+    this.appConfiguration = cfg;
     this.configResolver = resolver;
+    this.construct();
   }
+
   public setAbsoluteConfig(config: TConfig) {
     this.absoluteConfig = config;
+    this.construct();
   }
 
   public setRequestMapper(requestMapper: RequestMapper): void {
@@ -87,7 +90,7 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
     if (!registered) {
       registered = [];
     }
-    registered.push({ def, handler });
+    registered.push({def, handler});
     this.registeredRoutes.set(route, registered);
     return route;
   }
@@ -95,7 +98,7 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
   protected extractParamNames(path: string, separator = "/") {
     const spl = path.split(separator);
     return spl.map(x => {
-      const value: { name: string, param: boolean } = { name: x, param: false };
+      const value: { name: string, param: boolean } = {name: x, param: false};
       if (x.length > 0 && x[0] === ":") {
         value.name = x.substr(1);
         value.param = true;
@@ -103,5 +106,6 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
       return value;
     });
   }
+
   abstract start(): Promise<void>;
 }

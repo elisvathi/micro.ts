@@ -1,4 +1,5 @@
-import { BaseRouteDefinition, Action } from "../server/types/BaseTypes";
+import {Action, BaseRouteDefinition} from "../server/types/BaseTypes";
+import {IConfiguration} from "../server";
 
 /**
  * Maps the app level route definitions passed in the BaseRouteDefinition object, with the broker specific routes
@@ -15,7 +16,11 @@ export interface BrokerConnection<T> {
 }
 
 export interface IBroker<TConfig = any> {
-    /**
+  appConfiguration?: IConfiguration;
+  absoluteConfig?: TConfig;
+  readonly config: TConfig;
+
+  /**
      * Register routes before the brokers starts
      * Saves the route in a broker level Map object, using its resulting route as a key and an array of handler definitions
      * If the resulting route has more than one handler registered, it is recommended to set the ActionToRoute mapper object,

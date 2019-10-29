@@ -7,12 +7,9 @@ import {DefinitionHandlerPair} from "../../AbstractBroker";
 import {IConfiguration} from "../../../server/IConfiguration";
 
 export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpListnerConfig> {
-  private readonly router: Router;
-  constructor(config: IConfiguration){
-   super(config);
-   this.server = new koa();
-   this.router = new Router();
-  }
+  private readonly router: Router = new Router();
+  protected server!: koa;
+
   protected paramWrapper(paramName: string): string {
     return `:${paramName}`;
   }
@@ -57,6 +54,10 @@ export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpLi
     this.server.use(this.router.routes());
     this.server.listen(this.config.port as number, this.config.address as string);
     console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
+  }
+
+  protected construct(): void {
+    this.server = new koa();
   }
 
 

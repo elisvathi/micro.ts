@@ -3,9 +3,9 @@ import { AppErrorHandler, AppMiddleware, AuthorizeOptions } from "..";
 import { IConfiguration } from "./IConfiguration";
 import {IBroker} from "../brokers/IBroker";
 
-export type CurrentUserCheckerFunction<TUser> = (action: Action, broker?: IBroker) => TUser;
-
-export type AuthorizationFunction = (action: Action, options?: AuthorizeOptions) => boolean;
+export type CurrentUserCheckerFunction<TUser> = (action: Action, broker?: IBroker) => TUser | Promise<TUser>;
+export type AuthorizationFunction = (action: Action, options?: AuthorizeOptions) => boolean | Promise<boolean>;
+export type ValidateFunction = <T>(value: any, type: Class<T>)=>Promise<T>;
 
 export class OptionsBuilder {
   constructor(public config: IConfiguration) {
@@ -122,6 +122,15 @@ export class OptionsBuilder {
    */
   public useAuthentication<TUser>(checker: CurrentUserCheckerFunction<TUser>): OptionsBuilder {
     this.options.currentUserChecker = checker;
+    return this;
+  }
+
+  /**
+   * Set validate function
+   * @param func
+   */
+  public setValidateFunction(func: ValidateFunction){
+    this.options.validateFunction = func;
     return this;
   }
 }

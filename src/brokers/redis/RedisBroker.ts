@@ -8,10 +8,6 @@ export class RedisBroker extends AbstractBroker<RedisConfig> {
   private server!: Redis;
   private subscriber!: Redis;
 
-  constructor(config: IConfiguration) {
-    super(config);
-  }
-
   construct(){
     this.server = new IORedis(this.config);
     this.subscriber = new IORedis(this.config);
@@ -79,7 +75,6 @@ export class RedisBroker extends AbstractBroker<RedisConfig> {
   }
 
   public async start(): Promise<void> {
-    this.construct();
     const routes:string[] = [];
     this.registeredRoutes.forEach((def, key)=>{
       routes.push(key);

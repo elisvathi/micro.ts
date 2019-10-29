@@ -2,19 +2,12 @@ import {AbstractBroker, DefinitionHandlerPair} from "../AbstractBroker";
 import {Channel, connect, Connection, ConsumeMessage, Message, Options} from 'amqplib';
 import {RequestMapper, RouteMapper} from "../IBroker";
 import {Action, BaseRouteDefinition, QueueOptions} from "../../server/types";
-import {IConfiguration} from "../../server/IConfiguration";
-import {BrokerResolver} from "../BrokerResolver";
-import {OptionsBuilder} from "../../server/OptionsBuilder";
-import {AmqpBrokerBuilder} from "./builders/AmqpBrokerBuilder";
 
 export type IAmqpConfig =  string | Options.Connect;
 
 export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
   protected connection!: Connection;
   protected channel!: Channel;
-  constructor(config: IConfiguration) {
-    super(config);
-  }
   protected requestMapper: RequestMapper = (r: Message, queue: string, json: boolean) => {
     const payloadString = r.content.toString();
     let payload: any;
@@ -123,6 +116,10 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
     this.channel = await this.connection.createChannel();
     await this.registerRoutes();
     console.log(`AMQP Connected on ${this.config}`);
+  }
+
+  protected construct(): void {
+    // Do nothing
   }
 }
 

@@ -2,17 +2,12 @@ import {AbstractBroker} from "../AbstractBroker";
 import Socket, {Server as SocketServer} from 'socket.io';
 import {RouteMapper, RequestMapper} from "../IBroker";
 import {BaseRouteDefinition, Action} from "../../server/types";
-import {RequestListener} from "../http";
-import {IConfiguration} from "../../server";
+import {Server as HttpServer} from "http";
 
-export type SocketIOConfig = number | Socket.ServerOptions | RequestListener;
+export type SocketIOConfig = number | Socket.ServerOptions | HttpServer;
 
 export class SocketIOBroker extends AbstractBroker<SocketIOConfig> {
   private server!: SocketServer;
-
-  constructor(config: IConfiguration) {
-    super(config);
-  }
 
   construct() {
     this.server = Socket(this.config);

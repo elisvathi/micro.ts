@@ -3,3 +3,7 @@ playground/
 tests/
 .projectile
 docker-compose.yml
+docs/
+config/
+README.org
+README.md

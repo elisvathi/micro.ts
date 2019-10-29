@@ -2,15 +2,14 @@ import {DefinitionHandlerPair} from "../../AbstractBroker";
 import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "../HttpBroker";
 import express, {Application, Request, Response} from 'express'
 import {Action} from "../../../server/types";
-import {IConfiguration} from "../../../server/IConfiguration";
-import {BrokerBuilder} from "../../BrokerBuilder";
 
 
 export class ExpressBroker extends HttpBroker<Application, Request, Response, IHttpListnerConfig> {
-  constructor(config: IConfiguration) {
-    super(config);
+  protected construct(): void {
     this.server = express();
   }
+
+  protected server!: Application;
 
   protected requestMapper: (r: Request) => Action = (r: Request) => {
     const action: Action = {
@@ -54,8 +53,8 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
 
   async start(): Promise<void> {
     this.registerRoutes();
-    await new Promise((resolve, reject)=>{
-      this.server.listen(this.config.port as number, this.config.address as string, ()=>{
+    await new Promise((resolve, reject) => {
+      this.server.listen(this.config.port as number, this.config.address as string, () => {
         resolve();
       });
     });
@@ -63,9 +62,3 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
   }
 }
 
-export class ExpressBrokerBuilder extends BrokerBuilder<ExpressBroker, IHttpListnerConfig> {
-  constructor(config: IConfiguration) {
-    super();
-    this.broker = new ExpressBroker(config);
-  }
-}

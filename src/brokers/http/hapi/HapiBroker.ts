@@ -1,15 +1,11 @@
 import {Server as HapiServer, Request as HapiRequest, ResponseToolkit, ServerOptions as HapiServerOptions} from 'hapi';
 import {DefinitionHandlerPair} from '../../AbstractBroker';
 import {RequestMapper} from '../../IBroker';
-import {Action} from '../../../server/types/BaseTypes';
+import {Action} from '../../../server/types';
 import {HttpBroker} from "../HttpBroker";
-import {IConfiguration} from "../../../server/IConfiguration";
 
 export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseToolkit, HapiServerOptions> {
 
-  constructor(config: IConfiguration) {
-    super(config);
-  }
   construct(){
     this.server = new HapiServer(this.config);
   }
@@ -56,7 +52,6 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
 
 
   public async start(): Promise<void> {
-    this.construct();
     this.registerRoutes();
     await this.server.start();
     console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);

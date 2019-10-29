@@ -1,17 +1,13 @@
 import {AmqpBroker, IAmqpConfig} from "./AmqpBroker";
 import { RequestMapper } from "../IBroker";
 import {Message, ConsumeMessage, connect} from "amqplib";
-import { Action } from "../../server/types/BaseTypes";
+import { Action } from "../../server/types";
 import { DefinitionHandlerPair } from "../AbstractBroker";
-import {IConfiguration} from "../../server/IConfiguration";
 export interface TopicBasedAmqpConfig {
   connection: IAmqpConfig;
   topic: string;
 }
 export class TopicBasedAmqpBroker extends AmqpBroker<TopicBasedAmqpConfig> {
-  constructor(config:IConfiguration) {
-    super(config);
-  }
 
   public get baseTopic(): string {
     return this.config.topic;

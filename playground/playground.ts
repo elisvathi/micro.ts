@@ -4,9 +4,9 @@ import {OptionsBuilder} from "../src/server";
 import {AppBuilder} from "../src/server";
 import {IConfiguration} from "../src/server";
 import {TopicBasedAmqpBroker} from "../src/brokers/amqp/TopicBasedAmqpBroker";
-import "../src/brokers/http/hapi/builders/HapiBrokerBuiler"
-import "../src/brokers/amqp/builders/TopicBasedAmqpBuilder"
-import "../src/brokers/http/express/builders/ExpressBrokerBuilder"
+import "../src/brokers/http/hapi"
+import "../src/brokers/amqp/TopicBasedAmqpBuilder"
+import "../src/brokers/http/express"
 import {HapiBroker} from "../src/brokers/http/hapi/HapiBroker";
 
 class BaseConfig implements IConfiguration{

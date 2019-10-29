@@ -1,9 +1,9 @@
-import {DefinitionHandlerPair} from "./AbstractBroker";
-import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "./HttpBroker";
+import {DefinitionHandlerPair} from "../../AbstractBroker";
+import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "../HttpBroker";
 import express, {Application, Request, Response} from 'express'
-import {Action} from "../server/types";
-import {IConfiguration} from "../server/IConfiguration";
-import {BrokerBuilder} from "../server/broker-builders/BrokerBuilder";
+import {Action} from "../../../server/types";
+import {IConfiguration} from "../../../server/IConfiguration";
+import {BrokerBuilder} from "../../BrokerBuilder";
 
 
 export class ExpressBroker extends HttpBroker<Application, Request, Response, IHttpListnerConfig> {

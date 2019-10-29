@@ -1,39 +1,44 @@
-import {AppBuilder, IConfiguration, OptionsBuilder, StartupBase} from "../src/server/StartupBase";
-import config from 'config';
+import {StartupBase} from "../src/server";
 import {TestController} from "./controller";
-import "./extensions";
+import {OptionsBuilder} from "../src/server";
+import {AppBuilder} from "../src/server";
+import {IConfiguration} from "../src/server";
+import {TopicBasedAmqpBroker} from "../src/brokers/amqp/TopicBasedAmqpBroker";
+import "../src/brokers/http/hapi/builders/HapiBrokerBuiler"
+import "../src/brokers/amqp/builders/TopicBasedAmqpBuilder"
+import "../src/brokers/http/express/builders/ExpressBrokerBuilder"
+import {HapiBroker} from "../src/brokers/http/hapi/HapiBroker";
 
 class BaseConfig implements IConfiguration{
   getFromPath<T>(path: string): T {
-    return config.get(path);
+    return (path as any) as T;
   }
 }
+
 class Startup extends StartupBase {
+  ampBroker!: TopicBasedAmqpBroker;
+  hapibroker!: HapiBroker;
+
   configureServer(builder: OptionsBuilder): void {
     builder.setBasePath('api');
-    builder.useHapiBroker(b=>b.withConfiguration(cfg=>cfg.getFromPath('http.hapi')));
-    builder.useExpressBroker(b=>b.withConfiguration(cfg=>cfg.getFromPath('http.express')));
-    builder.useKoaBroker(b=>b.withConfiguration(cfg=>cfg.getFromPath('http.koa')));
-    builder.useFastifyBroker(b=>b.withConfiguration(cfg=>cfg.getFromPath('http.fastify')));
-    builder.useAmqpBroker(b=>b.withConfiguration(cfg=>cfg.getFromPath('amqp')));
-    builder.useRedisBroker(b=>b.withConfiguration(cfg=>cfg.getFromPath('redis')));
+    this.hapibroker = builder.useHapiBroker(b=>b.withConfigResolver(c=>c.getFromPath('http.hapi')));
+    // this.ampBroker = builder.useTopicBasedAmqpBroker(b=>b.withConfig({topic: "api", connection:"amqp://localhost"}))
     builder.addControllers(TestController);
-  }
-
-  async afterStart(): Promise<void> {
-    console.log("CALLED AFTER START");
   }
 
   async beforeStart(): Promise<void> {
     console.log("CALLED BEFORE START");
   }
 
+  async afterStart(): Promise<void> {
+    // const connection = this.ampBroker.getConnection();
+    // Container.set("amqpConnection", connection);
+    console.log("CALLED AFTER START");
+  }
+
 }
-
-
 async function main() {
   const builder = new AppBuilder(new BaseConfig()).useStartup(Startup);
-  builder.useStartup(Startup);
   await builder.start();
 }
 

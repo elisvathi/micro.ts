@@ -1,7 +1,7 @@
 import { NotFound } from "../errors";
 import { Action, BaseRouteDefinition } from "../server/types";
 import { IBroker, RequestMapper, RouteMapper } from "./IBroker";
-import { IConfiguration } from "../server/StartupBase";
+import { IConfiguration } from "../server/IConfiguration";
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
 export type DefinitionHandlerPair = {
@@ -13,12 +13,27 @@ export type ActionToRouteMapper = (route: string,
   pairs: DefinitionHandlerPair[]) => ActionHandler;
 export type ConfigResolver<T> = (config: IConfiguration) => T;
 export abstract class AbstractBroker<TConfig> implements IBroker {
+  private absoluteConfig?: TConfig;
+  private appConfiguration?: IConfiguration;
 
-  constructor(private appConfiguration: IConfiguration){
+  constructor(config: TConfig)
+  constructor(config: IConfiguration)
+  constructor(orConfig: TConfig | IConfiguration) {
+    if ('getByPath' in orConfig && (typeof orConfig['getByPath'] === 'function')) {
+      this.appConfiguration = orConfig as IConfiguration;
+    } else {
+      this.absoluteConfig = orConfig as TConfig;
+    }
   }
 
-  protected get config(): TConfig{
-   return this.configResolver(this.appConfiguration) ;
+  protected get config(): TConfig {
+    if (this.absoluteConfig) {
+      return this.absoluteConfig;
+    }
+    if (this.appConfiguration && this.configResolver) {
+      return this.configResolver(this.appConfiguration);
+    }
+    return {} as TConfig;
   }
 
   protected registeredRoutes: Map<string, DefinitionHandlerPair[]> = new Map<string, DefinitionHandlerPair[]>();
@@ -38,8 +53,11 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
     return pairs[0].handler;
   };
 
-  public setConfigResolver(resolver: ConfigResolver<TConfig>){
+  public setConfigResolver(resolver: ConfigResolver<TConfig>) {
     this.configResolver = resolver;
+  }
+  public setAbsoluteConfig(config: TConfig) {
+    this.absoluteConfig = config;
   }
 
   public setRequestMapper(requestMapper: RequestMapper): void {

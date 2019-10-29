@@ -1,9 +1,9 @@
-import {AbstractBroker} from "./AbstractBroker";
+import {AbstractBroker} from "../AbstractBroker";
 import Socket, {Server as SocketServer} from 'socket.io';
-import {RouteMapper, RequestMapper} from "./IBroker";
-import {BaseRouteDefinition, Action} from "../server/types";
-import {RequestListener} from "http";
-import {IConfiguration} from "../server";
+import {RouteMapper, RequestMapper} from "../IBroker";
+import {BaseRouteDefinition, Action} from "../../server/types";
+import {RequestListener} from "../http";
+import {IConfiguration} from "../../server";
 
 export type SocketIOConfig = number | Socket.ServerOptions | RequestListener;
 

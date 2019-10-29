@@ -1,6 +1,6 @@
-import {AbstractBroker, DefinitionHandlerPair} from "./AbstractBroker";
-import {RouteMapper} from "./IBroker";
-import {Action, BaseRouteDefinition} from "../server/types";
+import {AbstractBroker, DefinitionHandlerPair} from "../AbstractBroker";
+import {RouteMapper} from "../IBroker";
+import {Action, BaseRouteDefinition} from "../../server/types";
 export type HttpVerbs = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options';
 
 export interface IHttpListnerConfig {

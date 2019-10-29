@@ -1,11 +1,11 @@
-import {AbstractBroker, DefinitionHandlerPair} from "./AbstractBroker";
+import {AbstractBroker, DefinitionHandlerPair} from "../AbstractBroker";
 import {Channel, connect, Connection, ConsumeMessage, Message, Options} from 'amqplib';
-import {RequestMapper, RouteMapper} from "./IBroker";
-import {Action, BaseRouteDefinition, QueueOptions} from "../server/types";
-import {IConfiguration} from "../server/IConfiguration";
-import {BrokerBuilder} from "../server/broker-builders/BrokerBuilder";
-import {BrokerResolver} from "../server/broker-builders/BrokerResolver";
-import {OptionsBuilder} from "../server/OptionsBuilder";
+import {RequestMapper, RouteMapper} from "../IBroker";
+import {Action, BaseRouteDefinition, QueueOptions} from "../../server/types";
+import {IConfiguration} from "../../server/IConfiguration";
+import {BrokerResolver} from "../BrokerResolver";
+import {OptionsBuilder} from "../../server/OptionsBuilder";
+import {AmqpBrokerBuilder} from "./builders/AmqpBrokerBuilder";
 
 export type IAmqpConfig =  string | Options.Connect;
 
@@ -126,22 +126,4 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
   }
 }
 
-declare module "../server/OptionsBuilder" {
-  interface OptionsBuilder {
-    useAmqpBroker(builder: BrokerResolver<AmqpBrokerBuilder>): AmqpBroker;
-  }
-}
 
-OptionsBuilder.prototype.useAmqpBroker = function (builder: BrokerResolver<AmqpBrokerBuilder>) {
-  const broker_builder = new AmqpBrokerBuilder(this.config);
-  const broker = builder(broker_builder).getBroker();
-  this.options.brokers!.push(broker);
-  return broker;
-};
-
-export class AmqpBrokerBuilder extends BrokerBuilder<AmqpBroker, IAmqpConfig> {
-  constructor(config: IConfiguration) {
-    super();
-    this.broker = new AmqpBroker(config);
-  }
-}

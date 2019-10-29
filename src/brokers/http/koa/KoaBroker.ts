@@ -1,10 +1,10 @@
-import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "./HttpBroker";
+import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "../HttpBroker";
 import koa from 'koa'
 import Router from 'koa-router';
 import bodyParser from "koa-bodyparser";
-import {Action} from "../server/types";
-import {DefinitionHandlerPair} from "./AbstractBroker";
-import {IConfiguration} from "../server/IConfiguration";
+import {Action} from "../../../server/types";
+import {DefinitionHandlerPair} from "../../AbstractBroker";
+import {IConfiguration} from "../../../server/IConfiguration";
 
 export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpListnerConfig> {
   private readonly router: Router;

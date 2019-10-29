@@ -1,8 +1,8 @@
 import { ParamDescription } from "./ParamMetadataTypes";
-import { AppMiddleware } from "../../middlewares/IMiddleware";
-import { AppErrorHandler } from "../../errors/types/ErrorHandlerTypes";
-import { IBroker } from "../../brokers";
+import { AppMiddleware } from "../..";
+import { AppErrorHandler } from "../../errors";
 import { QueueOptions } from "../../server";
+import {IBroker} from "../../brokers/IBroker";
 export type BrokerFilter = (broker: IBroker) => boolean;
 export interface MethodDescription {
     name?: string;

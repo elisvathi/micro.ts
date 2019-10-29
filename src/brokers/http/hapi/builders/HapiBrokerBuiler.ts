@@ -1,11 +1,11 @@
 // HTTP BROKER BUILDERS
 import {ServerOptions as HapiServerOptions} from "hapi";
-import {BrokerBuilder} from "./BrokerBuilder";
-import {IConfiguration} from "../IConfiguration";
-import {OptionsBuilder} from "../OptionsBuilder";
-import {BrokerResolver} from "./BrokerResolver";
-import {HapiBroker} from "../../brokers/http/hapi/HapiBroker";
-declare module "../OptionsBuilder"{
+import {BrokerBuilder} from "../../../BrokerBuilder";
+import {IConfiguration} from "../../../../server";
+import {OptionsBuilder} from "../../../../server";
+import {BrokerResolver} from "../../../BrokerResolver";
+import {HapiBroker} from "../HapiBroker";
+declare module "../../../../server/OptionsBuilder"{
   interface OptionsBuilder {
     /**
      * Build a hapi broker

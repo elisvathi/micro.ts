@@ -1,7 +1,7 @@
 import {NotFound} from "../errors";
 import {Action, BaseRouteDefinition} from "../server/types";
 import {IBroker, RequestMapper, RouteMapper} from "./IBroker";
-import {IConfiguration} from "../server/IConfiguration";
+import {IConfiguration} from "../server";
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
 export type DefinitionHandlerPair = {
@@ -14,16 +14,29 @@ export type ActionToRouteMapper = (route: string,
 export type ConfigResolver<T> = (config: IConfiguration) => T;
 
 export abstract class AbstractBroker<TConfig> implements IBroker {
-  // private absoluteConfig?: TConfig;
+
+  /**
+   * Configuration getter
+   */
   public appConfiguration?: IConfiguration;
 
-  constructor(public absoluteConfig?: TConfig) {
+  /**
+   * Absolute configuration
+   */
+  public absoluteConfig?: TConfig;
+
+  /**
+   * If provided absolute config, the construct method is called immediately
+   * @param absoluteConfig
+   */
+  constructor(absoluteConfig?: TConfig) {
     if(absoluteConfig) {
-      this.construct();
+      this.setAbsoluteConfig(absoluteConfig);
     }
   }
 
   protected abstract construct(): void;
+
   get config(): TConfig {
     if (this.absoluteConfig) {
       return this.absoluteConfig;

@@ -9,7 +9,7 @@ import { MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOp
 import { NotAuthorized, BadRequest } from '../errors';
 import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types';
 import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors';
-import {IBroker} from "../brokers/IBroker";
+import { IBroker } from "../brokers/IBroker";
 
 interface RegisterMethodParams {
   /** Name of the method */
@@ -274,10 +274,10 @@ export class BaseServer {
    * @param methodControllerMetadata Handler metadata
    */
   private async handleRequest(def: BaseRouteDefinition,
-                              action: Action,
-                              broker: IBroker,
-                              controllerInstance: any,
-                              methodControllerMetadata: MethodControllerOptions) {
+    action: Action,
+    broker: IBroker,
+    controllerInstance: any,
+    methodControllerMetadata: MethodControllerOptions) {
     /**
      * If route requires authorization, check it with the autorization function
      */
@@ -355,12 +355,12 @@ export class BaseServer {
    * @param isObject if the value is a key-value object
    * @param notEmpty if the value should not be empty
    */
-  private async validateParam({value, required, validate, name, type, isObject, notEmpty}: ValidateParamParams): Promise<any> {
+  private async validateParam({ value, required, validate, name, type, isObject, notEmpty }: ValidateParamParams): Promise<any> {
     if (required && !value) {
       throw new BadRequest(`${name} is required`);
     }
-    if(isObject && notEmpty){
-      if(!!value && Object.keys(value).length === 0){
+    if (isObject && notEmpty) {
+      if (!!value && Object.keys(value).length === 0) {
         throw new BadRequest(`${name} must not be empty`);
       }
     }
@@ -434,7 +434,7 @@ export class BaseServer {
          */
         case ParamDecoratorType.ParamField:
           const paramField = action.request.params[options.name as string];
-          return this.validateParam({value: paramField, isObject: false, required: true, validate: false, name: options.name});
+          return this.validateParam({ value: paramField, isObject: false, required: true, validate: false, name: options.name });
 
         /**
          * Inject the request method

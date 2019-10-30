@@ -61,7 +61,6 @@ export class SocketIOBroker extends AbstractBroker<SocketIOConfig> {
       const clientId = socket.client.id;
       const query = socket.handshake.query;
       const headers = socket.handshake.headers;
-      console.log(clientId, query, headers);
       this.registeredRoutes.forEach((defs, key) => {
         socket.on(key, async (body) => {
           const action: Action = this.requestMapper(clientId, query, headers, body, key, socket);

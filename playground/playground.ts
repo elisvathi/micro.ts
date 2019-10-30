@@ -3,27 +3,31 @@ import {TestController} from "./controller";
 import {OptionsBuilder} from "../src/server";
 import {AppBuilder} from "../src/server";
 import {IConfiguration} from "../src/server";
-import {TopicBasedAmqpBroker} from "../src/brokers/amqp/TopicBasedAmqpBroker";
 import "../src/brokers/http/hapi"
-import "../src/brokers/amqp/TopicBasedAmqpBuilder"
 import "../src/brokers/http/express"
-import {HapiBroker} from "../src/brokers/http/hapi/HapiBroker";
+import "../src/brokers/socketio";
+import {HapiBroker} from "../src/brokers/http/hapi";
+import config from 'config';
 
-class BaseConfig implements IConfiguration{
+class BaseConfig implements IConfiguration {
   getFromPath<T>(path: string): T {
-    return (path as any) as T;
+    return config.get(path);
+    // return (path as any) as T;
   }
 }
 
 class Startup extends StartupBase {
-  ampBroker!: TopicBasedAmqpBroker;
   hapibroker!: HapiBroker;
 
   configureServer(builder: OptionsBuilder): void {
     builder.setBasePath('api');
-    this.hapibroker = builder.useHapiBroker(b=>b.withConfigResolver(c=>c.getFromPath('http.hapi')));
-    // this.ampBroker = builder.useTopicBasedAmqpBroker(b=>b.withConfig({topic: "api", connection:"amqp://localhost"}))
+    builder.setLogErrors(true);
+    builder.setLogRequests(true);
+    builder.setDevMode(true);
+    this.hapibroker = builder.useHapiBroker(b => b.withConfigResolver(c => c.getFromPath('http.hapi')));
+    builder.useSocketIoBroker(b=>b.withConfig(this.hapibroker.getConnection().listener));
     builder.addControllers(TestController);
+
   }
 
   async beforeStart(): Promise<void> {
@@ -37,6 +41,7 @@ class Startup extends StartupBase {
   }
 
 }
+
 async function main() {
   const builder = new AppBuilder(new BaseConfig()).useStartup(Startup);
   await builder.start();

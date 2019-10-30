@@ -12,7 +12,7 @@ export class ExpressBrokerBuilder extends BrokerBuilder<ExpressBroker, IHttpList
   }
 }
 
-declare module "../../../server/OptionsBuilder"{
+declare module "../../../server/OptionsBuilder" {
   interface OptionsBuilder {
     /**
      * Build an express broker
@@ -22,7 +22,11 @@ declare module "../../../server/OptionsBuilder"{
   }
 }
 
- OptionsBuilder.prototype.useExpressBroker = function(builder: BrokerResolver<ExpressBrokerBuilder>) {
+/**
+ * Extend the OptionBuilder class
+ * @param builder
+ */
+OptionsBuilder.prototype.useExpressBroker = function (builder: BrokerResolver<ExpressBrokerBuilder>) {
   const broker_builder = new ExpressBrokerBuilder(this.config);
   const broker = builder(broker_builder).getBroker();
   this.options.brokers!.push(broker);

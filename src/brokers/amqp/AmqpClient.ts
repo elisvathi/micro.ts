@@ -33,9 +33,9 @@ export class AmqpClient {
       if (!this.uniqueId) {
         this.uniqueId = uuid();
       }
-      return `${this.clientOptions.rpcQueue}.${this.uniqueId}`;
+      return `${this.clientOptions.rpcQueue || 'rpc'}.${this.uniqueId}`;
     }
-    return this.clientOptions.rpcQueue;
+    return this.clientOptions.rpcQueue || "rpc";
   }
 
   constructor(private broker: AmqpBroker, private clientOptions: Partial<AmqpClientOptions>) {

@@ -38,7 +38,7 @@ export class AmqpClient {
     return this.clientOptions.rpcQueue;
   }
 
-  constructor(private broker: AmqpBroker, private clientOptions: AmqpClientOptions) {
+  constructor(private broker: AmqpBroker, private clientOptions: Partial<AmqpClientOptions>) {
   }
 
   public async init() {

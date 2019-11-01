@@ -49,7 +49,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
    * Creates an AMQP client which provides sendToQueue, publish, and rpc methods, to work with the AMQP server
    * @param opts
    */
-  public async createClient(opts?: AmqpClientOptions): Promise<AmqpClient> {
+  public async createClient(opts?: Partial<AmqpClientOptions>): Promise<AmqpClient> {
     const defaultOptions: AmqpClientOptions = {
       rpcQueue: "rpc",
       unique: true,

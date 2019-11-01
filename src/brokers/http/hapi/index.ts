@@ -18,7 +18,9 @@ declare module "../../../server/OptionsBuilder"{
 OptionsBuilder.prototype.useHapiBroker = function (builder: BrokerResolver<HapiBrokerBuilder>) {
   const broker_builder = new HapiBrokerBuilder(this.config);
   const broker = builder(broker_builder).getBroker();
-  this.options.brokers!.push(broker);
+  const brokers = this.options.brokers || [];
+  brokers.push(broker);
+  this.options.brokers = brokers;
   return broker;
 };
 

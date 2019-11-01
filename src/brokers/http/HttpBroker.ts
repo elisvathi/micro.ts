@@ -10,6 +10,9 @@ export interface IHttpListnerConfig {
 
 export abstract class HttpBroker<TServer, TRequest, TContext, TConfig extends IHttpListnerConfig> extends AbstractBroker<TConfig> {
 
+  /**
+   * Broker specific server
+   */
   public getConnection(): TServer {
     return this.server;
   }

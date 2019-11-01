@@ -181,7 +181,7 @@ export class BaseServer {
   }
 
   /**
-   * Get all middlewares for a specific handlers,
+   * Get all middlewares for a specific handler,
    * The sorting of middlewares in this method determines the sequence of the middleware executions
    * Before the handler is executed middlewares are executed on this order:
    * 1. App before middlewares,
@@ -639,6 +639,9 @@ export class BaseServer {
       let options = controllerMetadata.options;
       options = options || {};
       let controllerBrokers = [...brokers];
+      /**
+       * Filter brokers for the controller if annotated with broker filter
+       */
       if (options.brokersFilter) {
         controllerBrokers = controllerBrokers.filter(options.brokersFilter)
       }
@@ -646,6 +649,9 @@ export class BaseServer {
       const isJson = !!options.json;
       const controllerPath = cPath || name;
       const handlers = controllerMetadata.handlers as any;
+      /**
+       * Build method handlers
+       */
       await Promise.all(Object.keys(handlers).map(async (key) => {
         await this.buildSingleMethodRoute({
           methodName: key,

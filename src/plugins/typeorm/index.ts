@@ -1,5 +1,5 @@
 import { OptionsBuilder, Class, StartupBase } from "../../server";
-import typeorm, { useContainer, createConnection as createDatabaseConnection, ConnectionOptions, ConnectionManager } from 'typeorm';
+import typeorm, { useContainer, createConnection as createDatabaseConnection, ConnectionOptions, ConnectionManager, Connection as TypeOrmConnection } from 'typeorm';
 import { Container, Inject } from "../../di";
 
 declare module "../../server/OptionsBuilder" {
@@ -39,7 +39,7 @@ export function InjectRepository<T>(model: Class<T>, name: string = 'default') {
     type: '__repository',
     model,
     connectionName: name
-  }
+  };
   if (!Container.hasResolver(key)) {
     Container.bindResolver(key, () => {
       try {

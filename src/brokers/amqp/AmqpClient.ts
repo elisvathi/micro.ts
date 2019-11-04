@@ -1,5 +1,5 @@
-import { Channel, Options, ConsumeMessage } from "amqplib";
-import { AmqpBroker } from ".";
+import {Channel, ConsumeMessage, Options} from "amqplib";
+import {AmqpBroker} from ".";
 import uuid from "uuid";
 
 export interface AmqpClientOptions {
@@ -47,14 +47,15 @@ export class AmqpClient {
     } else {
       this.channel = this.broker.getChannel();
     }
-    const defaultQueueOptions: Options.AssertQueue = { durable: false, autoDelete: true };
-    const queueOptions = { ...defaultQueueOptions, ...this.clientOptions.rpcQueueOptions || {} };
+    const defaultQueueOptions: Options.AssertQueue = {durable: false, autoDelete: true};
+    const queueOptions = {...defaultQueueOptions, ...this.clientOptions.rpcQueueOptions || {}};
     await this.channel.assertQueue(this.baseRpcQueue, queueOptions);
     await this.channel.consume(this.baseRpcQueue, (msg: ConsumeMessage | null) => {
       this.consumeRpcMessage(msg)
     });
     console.log("AMQP Client Started");
   }
+
   /**
    * Try parse value to json, if unsuccessful return the string
    * @param buffer
@@ -117,22 +118,28 @@ export class AmqpClient {
 
   /**
    * RPC requests, publishes message on the given queue and waits for a response on the default RPC queue
-   * @param queue
+   * @param exchange
+   * @param routingKey
    * @param payload
    * @param timeout
+   * @param options
    */
-  public async rpc(queue: string, payload: any, timeout: number = 20 * 60 * 1000): Promise<any> {
+  public async rpc(exchange: string, routingKey: string, payload: any, options?: Options.Publish): Promise<any> {
     const correlationId = uuid();
     return new Promise((resolve, reject) => {
       // Callback to register on rpc reply or timeout error
-      const callback = (err: any, payload: any) => {
+      this.rpcCallbacks[correlationId] = (err: any, payload: any) => {
         if (err) {
           reject(err);
         } else {
           resolve(payload);
         }
       };
-      this.rpcCallbacks[correlationId] = callback;
+      // const timeout = options!.
+      let timeout: number = 10 * 60 * 1000;
+      if (options && options.expiration) {
+        timeout = options.expiration as number;
+      }
       // After called check if the callback still exists and reject it with the timeout message
       setTimeout(() => {
         if (this.rpcCallbacks[correlationId]) {
@@ -141,7 +148,11 @@ export class AmqpClient {
         }
       }, timeout);
       // Send message and wait for reply
-      this.sendToQueue(queue, payload, { replyTo: this.baseRpcQueue, correlationId: correlationId });
+      this.publish(exchange, routingKey, payload, {
+        ...options || {},
+        replyTo: this.baseRpcQueue,
+        correlationId: correlationId
+      });
     });
   }
 
@@ -160,9 +171,10 @@ export class AmqpClient {
    * @param exchange
    * @param payload
    * @param routingKey
+   * @param options
    */
-  public publish(exchange: string, payload: any, routingKey: string = "") {
-    this.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(payload)));
+  public publish(exchange: string, routingKey: string = "", payload: any, options: Options.Publish | undefined = undefined) {
+    this.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(payload)), options);
   }
 
 }

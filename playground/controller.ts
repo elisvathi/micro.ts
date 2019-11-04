@@ -4,14 +4,18 @@ import {HapiBroker} from "../src/brokers/http/hapi";
 import {SocketIOBroker} from "../src/brokers/socketio";
 import {AmqpBroker} from "../src/brokers/amqp";
 import { InjectRepository } from "../src/plugins/typeorm";
-import { Repository, PrimaryGeneratedColumn, Entity, Column } from "typeorm";
-
+import {Repository, PrimaryGeneratedColumn, Entity, Column, EntityRepository} from "typeorm";
 @Entity()
 export class TestModel {
   @PrimaryGeneratedColumn()
   id!: number;
   @Column()
   name!: string;
+}
+@EntityRepository(TestModel)
+class CustomRepo extends Repository<TestModel>{
+  async getById(){
+  }
 }
 
 @JsonController("test")
@@ -38,7 +42,7 @@ export class TestController {
 
 @JsonController("database")
 export class DatabaseController{
-  constructor(@InjectRepository<TestModel>(TestModel, 'default') private repo: Repository<TestModel>){
+  constructor(@InjectRepository<TestModel>(TestModel) private repo: CustomRepo){
     // constructor(){
   }
   @Get("insert")

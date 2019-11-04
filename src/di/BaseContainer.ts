@@ -1,10 +1,12 @@
 import 'reflect-metadata';
-import {ServiceOptions, InjectOptions} from './types';
-import {Class} from "../server/types";
-export type InstanceResolver<T> = (...args:any)=>T;
+import { ServiceOptions, InjectOptions } from './types';
+import { Class } from "../server/types";
+export type InstanceResolver<T> = (...args: any) => T;
+export type ResolverFunction<T = any> = () => T;
 export class BaseContainer {
   private serviceOptions: Map<any, ServiceOptions> = new Map<any, ServiceOptions>();
   private scopes: { [key: string]: Map<any, any> } = {};
+  private resolvers: Map<any, ResolverFunction> = new Map<any, ResolverFunction>();
   /**
    * Get singleton scope
    */
@@ -14,18 +16,22 @@ export class BaseContainer {
   }
 
   /**
+   * Return resolver for a given key
+   * @param key
+   */
+  private getResolver<T = any>(key: string | Class<T> | any): ResolverFunction<T> | undefined {
+    return this.resolvers.get(key);
+  }
+
+  /**
    * Get or create scope instances
    * @param scope
    */
-  private getScope(scope: string){
-    if(!this.scopes[scope]){
+  private getScope(scope: string) {
+    if (!this.scopes[scope]) {
       this.scopes[scope] = new Map<any, any>();
     }
     return this.scopes[scope];
-  }
-
-
-  constructor() {
   }
 
   /**
@@ -35,6 +41,19 @@ export class BaseContainer {
    */
   public registerService(type: any, options: ServiceOptions) {
     this.serviceOptions.set(type, options);
+  }
+
+  /**
+   * Bind a resolver function to a specific key
+   * @param key
+   * @param resolver
+   */
+  public bindResolver(key: any, resolver: ResolverFunction<any>) {
+    this.resolvers.set(key, resolver);
+  }
+
+  public hasResolver(key: any){
+    return this.resolvers.has(key);
   }
 
   /**
@@ -67,12 +86,22 @@ export class BaseContainer {
    */
   public get<T = any>(key: Class<T> | string | any, scope?: string): T {
     if (typeof key === 'string') {
+      let val: T | undefined = undefined;
       if (scope) {
-        return this.scopes[scope].get(key);
+        val = this.scopes[scope].get(key);
       }
-      return this.singletonInstances.get(key);
+      val = this.singletonInstances.get(key);
+      /**
+       * Check resolvers
+       */
+      if (!val) {
+        const resolver = this.getResolver(key);
+        if (resolver) {
+          return resolver();
+        }
+      }
+      return val as T;
     }
-
     let serviceOptions: ServiceOptions = this.serviceOptions.get(key) as ServiceOptions;
     if (!serviceOptions) {
       const constructorArgs = Reflect.getOwnMetadata('design:injectparamtypes', key) || [];
@@ -95,6 +124,15 @@ export class BaseContainer {
       }
     } else {
       value = this.singletonInstances.get(key);
+    }
+    /**
+     * Check resolvers
+     */
+    if (!value) {
+      const resolver = this.getResolver(key);
+      if (resolver) {
+        return resolver();
+      }
     }
     /**
      * If value not found in any of the scopes, create the new value, and set it to the corresponding scope
@@ -133,5 +171,5 @@ export class BaseContainer {
 export const Container = new BaseContainer();
 
 export function printContainer() {
-  console.dir(Container, {depth: null});
+  console.dir(Container, { depth: null });
 }

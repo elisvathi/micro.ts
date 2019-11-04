@@ -1,17 +1,30 @@
-import {ServerOptions} from "./types";
-import {OptionsBuilder} from "./OptionsBuilder";
-import {IConfiguration} from "./IConfiguration";
+import { ServerOptions } from "./types";
+import { OptionsBuilder } from "./OptionsBuilder";
+import { IConfiguration } from "./IConfiguration";
 
 export abstract class StartupBase {
   /**
    * Constructor initialized options builder
    */
-  private readonly builder: OptionsBuilder;
+  public readonly builder: OptionsBuilder;
 
-  constructor(config: IConfiguration){
+  constructor(config: IConfiguration) {
     this.builder = new OptionsBuilder(config);
   }
 
+  public async callBeforeStartHooks() {
+    const hooks = this.builder.beforeStartHooks;
+    for (let i = 0; i < hooks.length; i++) {
+      await hooks[i]();
+    }
+  }
+
+  public async callAfterStartHooks() {
+    const hooks = this.builder.afterStartHooks;
+    for (let i = 0; i < hooks.length; i++) {
+      await hooks[i]();
+    }
+  }
   /**
    * Executed before  the server is started, use it for Database Connections,
    * and other async processes that are not broker-related

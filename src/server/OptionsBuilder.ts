@@ -1,16 +1,17 @@
 import { Action, Class, ServerOptions } from "./types";
 import { AppErrorHandler, AppMiddleware, AuthorizeOptions } from "..";
 import { IConfiguration } from "./IConfiguration";
-import {IBroker} from "../brokers/IBroker";
+import { IBroker } from "../brokers/IBroker";
 
 export type CurrentUserCheckerFunction<TUser> = (action: Action, broker?: IBroker) => TUser | Promise<TUser>;
 export type AuthorizationFunction = (action: Action, options?: AuthorizeOptions) => boolean | Promise<boolean>;
-export type ValidateFunction = <T>(value: any, type: Class<T>)=>Promise<T>;
-
+export type ValidateFunction = <T>(value: any, type: Class<T>) => Promise<T>;
+export type StartupHook = () => Promise<void>;
 export class OptionsBuilder {
+  public beforeStartHooks: StartupHook[] = [];
+  public afterStartHooks: StartupHook[] = [];
   constructor(public config: IConfiguration) {
   }
-
   public options: ServerOptions = {
     brokers: [],
     controllers: [],
@@ -18,6 +19,14 @@ export class OptionsBuilder {
     afterMiddlewares: [],
     errorHandlers: [],
   };
+
+  public addBeforeStartHook(hook: StartupHook) {
+    this.beforeStartHooks.push(hook);
+  }
+
+  public addAfterStartHook(hook: StartupHook) {
+    this.afterStartHooks.push(hook);
+  }
 
   /**
    * Return the built options
@@ -129,7 +138,7 @@ export class OptionsBuilder {
    * Set validate function
    * @param func
    */
-  public setValidateFunction(func: ValidateFunction){
+  public setValidateFunction(func: ValidateFunction) {
     this.options.validateFunction = func;
     return this;
   }

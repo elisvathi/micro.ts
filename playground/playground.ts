@@ -27,9 +27,8 @@ class Startup extends StartupBase {
     this.hapibroker = builder.useHapiBroker(b => b.withConfigResolver(c => c.getFromPath('http.hapi')));
     builder.useSocketIoBroker(b=>b.withConfig(this.hapibroker.getConnection().listener));
     this.amqpbroker = builder.useAmqpBroker(b=>b.withConfig("amqp://localhost"));
+    this.amqpbroker.defaultExchange = {name: "Default", type: "direct"};
     builder.addControllers(DatabaseController, AmqpController, TestController);
-    builder.useTypeOrm(Container.get<BaseConfiguration>(BaseConfiguration).getFromPath("database"));
-    builder.addModels(TestModel);
   }
 
   async beforeStart(): Promise<void> {

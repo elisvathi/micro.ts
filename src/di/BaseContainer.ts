@@ -3,7 +3,9 @@ import { ServiceOptions, InjectOptions } from './types';
 import { Class } from "../server/types";
 export type InstanceResolver<T> = (...args: any) => T;
 export type ResolverFunction<T = any> = () => T;
+
 export class BaseContainer {
+
   private serviceOptions: Map<any, ServiceOptions> = new Map<any, ServiceOptions>();
   private scopes: { [key: string]: Map<any, any> } = {};
   private resolvers: Map<any, ResolverFunction> = new Map<any, ResolverFunction>();
@@ -14,7 +16,6 @@ export class BaseContainer {
     const singletonKey = '__singletons';
     return this.getScope(singletonKey);
   }
-
   /**
    * Return resolver for a given key
    * @param key

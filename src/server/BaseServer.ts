@@ -10,7 +10,6 @@ import { NotAuthorized, BadRequest } from '../errors';
 import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types';
 import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors';
 import { IBroker } from "../brokers/IBroker";
-
 interface RegisterMethodParams {
   /** Name of the method */
   methodName: string;
@@ -43,6 +42,7 @@ interface ValidateParamParams {
 }
 
 export class BaseServer {
+
   constructor(private options: ServerOptions) { }
 
   private static get controllersMetadata(): GlobalMetadata {
@@ -665,7 +665,6 @@ export class BaseServer {
         });
       }));
     }
-
   }
 
   /**

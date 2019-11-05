@@ -1,14 +1,19 @@
-import { AbstractBroker, DefinitionHandlerPair } from "../AbstractBroker";
-import { Channel, connect, Connection, ConsumeMessage, Message, Options } from 'amqplib';
-import { RequestMapper, RouteMapper } from "../IBroker";
-import { Action, BaseRouteDefinition, QueueOptions } from "../../server/types";
-import { AmqpClient, AmqpClientOptions } from "./AmqpClient";
+import {AbstractBroker, DefinitionHandlerPair, ActionHandler} from "../AbstractBroker";
+import {Channel, connect, Connection, ConsumeMessage, Message, Options} from 'amqplib';
+import {RequestMapper, RouteMapper} from "../IBroker";
+import {Action, BaseRouteDefinition, QueueOptions} from "../../server/types";
+import {AmqpClient, AmqpClientOptions} from "./AmqpClient";
 
 export type IAmqpConfig = string | Options.Connect;
+export type IAmqpExchangeConfig = { name: string, type: 'topic' | 'fanout' | 'direct', options?: Options.AssertExchange };
+export type IAmqpBindingConfig = {queue: string, pattern: string};
 
 export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
   protected connection!: Connection;
   protected channel!: Channel;
+  public defaultExchange: IAmqpExchangeConfig = {type: 'direct', name: ""};
+  private bindings: Map<IAmqpExchangeConfig, IAmqpBindingConfig[]> = new Map<IAmqpExchangeConfig, IAmqpBindingConfig[]>();
+
   protected requestMapper: RequestMapper = (r: Message, queue: string, json: boolean) => {
     const payloadString = r.content.toString();
     let payload: any;
@@ -19,8 +24,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
         this.channel.ack(r);
         throw (err);
       }
-    }
-    else {
+    } else {
       payload = payloadString;
     }
     const act: Action = {
@@ -55,7 +59,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
       unique: true,
       newChannel: true,
     };
-    const options = { ...defaultOptions, ...opts || {}};
+    const options = {...defaultOptions, ...opts || {}};
     const client = new AmqpClient(this, options);
     await client.init();
     return client;
@@ -76,9 +80,9 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
   }
 
   protected async consumeMessage(route: string,
-    message: ConsumeMessage | null,
-    value: DefinitionHandlerPair[],
-    json: boolean) {
+                                 message: ConsumeMessage | null,
+                                 value: DefinitionHandlerPair[],
+                                 json: boolean) {
     if (message) {
       const mapped: Action = this.requestMapper(message, route, json);
       const handler = this.actionToRouteMapper(route, mapped, value);
@@ -105,7 +109,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
      */
     value.forEach(v => {
       if (Object.keys(queueOptions).length == 0 && v.def.queueOptions) {
-        queueOptions = { ...v.def.queueOptions };
+        queueOptions = {...v.def.queueOptions};
         delete queueOptions.consumers;
       }
       const consumers = v.def.queueOptions ? v.def.queueOptions.consumers || 1 : 1;
@@ -116,6 +120,24 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
     });
     if (totalConsumers > 0) {
       await this.channel.assertQueue(route, queueOptions);
+      const exchanges: Array<{ exchange: string, pattern: string }> = [];
+      /**
+       * Find all associated bindings
+       */
+      this.bindings.forEach((values, key) => {
+        const item = values.find(x => x.queue === route);
+        if (item) {
+          exchanges.push({exchange: key.name, pattern: item.pattern});
+        }
+      });
+      /**
+       * Bind the queue to all associated exchanges
+       */
+      if (exchanges.length) {
+        for (let i = 0; i < exchanges.length; i++) {
+          await this.channel.bindQueue(route, exchanges[i].exchange, exchanges[i].pattern);
+        }
+      }
       /**
        * Create the specified number of consumers
        */
@@ -130,10 +152,79 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
     }
   }
 
+  /**
+   * Add single route, get its exchanges config and save it in the binding map
+   * @param def
+   * @param handler
+   */
+  public addRoute(def: BaseRouteDefinition, handler: ActionHandler): string {
+    const hasDefaultExchange: boolean = !!this.defaultExchange && this.defaultExchange.name.length > 0;
+    const hasCustomExchange: boolean = !!def.queueOptions && !!def.queueOptions.exchange && def.queueOptions.exchange.name.length > 0;
+    let exchange: IAmqpExchangeConfig | undefined = undefined;
+    let pattern: string | undefined = undefined;
+    if (hasCustomExchange) {
+      exchange = def.queueOptions!.exchange;
+      pattern = def.queueOptions!.bindingPattern || "";
+    } else if (hasDefaultExchange) {
+      pattern = def.queueOptions && def.queueOptions.bindingPattern || "";
+      exchange = this.defaultExchange;
+    }
+    /**
+     * Call super method and get the resulting queue
+     */
+    const queue = super.addRoute(def, handler);
+    /**
+     * If any exchange exists
+     */
+    if (!!exchange) {
+      /**
+       * Find saved exchanges by name only, if an exchange configured more than 1 time with difference options,
+       * keep the exchange with the first occurring options
+       */
+      const keys = Array.from(this.bindings.keys());
+      const found = keys.find(x => x.name === exchange!.name);
+      let bindings: { queue: string, pattern: string }[] = [];
+      /**
+       * If exchange found in current configuration, get the key and the value and delete it form the map,
+       * Update the key with the new options, and reset it in the map with the new options and bindings
+       */
+      if (found) {
+        bindings = this.bindings.get(found) || [];
+        this.bindings.delete(found);
+        found.options = found.options || exchange!.options;
+        exchange = found;
+      }
+      bindings.push({queue, pattern: pattern || ""});
+      this.bindings.set(exchange, bindings);
+    }
+    return queue;
+  }
+
+  /**
+   * Assert every exchange
+   */
+  private async assertExchanges() {
+    let exchanges = Array.from(this.bindings.keys());
+    for (let i = 0; i < exchanges.length; i++) {
+      await this.channel.assertExchange(exchanges[i].name, exchanges[i].type, exchanges[i].options);
+    }
+  }
+
   protected async registerRoutes() {
-    this.registeredRoutes.forEach(async (value: DefinitionHandlerPair[], route: string): Promise<void> => {
-      await this.registerSingleRoute(value, route);
+    await this.assertExchanges();
+    const routes: Array<{ value: DefinitionHandlerPair[], route: string }> = [];
+    /**
+     * Convert key value to array
+     */
+    this.registeredRoutes.forEach((value: DefinitionHandlerPair[], route: string) => {
+      routes.push({value, route});
     });
+    /**
+     * Await each item on registering the routes
+     */
+    for (let i = 0; i < routes.length; i++) {
+      await this.registerSingleRoute(routes[i].value, routes[i].route);
+    }
   }
 
   /**
@@ -150,11 +241,16 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
       headers.error = true;
     }
     headers.statusCode = response.statusCode;
-    this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), { correlationId, headers });
+    /**
+     * Reply if the message has rpcReply and correlationId
+     */
+    this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), {correlationId, headers});
   }
+
   protected get connectionConfig(): IAmqpConfig {
     return this.config;
   }
+
   public async start(): Promise<void> {
     this.connection = await connect(this.connectionConfig);
     this.channel = await this.connection.createChannel();

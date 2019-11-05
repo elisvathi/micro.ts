@@ -31,6 +31,12 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
     return `:${paramName}`;
   }
 
+  /**
+   * Register single express handler
+   * @param value
+   * @param route
+   * @param method
+   */
   protected registerHandler(value: DefinitionHandlerPair[], route: string, method: HttpVerbs): void {
     this.server[method](route, async (req: Request, res: Response) => {
       const action = this.requestMapper(req);
@@ -41,6 +47,11 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
     });
   }
 
+  /**
+   * Respond to express request
+   * @param result
+   * @param ctx
+   */
   protected respond(result: Action, ctx: Response): any {
     const body = result.response!.body || result.response!.error;
     const headers = result.response!.headers || {};

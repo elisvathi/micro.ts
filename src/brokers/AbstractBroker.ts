@@ -97,7 +97,7 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
     return this.actionToRouteMapper(route, action, allHandlers);
   }
 
-  public addRoute(def: BaseRouteDefinition, handler: ActionHandler): string | Promise<string> {
+  public addRoute(def: BaseRouteDefinition, handler: ActionHandler): string {
     const route = this.routeMapper(def);
     let registered = this.registeredRoutes.get(route);
     if (!registered) {

@@ -1,3 +1,5 @@
+import { IAmqpExchangeConfig } from "../../brokers/amqp";
+
 export interface ActionResponse {
   /**
    * Status code of the response
@@ -102,6 +104,8 @@ export interface BaseRouteDefinition {
   queueOptions?: QueueOptions;
 }
 export interface QueueOptions {
+  exchange?: IAmqpExchangeConfig;
+  bindingPattern?: string;
   consumers?: number;
   exclusive?: boolean;
   durable?: boolean;

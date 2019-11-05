@@ -1,6 +1,6 @@
-import {AmqpBroker, IAmqpConfig} from "./AmqpBroker";
+import { AmqpBroker, IAmqpConfig } from "./AmqpBroker";
 import { RequestMapper } from "../IBroker";
-import {Message, ConsumeMessage, connect} from "amqplib";
+import { Message, ConsumeMessage } from "amqplib";
 import { Action } from "../../server/types";
 import { DefinitionHandlerPair } from "../AbstractBroker";
 export interface TopicBasedAmqpConfig {
@@ -71,7 +71,7 @@ export class TopicBasedAmqpBroker extends AmqpBroker<TopicBasedAmqpConfig> {
     return this.extractParamNames(queue, '.');
   }
 
-  protected get connectionConfig(): IAmqpConfig{
+  protected get connectionConfig(): IAmqpConfig {
     return this.config.connection;
   }
 

@@ -2,7 +2,6 @@ import { BaseServer } from "./BaseServer";
 import { Class } from "./types";
 import { StartupBase } from "./StartupBase";
 import { IConfiguration } from "./IConfiguration";
-
 export class AppBuilder {
   constructor(private config: IConfiguration) {
   }

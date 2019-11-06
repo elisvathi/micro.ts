@@ -1,4 +1,4 @@
-import {Action, IConfiguration, StartupBase} from "../src/server";
+import { Action, StartupBase } from "../src/server";
 import { AmqpController } from "./controller";
 import { OptionsBuilder } from "../src/server";
 import { AppBuilder } from "../src/server";
@@ -49,7 +49,7 @@ class Startup extends StartupBase {
      * Setup amqp broker
      */
     this.amqpbroker = builder.useTopicBasedAmqpBroker(b => b.named("BROKER_DEFAULT_TOPIC").withConfig({ connection: "amqp://localhost", topic: "base" }));
-    this.amqpbroker.defaultExchange = {name: "base-topic", type: 'direct'}
+    this.amqpbroker.defaultExchange = { name: "base-topic", type: 'direct' }
     /**
      * Register controllers
      */

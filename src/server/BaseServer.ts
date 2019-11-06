@@ -554,7 +554,7 @@ export class BaseServer {
     if (brokers && brokers.length) {
       for (let i = 0; i < brokers.length; i++) {
         const broker = brokers[i];
-        const name = broker.constructor.name;
+        const name = broker.name;
         const route = await broker.addRoute(def, (action: Action) => {
           return this.executeRequest(def, action, broker);
         });

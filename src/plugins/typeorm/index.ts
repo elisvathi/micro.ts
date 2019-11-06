@@ -1,6 +1,7 @@
 import { OptionsBuilder, Class } from "../../server";
 import typeorm, { useContainer, createConnection as createDatabaseConnection, ConnectionOptions, ConnectionManager } from 'typeorm';
 import { Container, Inject } from "../../di";
+import {ILogger, LoggerKey} from "../../server/Logger";
 
 declare module "../../server/OptionsBuilder" {
   interface OptionsBuilder {
@@ -23,16 +24,16 @@ OptionsBuilder.prototype.useTypeOrm = function(config: typeorm.ConnectionOptions
     let dbOptions: any = this.options.typeormOptions;
     dbOptions = { ...dbOptions, entities: this.options.models || [] };
     await createDatabaseConnection({ ...dbOptions });
-    console.log("Database connected");
+    Container.get<ILogger>(LoggerKey).info("Database connected");
   });
-}
+};
 
 OptionsBuilder.prototype.addModels = function(...models: Class<any>[]) {
   if (!this.options.models) {
     this.options.models = [];
   }
   this.options.models.push(...models);
-}
+};
 
 export function InjectRepository<T>(model: Class<T>, name: string = 'default') {
   const key = {

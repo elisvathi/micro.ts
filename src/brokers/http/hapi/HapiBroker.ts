@@ -3,11 +3,17 @@ import {DefinitionHandlerPair} from '../../AbstractBroker';
 import {RequestMapper} from '../../IBroker';
 import {Action} from '../../../server/types';
 import {HttpBroker} from "../HttpBroker";
+import {ILogger, LoggerKey} from "../../../server/Logger";
+import {Container} from "../../../di";
 
 export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseToolkit, HapiServerOptions> {
   public name: string = "HapiBroker";
 
-  construct(){
+  private get logger(): ILogger {
+    return Container.get<ILogger>(LoggerKey)
+  }
+
+  construct() {
     this.server = new HapiServer(this.config);
   }
 
@@ -55,7 +61,7 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
   public async start(): Promise<void> {
     this.registerRoutes();
     await this.server.start();
-    console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
+    this.logger.info(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 
   protected paramWrapper(paramName: string): string {

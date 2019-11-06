@@ -1,6 +1,8 @@
 import {Channel, ConsumeMessage, Options} from "amqplib";
 import {IAmqpConnectionHooks} from ".";
 import uuid from "uuid";
+import {Container} from "../../di";
+import {ILogger, LoggerKey} from "../../server/Logger";
 
 export interface AmqpClientOptions {
   /**
@@ -62,7 +64,7 @@ export class AmqpClient {
     await this.channel.consume(this.baseRpcQueue, (msg: ConsumeMessage | null) => {
       this.consumeRpcMessage(msg)
     });
-    console.log("AMQP Client Started");
+    Container.get<ILogger>(LoggerKey).info("AMQP Client Started");
   }
 
   /**

@@ -18,6 +18,7 @@ export interface BrokerConnection<T> {
 export interface IBroker<TConfig = any> {
   appConfiguration?: IConfiguration;
   absoluteConfig?: TConfig;
+  name: string;
   readonly config: TConfig;
 
   /**

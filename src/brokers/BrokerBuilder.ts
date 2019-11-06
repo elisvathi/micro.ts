@@ -15,6 +15,10 @@ export abstract class BrokerBuilder<T extends AbstractBroker<TConfig>, TConfig> 
     this.broker.setAbsoluteConfig(config);
     return this;
   }
+  public named(name: string): BrokerBuilder<T, TConfig>{
+    this.broker.name = name;
+    return this;
+  }
 
   public getBroker(): T {
     return this.broker;

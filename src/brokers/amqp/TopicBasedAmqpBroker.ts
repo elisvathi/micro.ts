@@ -1,8 +1,13 @@
 import {AmqpBroker} from "./AmqpBroker";
-import { IAmqpConfig, TopicBasedAmqpConfig, IAmqpExchangeConfig} from "./types";
+import {IAmqpConfig, TopicBasedAmqpConfig, IAmqpExchangeConfig} from "./types";
 
 export class TopicBasedAmqpBroker extends AmqpBroker<TopicBasedAmqpConfig> {
-  public name = "TopicBasedAmqpBroker"
+
+  public name = "TopicBasedAmqpBroker";
+
+  /**
+   * Get the base topic exchange name
+   */
   public get baseTopic(): string {
     return this.config.topic;
   }
@@ -25,10 +30,13 @@ export class TopicBasedAmqpBroker extends AmqpBroker<TopicBasedAmqpConfig> {
   /**
    * Init default topic exchange
    */
-  protected construct(): void{
+  protected construct(): void {
     this.defaultExchange = {type: "topic", name: this.baseTopic};
   }
 
+  /**
+   * Get only connection configuration
+   */
   protected get connectionConfig(): IAmqpConfig {
     return this.config.connection;
   }

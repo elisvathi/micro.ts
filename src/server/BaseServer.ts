@@ -131,7 +131,7 @@ export class BaseServer {
     if (this.options.logRequests) {
       const response = action.response || {};
       const statusCode = response.statusCode || 200;
-      console.log(chalk.greenBright(`[${broker.constructor.name}]`),
+      console.log(chalk.greenBright(`[${broker.name}]`),
         chalk.blueBright(`[${def.method.toUpperCase()}]`),
         chalk.green(`[${def.controller}]`),
         chalk.yellow(`[${def.handlerName}]`),
@@ -616,7 +616,7 @@ export class BaseServer {
     };
     const results = await this.addRoute(routeDefinition, methodBrokers, desc.params || []);
     const brokerNames = methodBrokers.map(x => {
-      return x.constructor.name;
+      return x.name;
     }).join(", ");
     routes.push({
       brokers: brokerNames,

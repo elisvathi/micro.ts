@@ -1,4 +1,3 @@
-import "./extensions";
 import {DefinitionHandlerPair} from "../../AbstractBroker";
 import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "../HttpBroker";
 import express, {Application, Request, Response} from 'express'

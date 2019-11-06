@@ -48,7 +48,7 @@ class Startup extends StartupBase {
     /**
      * Setup amqp broker
      */
-    this.amqpbroker = builder.useTopicBasedAmqpBroker(b => b.withConfig({ connection: "amqp://localhost", topic: "base" }));
+    this.amqpbroker = builder.useTopicBasedAmqpBroker(b => b.named("BROKER_DEFAULT_TOPIC").withConfig({ connection: "amqp://localhost", topic: "base" }));
     this.amqpbroker.defaultExchange = {name: "base-topic", type: 'direct'}
     /**
      * Register controllers

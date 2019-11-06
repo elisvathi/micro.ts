@@ -1,9 +1,8 @@
 import {IConfiguration, OptionsBuilder} from "../../server";
 import {BrokerResolver} from "../BrokerResolver";
-import {AmqpBroker} from "./AmqpBroker";
+import {AmqpBroker, IAmqpConfig, TopicBasedAmqpConfig} from "./AmqpBroker";
 import {TopicBasedAmqpBroker} from "./TopicBasedAmqpBroker";
 import {BrokerBuilder} from "../BrokerBuilder";
-import {IAmqpConfig, TopicBasedAmqpConfig} from "./types";
 
 export class AmqpBrokerBuilder extends BrokerBuilder<AmqpBroker, IAmqpConfig> {
   constructor(config: IConfiguration) {
@@ -50,8 +49,6 @@ OptionsBuilder.prototype.useTopicBasedAmqpBroker = function (builder: BrokerReso
 export * from './AmqpClient';
 export * from './TopicBasedAmqpBroker';
 export * from './AmqpBroker';
-export {IAmqpConnectionHooks} from "./types";
-export {IAmqpBindingConfig} from "./types";
-export {IAmqpExchangeConfig} from "./types";
-export {IAmqpConfig} from "./types";
-export {TopicBasedAmqpConfig} from "./types";
+export {TopicBasedAmqpConfig} from "./AmqpBroker";
+export {IAmqpConnectionHooks} from "./AmqpBroker";
+export {IAmqpBindingConfig} from "./AmqpBroker";

@@ -1,5 +1,5 @@
-import {AmqpBroker} from "./AmqpBroker";
-import {IAmqpConfig, TopicBasedAmqpConfig, IAmqpExchangeConfig} from "./types";
+import {AmqpBroker, IAmqpConfig, TopicBasedAmqpConfig} from "./AmqpBroker";
+import {IAmqpExchangeConfig} from "../../server/types";
 
 export class TopicBasedAmqpBroker extends AmqpBroker<TopicBasedAmqpConfig> {
 

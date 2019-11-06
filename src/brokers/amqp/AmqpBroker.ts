@@ -1,11 +1,45 @@
-import { AbstractBroker, ActionHandler, DefinitionHandlerPair } from "../AbstractBroker";
-import { Channel, connect, Connection, ConsumeMessage, Message } from 'amqplib';
-import { RequestMapper, RouteMapper } from "../IBroker";
-import { Action, BaseRouteDefinition, QueueOptions } from "../../server/types";
-import { AmqpClient, AmqpClientOptions } from "./AmqpClient";
-import { IAmqpBindingConfig, IAmqpConfig, IAmqpConnectionHooks, IAmqpExchangeConfig } from "./types";
+import {AbstractBroker, ActionHandler, DefinitionHandlerPair} from "../AbstractBroker";
+import {Channel, connect, Connection, ConsumeMessage, Message, Options} from 'amqplib';
+import {RequestMapper, RouteMapper} from "../IBroker";
+import {Action, BaseRouteDefinition, IAmqpExchangeConfig, QueueOptions} from "../../server/types";
+import {AmqpClient, AmqpClientOptions} from "./AmqpClient";
 import {Container} from "../../di";
 import {ILogger, LoggerKey} from "../../server/Logger";
+
+/**
+ * Configuration for amqp connection
+ */
+export type IAmqpConfig = string | Options.Connect;
+/**
+ * Binding pair with the queue name and the binding pattern
+ */
+export type IAmqpBindingConfig = { queue: string, pattern: string };
+
+/**
+ * Interface to pass into the AmqpClient to get a connection, and an existing channel if needed
+ */
+export interface IAmqpConnectionHooks {
+  /**
+   * Return an existing connection
+   */
+  getConnection(): Connection;
+
+  /**
+   * Return an existing chanel
+   */
+  getChannel(): Channel;
+}
+
+export interface TopicBasedAmqpConfig {
+  /**
+   * Connections string or connection options
+   */
+  connection: IAmqpConfig;
+  /**
+   * Default topic exchange name
+   */
+  topic: string;
+}
 
 export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IAmqpConnectionHooks {
   public name: string = "AmqpBroker";

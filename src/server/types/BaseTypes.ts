@@ -1,5 +1,3 @@
-import { IAmqpExchangeConfig } from "../../brokers/amqp";
-
 export interface ActionResponse {
   /**
    * Status code of the response
@@ -103,6 +101,19 @@ export interface BaseRouteDefinition {
    */
   queueOptions?: QueueOptions;
 }
+
+export type AssertExchange = {
+  durable?: boolean;
+  internal?: boolean;
+  autoDelete?: boolean;
+  alternateExchange?: string;
+  arguments?: any;
+}
+/**
+ * Exchange configuration type, used as a key to <Exchange-Binding> map
+ */
+export type IAmqpExchangeConfig = { name: string, type: 'topic' | 'fanout' | 'direct', options?: AssertExchange };
+
 export interface QueueOptions {
   exchange?: IAmqpExchangeConfig;
   bindingPattern?: string;

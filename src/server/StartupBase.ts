@@ -1,6 +1,7 @@
 import { ServerOptions } from "./types";
 import { OptionsBuilder } from "./OptionsBuilder";
 import { IConfiguration } from "./IConfiguration";
+import {Container} from "../di";
 
 export abstract class StartupBase {
   /**
@@ -9,7 +10,7 @@ export abstract class StartupBase {
   public readonly builder: OptionsBuilder;
 
   constructor(config: IConfiguration) {
-    this.builder = new OptionsBuilder(config);
+    this.builder = new OptionsBuilder(config, Container);
   }
 
   public async callBeforeStartHooks() {

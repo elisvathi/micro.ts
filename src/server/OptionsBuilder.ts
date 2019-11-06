@@ -3,15 +3,16 @@ import {AppErrorHandler, AppMiddleware, AuthorizeOptions, Container} from "..";
 import { IConfiguration } from "./IConfiguration";
 import { IBroker } from "../brokers/IBroker";
 import {ILogger, LoggerKey} from "./Logger";
-
+import {BaseContainer} from "../di/BaseContainer";
 export type CurrentUserCheckerFunction<TUser> = (action: Action, broker?: IBroker) => TUser | Promise<TUser>;
 export type AuthorizationFunction = (action: Action, options?: AuthorizeOptions) => boolean | Promise<boolean>;
 export type ValidateFunction = <T>(value: any, type: Class<T>) => Promise<T>;
 export type StartupHook = () => Promise<void>;
+
 export class OptionsBuilder {
   public beforeStartHooks: StartupHook[] = [];
   public afterStartHooks: StartupHook[] = [];
-  constructor(public config: IConfiguration) {
+  constructor(public config: IConfiguration, private container: BaseContainer) {
   }
   public options: ServerOptions = {
     brokers: [],
@@ -149,7 +150,7 @@ export class OptionsBuilder {
    * @param logger
    */
   public setLogger(logger: ILogger) {
-    Container.set(LoggerKey, logger);
+    this.container.set(LoggerKey, logger);
     return this;
   }
 }

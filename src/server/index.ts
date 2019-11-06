@@ -4,3 +4,4 @@ export * from './AppBuilder';
 export * from './OptionsBuilder';
 export * from './StartupBase';
 export * from './IConfiguration';
+export {BaseConfiguration} from "./BaseConfiguration";

@@ -1,4 +1,4 @@
-import { Action, StartupBase } from "../src/server";
+import {Action, IConfiguration, StartupBase} from "../src/server";
 import { AmqpController } from "./controller";
 import { OptionsBuilder } from "../src/server";
 import { AppBuilder } from "../src/server";

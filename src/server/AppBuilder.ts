@@ -7,6 +7,7 @@ import {Container} from "../di";
 
 export class AppBuilder {
   constructor(private config: IConfiguration) {
+    Container.set(LoggerKey, new BaseLogger());
   }
 
   private startupBuilder!: StartupBase;
@@ -19,7 +20,6 @@ export class AppBuilder {
 
   public async startServer(): Promise<BaseServer> {
     if (!this.server) {
-      Container.set(LoggerKey, new BaseLogger());
       const options = this.startupBuilder.getServerOptions();
       this.server = new BaseServer(options);
       await this.startupBuilder.callBeforeStartHooks();

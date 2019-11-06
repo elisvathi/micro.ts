@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { ServiceOptions, InjectOptions } from './types';
 import { Class } from "../server/types";
+
 export type InstanceResolver<T> = (...args: any) => T;
 export type ResolverFunction<T = any> = () => T;
 

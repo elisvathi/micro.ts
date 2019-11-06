@@ -1,5 +1,5 @@
 import { Action, StartupBase } from "../src/server";
-import { AmqpController } from "./controller";
+import { AmqpController, DatabaseController } from "./controller";
 import { OptionsBuilder } from "../src/server";
 import { AppBuilder } from "../src/server";
 import "../src/brokers/http/hapi"
@@ -40,11 +40,11 @@ class Startup extends StartupBase {
     /**
      * Setup http broker
      */
-    this.hapibroker = builder.useHapiBroker(b => b.withConfigResolver(c => c.getFromPath('http.hapi')));
+    this.hapibroker = builder.useHapiBroker(b => b.named("HAPI_BROKER").withConfigResolver(c => c.getFromPath('http.hapi')));
     /**
      * Setup socket.io broker
      */
-    builder.useSocketIoBroker(b => b.withConfig(this.hapibroker.getConnection().listener));
+    builder.useSocketIoBroker(b => b.named("SOCKET_BROKER").withConfig(this.hapibroker.getConnection().listener));
     /**
      * Setup amqp broker
      */
@@ -53,7 +53,7 @@ class Startup extends StartupBase {
     /**
      * Register controllers
      */
-    builder.addControllers(AmqpController);
+    builder.addControllers(AmqpController, DatabaseController);
     /**
      * Log all responses
      */

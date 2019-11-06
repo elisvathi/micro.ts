@@ -7,6 +7,7 @@ import {Server as HttpServer} from "http";
 export type SocketIOConfig = number | Socket.ServerOptions | HttpServer;
 
 export class SocketIOBroker extends AbstractBroker<SocketIOConfig> {
+  public name: string = "SocketIoBroker";
   private server!: SocketServer;
 
   construct() {

@@ -14,7 +14,7 @@ export type ActionToRouteMapper = (route: string,
 export type ConfigResolver<T> = (config: IConfiguration) => T;
 
 export abstract class AbstractBroker<TConfig> implements IBroker {
-
+  public abstract name: string;
   /**
    * Configuration getter
    */

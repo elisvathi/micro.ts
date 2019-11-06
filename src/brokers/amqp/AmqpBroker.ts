@@ -1,20 +1,46 @@
-import {AbstractBroker, DefinitionHandlerPair, ActionHandler} from "../AbstractBroker";
-import {Channel, connect, Connection, ConsumeMessage, Message, Options} from 'amqplib';
-import {RequestMapper, RouteMapper} from "../IBroker";
-import {Action, BaseRouteDefinition, QueueOptions} from "../../server/types";
-import {AmqpClient, AmqpClientOptions} from "./AmqpClient";
+import { AbstractBroker, ActionHandler, DefinitionHandlerPair } from "../AbstractBroker";
+import { Channel, connect, Connection, ConsumeMessage, Message } from 'amqplib';
+import { RequestMapper, RouteMapper } from "../IBroker";
+import { Action, BaseRouteDefinition, QueueOptions } from "../../server/types";
+import { AmqpClient, AmqpClientOptions } from "./AmqpClient";
+import { IAmqpBindingConfig, IAmqpConfig, IAmqpConnectionHooks, IAmqpExchangeConfig } from "./types";
 
-export type IAmqpConfig = string | Options.Connect;
-export type IAmqpExchangeConfig = { name: string, type: 'topic' | 'fanout' | 'direct', options?: Options.AssertExchange };
-export type IAmqpBindingConfig = {queue: string, pattern: string};
-
-export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
+export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IAmqpConnectionHooks {
+  public name: string = "AmqpBroker";
   protected connection!: Connection;
   protected channel!: Channel;
-  public defaultExchange: IAmqpExchangeConfig = {type: 'direct', name: ""};
+  /**
+   * Default exchange for all the queues
+   */
+  private _defaultExchange: IAmqpExchangeConfig = { type: 'direct', name: "" };
+  /**
+   * Getter for the default exchange
+   */
+  public get defaultExchange(): IAmqpExchangeConfig {
+    return this._defaultExchange;
+  }
+
+  /**
+   * Setter for the default exchange
+   * @param value
+   */
+  public set defaultExchange(value: IAmqpExchangeConfig) {
+    this._defaultExchange = value;
+  }
+
+  /**
+   * Bindings map created when adding queues
+   */
   private bindings: Map<IAmqpExchangeConfig, IAmqpBindingConfig[]> = new Map<IAmqpExchangeConfig, IAmqpBindingConfig[]>();
 
-  protected requestMapper: RequestMapper = (r: Message, queue: string, json: boolean) => {
+  /**
+   * Map an amqp message on a given queue to Action object
+   * @param r
+   * @param queue
+   * @param routingKey
+   * @param json
+   */
+  protected requestMapper: RequestMapper = (r: Message, queue: string, routingKey: string, json: boolean) => {
     const payloadString = r.content.toString();
     let payload: any;
     if (json) {
@@ -27,9 +53,19 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
     } else {
       payload = payloadString;
     }
+    const routingKeySplit = routingKey.split('.');
+    const queueSplit = this.extractQueueParamNames(queue);
+    const params: any = {};
+    if (routingKeySplit.length === queueSplit.length) {
+      queueSplit.forEach((item, index) => {
+        if (item.param) {
+          params[item.name] = routingKeySplit[index];
+        }
+      })
+    }
     const act: Action = {
       request: {
-        params: {},
+        params,
         path: queue,
         headers: r.properties.headers,
         // method: def.method,
@@ -59,7 +95,14 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
       unique: true,
       newChannel: true,
     };
-    const options = {...defaultOptions, ...opts || {}};
+    /**
+     * Append configured options to the default options
+     */
+    const options = { ...defaultOptions, ...opts || {} };
+
+    /**
+     * Create client an channels
+     */
     const client = new AmqpClient(this, options);
     await client.init();
     return client;
@@ -79,14 +122,36 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
     return this.channel;
   }
 
+  /**
+   * Consume message from the asserted queue, find its corresponding handler, execute the handler,
+   * and if can reply, respond to the replyTo queue
+   * @param route
+   * @param message
+   * @param value
+   * @param json
+   */
   protected async consumeMessage(route: string,
-                                 message: ConsumeMessage | null,
-                                 value: DefinitionHandlerPair[],
-                                 json: boolean) {
+    message: ConsumeMessage | null,
+    value: DefinitionHandlerPair[],
+    json: boolean) {
     if (message) {
-      const mapped: Action = this.requestMapper(message, route, json);
+      const exchange = message.fields.exchange || "";
+      const routingKey = message.fields.routingKey;
+      /**
+       * Convert message to action
+       */
+      const mapped: Action = this.requestMapper(message, route, routingKey, json);
+      /**
+       * Find the corresponding handler for the action object
+       */
       const handler = this.actionToRouteMapper(route, mapped, value);
+      /**
+       * Execute handler
+       */
       const result = await handler(mapped);
+      /**
+       * If possible publish the value to the replyTo queue
+       */
       if (result && message.properties.replyTo && message.properties.correlationId) {
         await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId);
       }
@@ -108,8 +173,14 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
      * Finds the number of consumers and the assertQueue options
      */
     value.forEach(v => {
-      if (Object.keys(queueOptions).length == 0 && v.def.queueOptions) {
-        queueOptions = {...v.def.queueOptions};
+      if (Object.keys(queueOptions).length === 0 && v.def.queueOptions) {
+        /**
+         * Get the last queue options, in case there is collisions
+         */
+        queueOptions = { ...v.def.queueOptions };
+        /**
+         * Remove the consumers key from the queue options, to use the resulting object as Options on queue assertion
+         */
         delete queueOptions.consumers;
       }
       const consumers = v.def.queueOptions ? v.def.queueOptions.consumers || 1 : 1;
@@ -127,13 +198,16 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
       this.bindings.forEach((values, key) => {
         const item = values.find(x => x.queue === route);
         if (item) {
-          exchanges.push({exchange: key.name, pattern: item.pattern});
+          exchanges.push({ exchange: key.name, pattern: item.pattern });
         }
       });
       /**
        * Bind the queue to all associated exchanges
        */
       if (exchanges.length) {
+        /**
+         * Bind queue to the configured exchanges
+         */
         for (let i = 0; i < exchanges.length; i++) {
           await this.channel.bindQueue(route, exchanges[i].exchange, exchanges[i].pattern);
         }
@@ -158,34 +232,59 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
    * @param handler
    */
   public addRoute(def: BaseRouteDefinition, handler: ActionHandler): string {
+    /**
+     * Check if a default exchange configuration exists
+     */
     const hasDefaultExchange: boolean = !!this.defaultExchange && this.defaultExchange.name.length > 0;
+    /**
+     * Check if a custom exchange configuration exists
+     */
     const hasCustomExchange: boolean = !!def.queueOptions && !!def.queueOptions.exchange && def.queueOptions.exchange.name.length > 0;
-    let exchange: IAmqpExchangeConfig | undefined = undefined;
-    let pattern: string | undefined = undefined;
+    /**
+     * Build a list of exchange configurations
+     */
+    const exchanges: Array<IAmqpExchangeConfig> = [];
+    if (hasDefaultExchange) {
+      exchanges.push(this.defaultExchange);
+    }
     if (hasCustomExchange) {
-      exchange = def.queueOptions!.exchange;
-      pattern = def.queueOptions!.bindingPattern || "";
-    } else if (hasDefaultExchange) {
-      pattern = def.queueOptions && def.queueOptions.bindingPattern || "";
-      exchange = this.defaultExchange;
+      exchanges.push(def.queueOptions!.exchange!);
     }
     /**
      * Call super method and get the resulting queue
      */
     const queue = super.addRoute(def, handler);
+
     /**
-     * If any exchange exists
+     * For each exchange configuration insert on the exchanges map, the current bindings
      */
-    if (!!exchange) {
+    exchanges.forEach(exchange => {
+      let pattern = "";
+      if (!!def.queueOptions && !!def.queueOptions.bindingPattern) {
+        /**
+         * If binding pattern configured on the handler use that value as a binding pattern
+         */
+        pattern = def.queueOptions.bindingPattern;
+      } else {
+        /**
+         * Process the binding pattern using the queue name and the type of the exchange
+         * if the exchange is a 'topic' extract the param names from the queue names and replace them with '#'
+         * on the binding pattern
+         */
+        pattern = this.getQueuePattern(queue, exchange.type);
+      }
       /**
        * Find saved exchanges by name only, if an exchange configured more than 1 time with difference options,
        * keep the exchange with the first occurring options
        */
       const keys = Array.from(this.bindings.keys());
+      /**
+       * Check if the exchange already exists on the map
+       */
       const found = keys.find(x => x.name === exchange!.name);
       let bindings: { queue: string, pattern: string }[] = [];
       /**
-       * If exchange found in current configuration, get the key and the value and delete it form the map,
+       * If the exchange name found in the current configuration, get the key and the value and delete it form the map,
        * Update the key with the new options, and reset it in the map with the new options and bindings
        */
       if (found) {
@@ -194,9 +293,9 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
         found.options = found.options || exchange!.options;
         exchange = found;
       }
-      bindings.push({queue, pattern: pattern || ""});
+      bindings.push({ queue, pattern: pattern || "" });
       this.bindings.set(exchange, bindings);
-    }
+    });
     return queue;
   }
 
@@ -217,7 +316,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
      * Convert key value to array
      */
     this.registeredRoutes.forEach((value: DefinitionHandlerPair[], route: string) => {
-      routes.push({value, route});
+      routes.push({ value, route });
     });
     /**
      * Await each item on registering the routes
@@ -244,20 +343,57 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
     /**
      * Reply if the message has rpcReply and correlationId
      */
-    this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), {correlationId, headers});
+    this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), { correlationId, headers });
   }
 
   protected get connectionConfig(): IAmqpConfig {
     return this.config;
   }
 
+  /**
+   * Create connection and channel,
+   * assert exchanges and queues,
+   * create bindings,
+   * register consumers
+   */
   public async start(): Promise<void> {
     this.connection = await connect(this.connectionConfig);
     this.channel = await this.connection.createChannel();
     await this.registerRoutes();
-    console.log(`AMQP Connected on ${this.config}`);
+    console.log(`AMQP Connected on ${this.connectionConfig}`);
   }
 
+  /**
+   * Extract params for a given queue string
+   * @param queue
+   */
+  protected extractQueueParamNames(queue: string) {
+    return this.extractParamNames(queue, '.');
+  }
+
+  /**
+   * Get a queue pattern string from a given queue name,
+   * If exchange type is not topic return the queue name as a pattern,
+   * else replace all ':param' parts of the string with '#'
+   * @param queue
+   * @param type
+   */
+  protected getQueuePattern(queue: string, type: "topic" | "direct" | "fanout") {
+    if (type === "topic") {
+      return queue.split(".").map(x => {
+        if (x.length > 0 && x[0] === ':') {
+          return '#'
+        }
+        return x;
+      }).join('.');
+    }
+    return queue;
+  }
+
+  /**
+   * Called immediately after broker configuration is set, either with a constructor configuration,
+   * or a config resolver from an IConfiguration instance
+   */
   protected construct(): void {
     // Do nothing
   }

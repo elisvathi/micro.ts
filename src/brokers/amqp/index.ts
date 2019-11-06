@@ -1,8 +1,9 @@
-import {BrokerBuilder} from "../BrokerBuilder";
 import {IConfiguration, OptionsBuilder} from "../../server";
-import {AmqpBroker, IAmqpConfig} from "./AmqpBroker";
 import {BrokerResolver} from "../BrokerResolver";
-import {TopicBasedAmqpBroker, TopicBasedAmqpConfig} from "./TopicBasedAmqpBroker";
+import {AmqpBroker} from "./AmqpBroker";
+import {TopicBasedAmqpBroker} from "./TopicBasedAmqpBroker";
+import {BrokerBuilder} from "../BrokerBuilder";
+import {IAmqpConfig, TopicBasedAmqpConfig} from "./types";
 
 export class AmqpBrokerBuilder extends BrokerBuilder<AmqpBroker, IAmqpConfig> {
   constructor(config: IConfiguration) {
@@ -28,7 +29,7 @@ declare module "../../server/OptionsBuilder" {
      * and route using automatic RoutingKeys
      * @param builder
      */
-    useTopicBasedAmqpBroker(builder: BrokerResolver<TopicBasedAmqpBuilder>) : TopicBasedAmqpBroker;
+    useTopicBasedAmqpBroker(builder: BrokerResolver<TopicBasedAmqpBuilder>): TopicBasedAmqpBroker;
   }
 }
 
@@ -39,12 +40,18 @@ OptionsBuilder.prototype.useAmqpBroker = function (builder: BrokerResolver<AmqpB
   return broker;
 };
 
-OptionsBuilder.prototype.useTopicBasedAmqpBroker  = function (builder: BrokerResolver<TopicBasedAmqpBuilder>) {
+OptionsBuilder.prototype.useTopicBasedAmqpBroker = function (builder: BrokerResolver<TopicBasedAmqpBuilder>) {
   const broker_builder = new TopicBasedAmqpBuilder(this.config);
   const broker = builder(broker_builder).getBroker();
   this.options.brokers!.push(broker);
   return broker;
 };
 
+export * from './AmqpClient';
 export * from './TopicBasedAmqpBroker';
 export * from './AmqpBroker';
+export {IAmqpConnectionHooks} from "./types";
+export {IAmqpBindingConfig} from "./types";
+export {IAmqpExchangeConfig} from "./types";
+export {IAmqpConfig} from "./types";
+export {TopicBasedAmqpConfig} from "./types";

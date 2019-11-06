@@ -2,9 +2,9 @@ import {AbstractBroker} from "../AbstractBroker";
 import {RequestMapper, RouteMapper} from "../IBroker";
 import IORedis, {Redis} from "ioredis";
 import {Action, BaseRouteDefinition} from "../../server/types";
-import {IConfiguration} from "../../server";
 export type RedisConfig = string;
 export class RedisBroker extends AbstractBroker<RedisConfig> {
+  public name: string = "RedisBroker";
   private server!: Redis;
   private subscriber!: Redis;
 

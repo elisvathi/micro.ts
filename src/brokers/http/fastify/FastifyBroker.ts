@@ -4,6 +4,7 @@ import {Action} from "../../../server/types";
 import {DefinitionHandlerPair} from "../../AbstractBroker";
 
 export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, FastifyReply<any>, IHttpListnerConfig> {
+  public name: string = "FastifyBroker";
   protected server!: FastifyInstance;
 
   protected requestMapper: (r: fastify.FastifyRequest) => Action = (r: FastifyRequest) => {

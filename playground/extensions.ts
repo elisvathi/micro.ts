@@ -1,4 +1,4 @@
-import {OptionsBuilder} from "../src/server/OptionsBuilder";
+import {OptionsBuilder} from "../src/server";
 
 declare module "../src/server/OptionsBuilder"{
   interface OptionsBuilder {

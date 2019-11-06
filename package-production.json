@@ -1,0 +1,21 @@
+{
+    "name": "@micro.ts/core",
+    "version": "0.0.49",
+    "description": "Microservice framework with Typescript",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "keywords": ["typescript", "microservice", "brokers", "microservices", "amqp", "rabbitmq", "redis", "hapi", "koa", "express", "fastify", "http", "socket.io", "decorators", "framework"],
+    "author": "Elis Vathi",
+    "license": "MIT",
+    "peerDependencies": {},
+    "dependencies": {
+        "chalk": "^2.4.2",
+        "config": "^3.2.4",
+        "reflect-metadata": "^0.1.13"
+    },
+    "devDependencies": {},
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/elisvathi/micro.ts.git"
+    }
+}

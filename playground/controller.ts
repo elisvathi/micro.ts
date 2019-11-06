@@ -1,8 +1,8 @@
-import { Body, FilterBrokers, Get, Headers, JsonController, Params } from "../src/decorators";
+import { Body, FilterBrokers, Get, Headers, JsonController, Params, Post } from "../src/decorators";
 import { ParamsRequest } from "./types";
 import { HapiBroker } from "../src/brokers/http/hapi";
 import { SocketIOBroker } from "../src/brokers/socketio";
-import { AmqpBroker } from "../src/brokers/amqp";
+import { AmqpBroker, TopicBasedAmqpBroker } from "../src/brokers/amqp";
 import { InjectRepository } from "../src/plugins/typeorm";
 import { Repository, PrimaryGeneratedColumn, Entity, Column, EntityRepository } from "typeorm";
 @Entity()
@@ -61,7 +61,7 @@ export class DatabaseController {
 }
 
 @JsonController("amqp")
-@FilterBrokers(b => b.constructor === AmqpBroker)
+@FilterBrokers(b => b.constructor === TopicBasedAmqpBroker)
 export class AmqpController {
 
   @Get('test', { queueOptions: { consumers: 2, exchange: { name: "Test-Exchange", type: 'topic' }, bindingPattern: "testing" } })
@@ -73,8 +73,10 @@ export class AmqpController {
   testAnotherRoute() {
     return { ok: true };
   }
-  @Get("test-default", {queueOptions: {bindingPattern: "t-t-t-t"}})
-  testDefaultExchange(){
-    return {ok: true};
+
+  @Post("test-default/:id/:name")
+  testDefaultExchange(@Params({validate: false}) params: any){
+    console.log("CALLED WITH PARAMS", params);
+    return {ok: true, params};
   }
 }

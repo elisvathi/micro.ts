@@ -5,6 +5,7 @@ import {Action} from '../../../server/types';
 import {HttpBroker} from "../HttpBroker";
 
 export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseToolkit, HapiServerOptions> {
+  public name: string = "HapiBroker";
 
   construct(){
     this.server = new HapiServer(this.config);

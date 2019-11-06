@@ -1,5 +1,5 @@
-import { OptionsBuilder, Class, StartupBase } from "../../server";
-import typeorm, { useContainer, createConnection as createDatabaseConnection, ConnectionOptions, ConnectionManager, Connection as TypeOrmConnection } from 'typeorm';
+import { OptionsBuilder, Class } from "../../server";
+import typeorm, { useContainer, createConnection as createDatabaseConnection, ConnectionOptions, ConnectionManager } from 'typeorm';
 import { Container, Inject } from "../../di";
 
 declare module "../../server/OptionsBuilder" {

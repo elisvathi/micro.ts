@@ -1,3 +1,4 @@
+import "./extensions";
 import {DefinitionHandlerPair} from "../../AbstractBroker";
 import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "../HttpBroker";
 import express, {Application, Request, Response} from 'express'
@@ -5,6 +6,7 @@ import {Action} from "../../../server/types";
 
 
 export class ExpressBroker extends HttpBroker<Application, Request, Response, IHttpListnerConfig> {
+  public name: string = "ExpressBroker";
   protected construct(): void {
     this.server = express();
   }

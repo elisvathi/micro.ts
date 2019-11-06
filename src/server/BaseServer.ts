@@ -10,6 +10,7 @@ import { NotAuthorized, BadRequest } from '../errors';
 import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types';
 import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors';
 import { IBroker } from "../brokers/IBroker";
+import {ILogger, LoggerKey} from "./Logger";
 
 interface RegisterMethodParams {
   /** Name of the method */
@@ -44,6 +45,10 @@ interface ValidateParamParams {
 
 export class BaseServer {
   constructor(private options: ServerOptions) { }
+
+  private get logger(): ILogger {
+    return Container.get<ILogger>(LoggerKey)
+  }
 
   private static get controllersMetadata(): GlobalMetadata {
     return getGlobalMetadata();
@@ -108,6 +113,7 @@ export class BaseServer {
    * @param broker Broker instance
    */
   private async executeRequest(def: BaseRouteDefinition, action: Action, broker: IBroker) {
+    let start = process.hrtime();
     const controllerInstance: any = Container.get(def.controllerCtor);
     const methodControllerMetadata: MethodControllerOptions = getHandlerMetadata(def.controllerCtor, def.handlerName);
     try {
@@ -121,7 +127,7 @@ export class BaseServer {
         action.response.is_error = true;
         action.response.error = err;
         if (this.options.logErrors && action.response.statusCode === 500) {
-          console.log(action);
+          this.logger.info(action);
         }
       }
     }
@@ -129,6 +135,7 @@ export class BaseServer {
      * Log the request info if enabled
      */
     if (this.options.logRequests) {
+      let end = process.hrtime(start);
       const response = action.response || {};
       const statusCode = response.statusCode || 200;
       console.log(chalk.greenBright(`[${broker.constructor.name}]`),
@@ -136,7 +143,7 @@ export class BaseServer {
         chalk.green(`[${def.controller}]`),
         chalk.yellow(`[${def.handlerName}]`),
         `${action.request.path}`,
-        statusCode === 200 ? chalk.blue(`[${statusCode}]`) : chalk.red(`[${statusCode}]`));
+        statusCode === 200 ? chalk.blue(`[${statusCode}]`) : chalk.red(`[${statusCode}]`), chalk.greenBright(`[${end[0]}s ${Math.floor(end[1] / 1000000)}ms]`));
     }
     return action;
   }
@@ -569,7 +576,7 @@ export class BaseServer {
       await Promise.all(this.options.brokers.map(async (x) => {
         await x.start();
       }));
-      console.log("SERVER STARTED");
+      this.logger.info("Base Server Started");
     }
   }
 

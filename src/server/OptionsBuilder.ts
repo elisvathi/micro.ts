@@ -1,7 +1,8 @@
 import { Action, Class, ServerOptions } from "./types";
-import { AppErrorHandler, AppMiddleware, AuthorizeOptions } from "..";
+import {AppErrorHandler, AppMiddleware, AuthorizeOptions, Container} from "..";
 import { IConfiguration } from "./IConfiguration";
 import { IBroker } from "../brokers/IBroker";
+import {ILogger, LoggerKey} from "./Logger";
 
 export type CurrentUserCheckerFunction<TUser> = (action: Action, broker?: IBroker) => TUser | Promise<TUser>;
 export type AuthorizationFunction = (action: Action, options?: AuthorizeOptions) => boolean | Promise<boolean>;
@@ -140,6 +141,15 @@ export class OptionsBuilder {
    */
   public setValidateFunction(func: ValidateFunction) {
     this.options.validateFunction = func;
+    return this;
+  }
+
+  /**
+   * Set logger in container
+   * @param logger
+   */
+  public setLogger(logger: ILogger) {
+    Container.set(LoggerKey, logger);
     return this;
   }
 }

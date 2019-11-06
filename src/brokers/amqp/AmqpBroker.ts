@@ -3,6 +3,8 @@ import { Channel, connect, Connection, ConsumeMessage, Message, Options } from '
 import { RequestMapper, RouteMapper } from "../IBroker";
 import { Action, BaseRouteDefinition, QueueOptions } from "../../server/types";
 import { AmqpClient, AmqpClientOptions } from "./AmqpClient";
+import {Container} from "../../di";
+import {ILogger, LoggerKey} from "../../server/Logger";
 
 export type IAmqpConfig = string | Options.Connect;
 
@@ -159,7 +161,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> {
     this.connection = await connect(this.connectionConfig);
     this.channel = await this.connection.createChannel();
     await this.registerRoutes();
-    console.log(`AMQP Connected on ${this.config}`);
+    Container.get<ILogger>(LoggerKey).info(`AMQP Connected on ${this.config}`);
   }
 
   protected construct(): void {

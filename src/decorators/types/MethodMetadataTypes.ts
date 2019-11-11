@@ -19,6 +19,7 @@ export interface MethodOptions {
     path?: string;
     brokers?: BrokerFilter;
     queueOptions?: QueueOptions;
+    timeout? : number;
 }
 
 export interface ControllerOptions {
@@ -29,6 +30,7 @@ export interface ControllerOptions {
     authorization?: AuthorizeOptions;
     middlewares?: MiddlewareOptions[];
     errorHandlers?: AppErrorHandler[];
+    timeout?: number;
 }
 
 export interface MethodControllerOptions {

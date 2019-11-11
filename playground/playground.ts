@@ -1,5 +1,5 @@
-import { Action, StartupBase } from "../src/server";
-import { AmqpController, DatabaseController } from "./controller";
+import {Action, IConfiguration, StartupBase} from "../src/server";
+import {AmqpController, DatabaseController, TimeoutController} from "./controller";
 import { OptionsBuilder } from "../src/server";
 import { AppBuilder } from "../src/server";
 import "../src/brokers/http/hapi"
@@ -10,6 +10,7 @@ import { HapiBroker } from "../src/brokers/http/hapi";
 import { TopicBasedAmqpBroker } from "../src/brokers/amqp";
 import { Container, BaseConfiguration } from "../src";
 import { AmqpClient } from "../src/brokers/amqp";
+import config from 'config';
 
 class Startup extends StartupBase {
   hapibroker!: HapiBroker;
@@ -30,6 +31,7 @@ class Startup extends StartupBase {
     builder.setLogErrors(true);
     builder.setLogRequests(true);
     builder.setDevMode(true);
+    // builder.setTimeout(100);
     /**
      * Global error handler, to log errors
      */
@@ -53,14 +55,14 @@ class Startup extends StartupBase {
     /**
      * Register controllers
      */
-    builder.addControllers(AmqpController, DatabaseController);
+    builder.addControllers(AmqpController, DatabaseController, TimeoutController);
     /**
      * Log all responses
      */
-    builder.addAfterMiddlewares((a: Action) => {
-      console.log("Response", a.response);
-      return a;
-    })
+    // builder.addAfterMiddlewares((a: Action) => {
+    //   console.log("Response", a.response);
+    //   return a;
+    // });
   }
 
   async beforeStart(): Promise<void> {
@@ -74,9 +76,14 @@ class Startup extends StartupBase {
   }
 
 }
+class DefaultConfig implements IConfiguration{
+  getFromPath<T>(path: string): T {
+    return config.get(path);
+  }
 
+}
 async function main() {
-  const builder = new AppBuilder(new BaseConfiguration()).useStartup(Startup);
+  const builder = new AppBuilder(new DefaultConfig()).useStartup(Startup);
   await builder.start();
 }
 

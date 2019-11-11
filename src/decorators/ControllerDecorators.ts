@@ -1,6 +1,6 @@
-import { ControllerOptions } from "./types/MethodMetadataTypes";
+import { ControllerOptions } from "./types";
 import { registerControllerMetadata, attachControllerMiddleware, attachHandlerMiddleware } from "./BaseDecorators";
-import { AppMiddleware } from "../middlewares/IMiddleware";
+import { AppMiddleware } from "..";
 
 export function Controller(options?: ControllerOptions) {
     return (target: any) => {

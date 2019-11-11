@@ -14,6 +14,7 @@ export type ActionToRouteMapper = (route: string,
 export type ConfigResolver<T> = (config: IConfiguration) => T;
 
 export abstract class AbstractBroker<TConfig> implements IBroker {
+  private timeout: number = 0;
   public abstract name: string;
   /**
    * Configuration getter
@@ -30,7 +31,7 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
    * @param absoluteConfig
    */
   constructor(absoluteConfig?: TConfig) {
-    if(absoluteConfig) {
+    if (absoluteConfig) {
       this.setAbsoluteConfig(absoluteConfig);
     }
   }
@@ -118,6 +119,16 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
       }
       return value;
     });
+  }
+
+  public getDefaultTimeout(): number {
+    return this.timeout;
+  }
+
+  public setDefaultTimeout(val: number): void {
+    if (val > 0) {
+      this.timeout = val;
+    }
   }
 
   abstract start(): Promise<void>;

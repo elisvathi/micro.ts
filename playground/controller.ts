@@ -1,10 +1,22 @@
-import { Body, FilterBrokers, Get, Headers, JsonController, Params, Post } from "../src/decorators";
+import {
+  AfterMiddlewares,
+  BeforeMiddlewares,
+  Body,
+  FilterBrokers,
+  Get,
+  Headers,
+  JsonController,
+  Params,
+  Post,
+  UseErrorHandlers
+} from "../src/decorators";
 import { ParamsRequest } from "./types";
 import { HapiBroker } from "../src/brokers/http/hapi";
 import { SocketIOBroker } from "../src/brokers/socketio";
 import { AmqpBroker, TopicBasedAmqpBroker } from "../src/brokers/amqp";
 import { InjectRepository } from "../src/plugins/typeorm";
 import { Repository, PrimaryGeneratedColumn, Entity, Column, EntityRepository } from "typeorm";
+import {sleep} from "../src/helpers/BaseHelpers";
 @Entity()
 export class TestModel {
   @PrimaryGeneratedColumn()
@@ -18,7 +30,7 @@ class CustomRepo extends Repository<TestModel>{
   }
 }
 
-@JsonController("test")
+@JsonController("test" )
 @FilterBrokers(b => {
   return b.constructor !== AmqpBroker;
 })
@@ -65,7 +77,8 @@ export class DatabaseController {
 export class AmqpController {
 
   @Get('test', { queueOptions: { consumers: 2, exchange: { name: "Test-Exchange", type: 'topic' }, bindingPattern: "testing" } })
-  getTestData() {
+  async getTestData() {
+    await sleep(3000);
     return { ok: true };
   }
 
@@ -78,5 +91,15 @@ export class AmqpController {
   testDefaultExchange(@Params({validate: false}) params: any){
     console.log("CALLED WITH PARAMS", params);
     return {ok: true, params};
+  }
+}
+
+@JsonController("timeout", {timeout: 100})
+@FilterBrokers(b=>b.constructor === HapiBroker)
+export class TimeoutController{
+  @Get("fixed-timeout" )
+  async getFixedTimeout() {
+    await sleep(200);
+    return {ok: true}
   }
 }

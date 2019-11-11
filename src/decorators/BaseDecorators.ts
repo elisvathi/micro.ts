@@ -139,16 +139,17 @@ export function registerControllerMetadata(target: any, options?: ControllerOpti
         found.constructorParams.push(...paramtypes.map(x => { return { type: x } }));
     }
     found.options = found.options || {};
-    found.options = { ...found.options, ...(options || {}) };
     if (options && options.errorHandlers) {
         const currentErrorHandlers: AppErrorHandler[] = found.options.errorHandlers || [];
         options.errorHandlers = [...currentErrorHandlers, ...options.errorHandlers];
+        options.timeout = options.timeout || found.options.timeout;
     }
     if (options && options.middlewares) {
         const currentMiddlewares: MiddlewareOptions[] = found.options.middlewares || [];
         options.middlewares = [...currentMiddlewares, ...options.middlewares];
     }
-    found.handlers = found.handlers || metadata.methods.get(target.prototype);
+  found.options = { ...found.options, ...(options || {}) };
+  found.handlers = found.handlers || metadata.methods.get(target.prototype);
     metadata.methods.delete(target.prototype);
     metadata.controllers.set(target, found);
     if (!isFound)

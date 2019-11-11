@@ -32,6 +32,8 @@ export interface IBroker<TConfig = any> {
     addRoute(def: BaseRouteDefinition, handler: (action: Action) => any): string | Promise<string>;
     setRequestMapper(requestMapper: RequestMapper): void;
     setRouteMapper(setRouteMapper: RouteMapper): void;
+    getDefaultTimeout(): number;
+    setDefaultTimeout(val: number): void;
 
     /**
      * Starts the broker connection

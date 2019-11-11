@@ -60,4 +60,9 @@ export interface ServerOptions {
    * @param type Type of the value
    */
   validateFunction?: (value: any, type: any) => any | Promise<any>;
+
+  /**
+   * Global timeout for all the requests
+   */
+  timeout? : number;
 }

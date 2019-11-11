@@ -1,5 +1,5 @@
 import { Action, StartupBase } from "../src/server";
-import { AmqpController, DatabaseController } from "./controller";
+import {AmqpController, DatabaseController, PullController} from "./controller";
 import { OptionsBuilder } from "../src/server";
 import { AppBuilder } from "../src/server";
 import "../src/brokers/http/hapi"
@@ -10,6 +10,7 @@ import { HapiBroker } from "../src/brokers/http/hapi";
 import { TopicBasedAmqpBroker } from "../src/brokers/amqp";
 import { Container, BaseConfiguration } from "../src";
 import { AmqpClient } from "../src/brokers/amqp";
+import {CommandBroker} from "../src/brokers/command/CommandBroker";
 
 class Startup extends StartupBase {
   hapibroker!: HapiBroker;
@@ -49,18 +50,17 @@ class Startup extends StartupBase {
      * Setup amqp broker
      */
     this.amqpbroker = builder.useTopicBasedAmqpBroker(b => b.named("BROKER_DEFAULT_TOPIC").withConfig({ connection: "amqp://localhost", topic: "base" }));
-    this.amqpbroker.defaultExchange = { name: "base-topic", type: 'direct' }
+    this.amqpbroker.defaultExchange = { name: "base-topic", type: 'direct' };
+    const commandBroker: CommandBroker = new CommandBroker({port: 5001, stdin: false, hostname: '0.0.0.0'});
+    commandBroker.name = "COMMAND";
+    builder.addBroker(commandBroker);
     /**
      * Register controllers
      */
-    builder.addControllers(AmqpController, DatabaseController);
+    builder.addControllers(AmqpController, DatabaseController, PullController);
     /**
      * Log all responses
      */
-    builder.addAfterMiddlewares((a: Action) => {
-      console.log("Response", a.response);
-      return a;
-    })
   }
 
   async beforeStart(): Promise<void> {

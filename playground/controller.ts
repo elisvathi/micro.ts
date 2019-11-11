@@ -1,10 +1,12 @@
-import { Body, FilterBrokers, Get, Headers, JsonController, Params, Post } from "../src/decorators";
+import {Body, FilterBrokers, Get, Headers, JsonController, Params, Post, Query} from "../src/decorators";
 import { ParamsRequest } from "./types";
 import { HapiBroker } from "../src/brokers/http/hapi";
 import { SocketIOBroker } from "../src/brokers/socketio";
 import { AmqpBroker, TopicBasedAmqpBroker } from "../src/brokers/amqp";
 import { InjectRepository } from "../src/plugins/typeorm";
 import { Repository, PrimaryGeneratedColumn, Entity, Column, EntityRepository } from "typeorm";
+import {Container} from "../src/di";
+import {CommandBroker} from "../src/brokers/command/CommandBroker";
 @Entity()
 export class TestModel {
   @PrimaryGeneratedColumn()
@@ -61,22 +63,35 @@ export class DatabaseController {
 }
 
 @JsonController("amqp")
-@FilterBrokers(b => b.constructor === TopicBasedAmqpBroker)
 export class AmqpController {
 
-  @Get('test', { queueOptions: { consumers: 2, exchange: { name: "Test-Exchange", type: 'topic' }, bindingPattern: "testing" } })
-  getTestData() {
-    return { ok: true };
+  @Get("test")
+  getData(@Query() qs: any){
+    return qs;
+  }
+  @Post("data")
+  postData(@Body({required: true}) body: any){
+    return {ok: true, body};
+  }
+}
+
+@JsonController("pull")
+@FilterBrokers(b=>b.constructor === CommandBroker)
+export class PullController{
+
+  @Get("mobile")
+  pullMobile() {
+    return "Pulling mobile data...";
   }
 
-  @Get("testim", { queueOptions: { exchange: { name: "Test-Exchange", type: 'direct' } } })
-  testAnotherRoute() {
-    return { ok: true };
+  @Get("native")
+  pullNative() {
+    return "Pulling native data...";
   }
 
-  @Post("test-default/:id/:name")
-  testDefaultExchange(@Params({validate: false}) params: any){
-    console.log("CALLED WITH PARAMS", params);
-    return {ok: true, params};
+  @Get("adult")
+  pullAdult() {
+    return "Pulling adult data...";
   }
+
 }

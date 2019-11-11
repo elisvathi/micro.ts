@@ -1,7 +1,9 @@
-import {NotFound} from "../errors";
-import {Action, BaseRouteDefinition} from "../server/types";
-import {IBroker, RequestMapper, RouteMapper} from "./IBroker";
-import {IConfiguration} from "../server";
+import { NotFound } from "../errors";
+import { Action, BaseRouteDefinition } from "../server/types";
+import { IBroker, RequestMapper, RouteMapper } from "./IBroker";
+import { IConfiguration } from "../server";
+import { ILogger, Log } from "../server/Logger";
+import chalk from 'chalk';
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
 export type DefinitionHandlerPair = {
@@ -9,8 +11,8 @@ export type DefinitionHandlerPair = {
   handler: ActionHandler
 }
 export type ActionToRouteMapper = (route: string,
-                                   action: Action,
-                                   pairs: DefinitionHandlerPair[]) => ActionHandler;
+  action: Action,
+  pairs: DefinitionHandlerPair[]) => ActionHandler;
 export type ConfigResolver<T> = (config: IConfiguration) => T;
 
 export abstract class AbstractBroker<TConfig> implements IBroker {
@@ -30,7 +32,7 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
    * @param absoluteConfig
    */
   constructor(absoluteConfig?: TConfig) {
-    if(absoluteConfig) {
+    if (absoluteConfig) {
       this.setAbsoluteConfig(absoluteConfig);
     }
   }
@@ -103,15 +105,21 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
     if (!registered) {
       registered = [];
     }
-    registered.push({def, handler});
+    registered.push({ def, handler });
     this.registeredRoutes.set(route, registered);
     return route;
+  }
+
+  public log(message: string, options?: any, level: keyof ILogger = 'info') {
+    const prefix = chalk.green(`[${this.name}]`)
+    const message_fmt = `${prefix} ${message}`;
+    Log[level](message_fmt, options);
   }
 
   protected extractParamNames(path: string, separator = "/") {
     const spl = path.split(separator);
     return spl.map(x => {
-      const value: { name: string, param: boolean } = {name: x, param: false};
+      const value: { name: string, param: boolean } = { name: x, param: false };
       if (x.length > 0 && x[0] === ":") {
         value.name = x.substr(1);
         value.param = true;

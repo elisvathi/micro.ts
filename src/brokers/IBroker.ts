@@ -1,5 +1,6 @@
-import {Action, BaseRouteDefinition} from "../server/types/BaseTypes";
-import {IConfiguration} from "../server";
+import { Action, BaseRouteDefinition } from "../server/types/BaseTypes";
+import { IConfiguration } from "../server";
+import { ILogger } from "../server/Logger";
 
 /**
  * Maps the app level route definitions passed in the BaseRouteDefinition object, with the broker specific routes
@@ -12,7 +13,7 @@ export type RouteMapper = (def: BaseRouteDefinition) => string;
 export type RequestMapper = (...input: any[]) => Action;
 
 export interface BrokerConnection<T> {
-    connection: T;
+  connection: T;
 }
 
 export interface IBroker<TConfig = any> {
@@ -29,12 +30,13 @@ export interface IBroker<TConfig = any> {
      * @param def
      * @param handler
      */
-    addRoute(def: BaseRouteDefinition, handler: (action: Action) => any): string | Promise<string>;
-    setRequestMapper(requestMapper: RequestMapper): void;
-    setRouteMapper(setRouteMapper: RouteMapper): void;
+  addRoute(def: BaseRouteDefinition, handler: (action: Action) => any): string | Promise<string>;
+  setRequestMapper(requestMapper: RequestMapper): void;
+  log(message: any, options?: any, level?: keyof ILogger): void;
+  setRouteMapper(setRouteMapper: RouteMapper): void;
 
-    /**
-     * Starts the broker connection
-     */
-    start(): Promise<void>;
+  /**
+   * Starts the broker connection
+   */
+  start(): Promise<void>;
 }

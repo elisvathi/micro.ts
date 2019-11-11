@@ -1,33 +1,24 @@
-import {AbstractBroker} from "../AbstractBroker";
-import {RequestMapper, RouteMapper} from "../IBroker";
-import {Action, BaseRouteDefinition} from "../../server/types";
+import { AbstractBroker } from "../AbstractBroker";
+import { RequestMapper, RouteMapper } from "../IBroker";
+import { Action, BaseRouteDefinition } from "../../server/types";
 import readline from 'readline';
 import net from 'net';
 import chalk from 'chalk';
-import minimist from "minimist";
 import WriteStream = NodeJS.WriteStream;
 import ReadStream = NodeJS.ReadStream;
-import {Container} from "../../di";
-import {ILogger, LoggerKey} from "../../server/Logger";
-
-export class CommandRequest {
-  body: any = "";
-  qs: any = {};
-  params: any = {};
-  path: string = "";
-  headers: any = {};
-  method: string = "";
-}
+import { parseCommand, BaseCommandRequest, parseArguments } from "../../utils/ArgumentsParser";
+import { NotFound } from "../../errors";
 
 export interface CommandInterfaceConfig {
   stdin?: boolean;
   port?: number;
   hostname?: string;
+  prompt?: string;
 }
 
 export class CommandBroker extends AbstractBroker<CommandInterfaceConfig> {
   name: string = "CommandBroker";
-  protected requestMapper: RequestMapper = (req: CommandRequest) => {
+  protected requestMapper: RequestMapper = (req: BaseCommandRequest) => {
     const action: Action = {
       request: {
         body: req.body,
@@ -47,80 +38,30 @@ export class CommandBroker extends AbstractBroker<CommandInterfaceConfig> {
   protected construct(): void {
   }
 
-  private tryParseJson(value: string): any {
-    try {
-      return JSON.parse(value);
-    } catch (err) {
-      return value;
-    }
+  private async handleRequestFromArgs(args: string[]) {
+    return this.handleRequest(parseArguments(args));
   }
 
-  private splitCommand(line: string) {
-    let regexpMatches = line.match(/"(?:[^"\\]|\\.)*"/g);
-    let splits = line.split(/"(?:[^"\\]|\\.)*"/g);
-    regexpMatches = regexpMatches || [];
-    regexpMatches = Array.from(regexpMatches);
-    let result = [];
-    while (splits.length > 0 && regexpMatches.length > 0) {
-      result.push(splits.shift());
-      result.push(regexpMatches.shift());
-    }
-    result.push(...splits);
-    result.push(...regexpMatches);
-    const finalResult: string[] = [];
-    result.forEach(item => {
-      if (!!item) {
-        if (item[0] === "\"") {
-          finalResult.push(item);
-        } else {
-          const itemSplit = item.trim().split(" ").filter(x => x.length > 0);
-          finalResult.push(...itemSplit);
-        }
-      }
-    });
-    return finalResult;
-  }
-
-  private parseCommand(line: string) {
-    const split = this.splitCommand(line);
-    if (split.length < 1) {
-      // return "Not enough arguments"
-      throw new Error("Not enoguh arguments");
-    }
-    // const method = split[0].toUpperCase();
-    const method = 'Command';
-    const path = split[0];
-    const args = minimist(split.slice(1));
-    const request = new CommandRequest();
-    request.body = args.body || {};
-    if(typeof  request.body  === 'string'){
-      request.body = this.tryParseJson(request.body);
-    }
-    request.headers = args.headers || {};
-    request.path = path;
-    request.method = method;
-    request.params = {};
-    const argsCopy = {...args};
-    delete argsCopy.body;
-    delete argsCopy.headers;
-    delete argsCopy['__'];
-    delete argsCopy['_'];
-    request.qs = argsCopy;
-    return request;
-  }
-
-  private async handleRequest(line: string) {
-    const request = this.parseCommand(line);
+  private async handleRequest(request: BaseCommandRequest) {
     const value = this.getRouteByPath(request.path);
     if (!value || value.length === 0) {
-      throw new Error("Not found");
+      throw new NotFound();
     } else {
       const action = this.requestMapper(request);
       const handler = this.actionToRouteMapper(request.path, action, value);
       const result: Action = await handler(action);
       result.response = result.response || {};
-      return JSON.stringify(result.response, null, 4);
+      if (result.response.is_error) {
+        throw result.response.error;
+      } else {
+        return result.response.body;
+      }
     }
+  }
+
+  private async handleRequestFromLine(line: string) {
+    const request = parseCommand(line);
+    return this.handleRequest(request);
   }
 
   private getRouteByPath(path: string) {
@@ -132,24 +73,26 @@ export class CommandBroker extends AbstractBroker<CommandInterfaceConfig> {
 
   writeToSocket(out: WriteStream, value: string) {
     try {
-        out.write(value);
+      out.write(value);
     } catch (ignored) {
       // Ignore error, socket might have been closed
     }
-
   }
 
   private async startListening(socket: ReadStream, out: WriteStream) {
     const r1 = readline.createInterface(socket, out);
-    this.writeToSocket(out, "\n--> ");
+    const prompt = this.config.prompt || ">>> "
+    this.writeToSocket(out, `\n${prompt}`);
     r1.on('line', async (line: string) => {
       try {
-        const result = await this.handleRequest(line);
-        this.writeToSocket(out, result);
+        const result = await this.handleRequestFromLine(line);
+        this.writeToSocket(out, chalk.green("[SUCCESS]\n"));
+        this.writeToSocket(out, JSON.stringify(result, null, 2));
       } catch (err) {
-        this.writeToSocket(out, chalk.red(err.message || "Internal server error"));
+        this.writeToSocket(out, chalk.red("[ERROR]\n"));
+        this.writeToSocket(out, JSON.stringify(err, null, 2));
       }
-      this.writeToSocket(out, "\n--> ");
+      this.writeToSocket(out, `\n${prompt}`);
     });
   }
 
@@ -158,10 +101,10 @@ export class CommandBroker extends AbstractBroker<CommandInterfaceConfig> {
       await this.startListening(process.stdin, process.stdout);
     } else {
       const server = net.createServer(async (socket) => {
-        await this.startListening(socket, socket);
+        await this.startListening(socket as ReadStream, socket as WriteStream);
       });
       server.listen(this.config.port || 5001, this.config.hostname || 'localhost');
-      Container.get<ILogger>(LoggerKey).info(`${this.name} listening on ${this.config.hostname || 'localhost'} on port ${this.config.port || 5001}`);
+      this.log(`Listening on ${this.config.hostname || 'localhost'} on port ${this.config.port || 5001}`);
     }
   }
 }

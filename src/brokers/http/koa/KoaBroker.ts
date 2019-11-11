@@ -53,7 +53,7 @@ export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpLi
     this.server.use(bodyParser());
     this.server.use(this.router.routes());
     this.server.listen(this.config.port as number, this.config.address as string);
-    console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
+    this.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 
   protected construct(): void {

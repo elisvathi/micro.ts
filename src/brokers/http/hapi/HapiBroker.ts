@@ -1,17 +1,11 @@
-import {Server as HapiServer, Request as HapiRequest, ResponseToolkit, ServerOptions as HapiServerOptions} from 'hapi';
-import {DefinitionHandlerPair} from '../../AbstractBroker';
-import {RequestMapper} from '../../IBroker';
-import {Action} from '../../../server/types';
-import {HttpBroker} from "../HttpBroker";
-import {ILogger, LoggerKey} from "../../../server/Logger";
-import {Container} from "../../../di";
+import { Request as HapiRequest, ResponseToolkit, Server as HapiServer, ServerOptions as HapiServerOptions } from 'hapi';
+import { Action } from '../../../server/types';
+import { DefinitionHandlerPair } from '../../AbstractBroker';
+import { RequestMapper } from '../../IBroker';
+import { HttpBroker } from "../HttpBroker";
 
 export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseToolkit, HapiServerOptions> {
   public name: string = "HapiBroker";
-
-  private get logger(): ILogger {
-    return Container.get<ILogger>(LoggerKey)
-  }
 
   construct() {
     this.server = new HapiServer(this.config);
@@ -34,7 +28,7 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
   };
 
   protected respond(result: Action, h: ResponseToolkit) {
-    const body = result.response!.body || result.response!.error;
+    let body = result.response!.body || result.response!.error;
     let response = h.response(body).code(result.response!.statusCode || 200);
     const headers = result.response!.headers || {};
     Object.keys(headers).forEach(h => {
@@ -61,7 +55,7 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
   public async start(): Promise<void> {
     this.registerRoutes();
     await this.server.start();
-    this.logger.info(`Server listening on address ${this.config.address} and port ${this.config.port}`);
+    this.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 
   protected paramWrapper(paramName: string): string {

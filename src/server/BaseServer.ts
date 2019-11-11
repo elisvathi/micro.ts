@@ -6,11 +6,11 @@ import { MiddlewareFunction, AppMiddleware, IMiddleware } from '..';
 import { BaseRouteDefinition, Action } from './types';
 import { Container } from '../di';
 import { MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions } from '../decorators/types';
-import { NotAuthorized, BadRequest } from '../errors';
+import { NotAuthorized, BadRequest, errorToObject } from '../errors';
 import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types';
 import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors';
 import { IBroker } from "../brokers/IBroker";
-import {ILogger, LoggerKey} from "./Logger";
+import { Log } from "./Logger";
 
 interface RegisterMethodParams {
   /** Name of the method */
@@ -46,10 +46,6 @@ interface ValidateParamParams {
 export class BaseServer {
 
   constructor(private options: ServerOptions) { }
-
-  private get logger(): ILogger {
-    return Container.get<ILogger>(LoggerKey)
-  }
 
   private static get controllersMetadata(): GlobalMetadata {
     return getGlobalMetadata();
@@ -126,9 +122,10 @@ export class BaseServer {
         action.response = action.response || {};
         action.response.statusCode = err.statusCode || 500;
         action.response.is_error = true;
-        action.response.error = err;
+        action.response.error = errorToObject(err, this.options.dev);
         if (this.options.logErrors && action.response.statusCode === 500) {
-          this.logger.info(action);
+          const resp = { request: action.request, response: action.response };
+          broker.log("Error:", resp, 'error');
         }
       }
     }
@@ -139,12 +136,13 @@ export class BaseServer {
       let end = process.hrtime(start);
       const response = action.response || {};
       const statusCode = response.statusCode || 200;
-      console.log(chalk.greenBright(`[${broker.name}]`),
-        chalk.blueBright(`[${def.method.toUpperCase()}]`),
-        chalk.green(`[${def.controller}]`),
-        chalk.yellow(`[${def.handlerName}]`),
-        `${action.request.path}`,
-        statusCode === 200 ? chalk.blue(`[${statusCode}]`) : chalk.red(`[${statusCode}]`), chalk.greenBright(`[${end[0]}s ${Math.floor(end[1] / 1000000)}ms]`));
+      const methodLog = chalk.blueBright(`[${def.method.toUpperCase()}]`);
+      const controllerLog = chalk.green(`[${def.controller}]`);
+      const handlerNameLog = chalk.yellow(`[${def.handlerName}]`);
+      const pathLog = action.request.path;
+      const statusLog = statusCode === 200 ? chalk.blue(`[${statusCode}]`) : chalk.red(`[${statusCode}]`);
+      const timeLog = chalk.greenBright(`[${end[0]}s ${Math.floor(end[1] / 1000000)}ms]`);
+      broker.log(`${methodLog} ${controllerLog} ${handlerNameLog} ${pathLog} ${statusLog} ${timeLog}`);
     }
     return action;
   }
@@ -577,7 +575,7 @@ export class BaseServer {
       await Promise.all(this.options.brokers.map(async (x) => {
         await x.start();
       }));
-      this.logger.info("Base Server Started");
+      Log.info("Base server Started!")
     }
   }
 

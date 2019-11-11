@@ -70,6 +70,6 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
         resolve();
       });
     });
-    console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
+    this.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 }

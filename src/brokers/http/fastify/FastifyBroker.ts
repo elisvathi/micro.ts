@@ -48,7 +48,7 @@ export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, F
   async start(): Promise<void> {
     this.registerRoutes();
     await this.server.listen(Number(this.config.port || 8080), this.config.address);
-    console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
+    this.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 
   protected construct(): void {

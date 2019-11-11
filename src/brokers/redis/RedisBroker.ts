@@ -81,7 +81,7 @@ export class RedisBroker extends AbstractBroker<RedisConfig> {
     });
     await new Promise((resolve, reject)=>{
       this.subscriber.on('connect', ()=>{
-        console.log(`Redis connected on ${this.config}`);
+        this.log(`Redis connected on ${this.config}`);
         resolve();
       });
       this.subscriber.on('error', (err)=>{

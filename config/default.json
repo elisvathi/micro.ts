@@ -4,6 +4,10 @@
             "port": 8080,
             "address": "0.0.0.0"
         },
+        "hapi2": {
+            "port": 8004,
+            "address": "0.0.0.0"
+        },
         "express": {
             "port": 8081,
             "address": "0.0.0.0"

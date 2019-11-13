@@ -1,15 +1,17 @@
 import chalk from 'chalk';
-import { ServerOptions } from './types';
-import { GlobalMetadata, ControllerMetadata } from '../decorators';
-import { getGlobalMetadata, getHandlerMetadata } from '../decorators/GlobalMetadata';
-import { MiddlewareFunction, AppMiddleware, IMiddleware } from '..';
-import { BaseRouteDefinition, Action } from './types';
-import { Container } from '../di';
-import { MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions } from '../decorators/types';
-import { NotAuthorized, BadRequest, errorToObject } from '../errors';
-import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types';
-import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors';
-import { IBroker } from "../brokers/IBroker";
+import {ServerOptions} from './types';
+import {GlobalMetadata, ControllerMetadata} from '../decorators';
+import {getGlobalMetadata, getHandlerMetadata} from '../decorators/GlobalMetadata';
+import {MiddlewareFunction, AppMiddleware, IMiddleware, TimeoutError, errorToObject} from '..';
+import {BaseRouteDefinition, Action} from './types';
+import {Container} from '../di';
+import {MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions} from '../decorators/types';
+import {NotAuthorized, BadRequest} from '../errors';
+import {ParamDescription, ParamOptions, ParamDecoratorType} from '../decorators/types';
+import {AppErrorHandler, IErrorHandler, ErrorHandlerFunction} from '../errors';
+import {IBroker} from "../brokers/IBroker";
+import {ILogger, LoggerKey} from "./Logger";
+import {minNonZero, sleep} from "../helpers/BaseHelpers";
 import { Log } from "./Logger";
 
 interface RegisterMethodParams {
@@ -31,6 +33,10 @@ interface RegisterMethodParams {
   routes: any[];
   /** Name of the controller class */
   controllerName: string;
+  /**
+   * Request timeout
+   */
+  timeout?: number;
 }
 
 interface ValidateParamParams {
@@ -45,7 +51,8 @@ interface ValidateParamParams {
 
 export class BaseServer {
 
-  constructor(private options: ServerOptions) { }
+  constructor(private options: ServerOptions) {
+  }
 
   private static get controllersMetadata(): GlobalMetadata {
     return getGlobalMetadata();
@@ -103,6 +110,26 @@ export class BaseServer {
     return false;
   }
 
+  private async executeWithTimeout(def: BaseRouteDefinition, action: Action, broker: IBroker, controller: any, methodControllerMetadata: MethodControllerOptions) {
+    /**
+     * Get configured timeouts
+     */
+    const baseTimeout = this.options.timeout || 0;
+    const brokerTimeout = broker.getDefaultTimeout() || 0;
+    const requestTimeout = def.timeout || 0;
+    /**
+     * Get non-zero timeouts and get the minimum timeout
+     */
+    const timeout = minNonZero(baseTimeout, brokerTimeout, requestTimeout);
+    const promises: Array<Promise<any>> = [this.handleRequest(def, action, broker, controller, methodControllerMetadata)];
+    if (timeout) {
+      promises.push(sleep(timeout).then(() => {
+        throw new TimeoutError("Request timed out");
+      }));
+    }
+    return Promise.race(promises);
+  }
+
   /**
    * Execute the request (passing through all the middlewares)  and handle errors if thrown any
    * @param def Route definition
@@ -114,7 +141,7 @@ export class BaseServer {
     const controllerInstance: any = Container.get(def.controllerCtor);
     const methodControllerMetadata: MethodControllerOptions = getHandlerMetadata(def.controllerCtor, def.handlerName);
     try {
-      action = await this.handleRequest(def, action, broker, controllerInstance, methodControllerMetadata);
+      action = await this.executeWithTimeout(def, action, broker, controllerInstance, methodControllerMetadata);
     } catch (err) {
       const errorHandlers: AppErrorHandler[] = this.getErrorHandlers(methodControllerMetadata);
       const handled = await BaseServer.handleError(errorHandlers, err, action, def, controllerInstance, broker);
@@ -155,7 +182,9 @@ export class BaseServer {
    */
   private async checkAuthorization(action: Action, methodMetadata: MethodControllerOptions) {
     let shouldCheck = false;
-    if (methodMetadata.controller.authorize) { shouldCheck = true }
+    if (methodMetadata.controller.authorize) {
+      shouldCheck = true
+    }
     if (methodMetadata.method.authorize === false) {
       shouldCheck = false;
     } else if (methodMetadata.method.authorize === true) {
@@ -175,7 +204,7 @@ export class BaseServer {
    * @param middlewares List of middleware options
    */
   private groupMiddlewares(middlewares: MiddlewareOptions[]): { before: AppMiddleware[], after: AppMiddleware[] } {
-    const result: { before: AppMiddleware[], after: AppMiddleware[] } = { before: [], after: [] };
+    const result: { before: AppMiddleware[], after: AppMiddleware[] } = {before: [], after: []};
     middlewares.forEach(m => {
       if (m.before) {
         result.before.push(m.middleware);
@@ -200,7 +229,7 @@ export class BaseServer {
    * @param methodMetadata
    */
   private getMiddlewares(methodMetadata: MethodControllerOptions): { before: any[], after: any[] } {
-    const middlewares: { before: any[], after: any[] } = { before: [], after: [] };
+    const middlewares: { before: any[], after: any[] } = {before: [], after: []};
     let afterMiddlewares: any[] = [];
     /**
      * App level before middlewares
@@ -280,10 +309,10 @@ export class BaseServer {
    * @param methodControllerMetadata Handler metadata
    */
   private async handleRequest(def: BaseRouteDefinition,
-    action: Action,
-    broker: IBroker,
-    controllerInstance: any,
-    methodControllerMetadata: MethodControllerOptions) {
+                              action: Action,
+                              broker: IBroker,
+                              controllerInstance: any,
+                              methodControllerMetadata: MethodControllerOptions) {
     /**
      * If route requires authorization, check it with the autorization function
      */
@@ -333,7 +362,7 @@ export class BaseServer {
    * @param broker
    */
   private async buildParams(action: Action,
-    metadata: MethodDescription, broker: IBroker): Promise<any[]> {
+                            metadata: MethodDescription, broker: IBroker): Promise<any[]> {
     return Promise.all(metadata.params.map(async (p) => {
       return this.buildSingleParam(action, p, broker);
     }));
@@ -361,7 +390,7 @@ export class BaseServer {
    * @param isObject if the value is a key-value object
    * @param notEmpty if the value should not be empty
    */
-  private async validateParam({ value, required, validate, name, type, isObject, notEmpty }: ValidateParamParams): Promise<any> {
+  private async validateParam({value, required, validate, name, type, isObject, notEmpty}: ValidateParamParams): Promise<any> {
     if (required && !value) {
       throw new BadRequest(`${name} is required`);
     }
@@ -388,7 +417,7 @@ export class BaseServer {
    * @param broker Broker instance
    */
   private async buildSingleParam(action: Action,
-    metadata: ParamDescription, broker: IBroker): Promise<any> {
+                                 metadata: ParamDescription, broker: IBroker): Promise<any> {
     if (!metadata.options) {
       return action.request.body || action.request.qs || {};
     } else {
@@ -440,7 +469,13 @@ export class BaseServer {
          */
         case ParamDecoratorType.ParamField:
           const paramField = action.request.params[options.name as string];
-          return this.validateParam({ value: paramField, isObject: false, required: true, validate: false, name: options.name });
+          return this.validateParam({
+            value: paramField,
+            isObject: false,
+            required: true,
+            validate: false,
+            name: options.name
+          });
 
         /**
          * Inject the request method
@@ -558,7 +593,7 @@ export class BaseServer {
         });
         result[name] = route;
         const brokerServerInfo = this._serverInfo.get(broker) || [];
-        brokerServerInfo.push({ route, def, params });
+        brokerServerInfo.push({route, def, params});
         this._serverInfo.set(broker, brokerServerInfo);
       }
     }
@@ -597,7 +632,7 @@ export class BaseServer {
    * @param routes Routes to append to the result
    * @param controllerName Name of the controller
    */
-  private async buildSingleMethodRoute({ methodName, desc, basePath, controllerPath, ctor, isJson, brokers, routes, controllerName }: RegisterMethodParams) {
+  private async buildSingleMethodRoute({methodName, desc, basePath, controllerPath, ctor, isJson, brokers, routes, controllerName, timeout}: RegisterMethodParams) {
     const metadata: MethodOptions = desc.metadata || {};
     const methodPath = metadata.path;
     let path = methodPath || methodName;
@@ -618,7 +653,8 @@ export class BaseServer {
       handlerName: methodName,
       method: reqMethod || 'get',
       queueOptions: metadata.queueOptions,
-      json: isJson
+      json: isJson,
+      timeout: timeout
     };
     const results = await this.addRoute(routeDefinition, methodBrokers, desc.params || []);
     const brokerNames = methodBrokers.map(x => {
@@ -655,12 +691,27 @@ export class BaseServer {
       const isJson = !!options.json;
       const controllerPath = cPath || name;
       const handlers = controllerMetadata.handlers as any;
+      const controllerTimeout = controllerMetadata.options && controllerMetadata.options.timeout || 0;
       /**
        * Build method handlers
        */
       await Promise.all(Object.keys(handlers).map(async (key) => {
+        /**
+         * Get timeout from controller or method
+         */
+        let timeout: number | undefined = controllerTimeout;
+        const methodDescriptor = (controllerMetadata.handlers || {})[key];
+        /**
+         * If it has method timeout configured get the minimum nonzero
+         */
+        if (!!methodDescriptor) {
+          methodDescriptor.metadata = methodDescriptor.metadata || {};
+          const methodTimeout = methodDescriptor.metadata.timeout || 0;
+          timeout = minNonZero(controllerTimeout, methodTimeout);
+        }
         await this.buildSingleMethodRoute({
           methodName: key,
+          timeout,
           desc: (controllerMetadata.handlers || {})[key],
           basePath,
           controllerPath,

@@ -38,6 +38,7 @@ export abstract class AbstractBroker<TConfig, TNativeBodyFormat = any> implement
     return Container.get<BaseTransformer>(transformer).decode<T>(payload);
   }
   public abstract name: string;
+  private timeout: number = 0;
   /**
    * Configuration getter
    */
@@ -147,6 +148,16 @@ export abstract class AbstractBroker<TConfig, TNativeBodyFormat = any> implement
       }
       return value;
     });
+  }
+
+  public getDefaultTimeout(): number {
+    return this.timeout;
+  }
+
+  public setDefaultTimeout(val: number): void {
+    if (val > 0) {
+      this.timeout = val;
+    }
   }
 
   abstract start(): Promise<void>;

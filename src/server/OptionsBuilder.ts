@@ -153,4 +153,10 @@ export class OptionsBuilder {
     this.container.set(LoggerKey, logger);
     return this;
   }
+
+  public setTimeout(timeout: number){
+    if(timeout > 0) {
+      this.options.timeout = timeout;
+    }
+  }
 }

@@ -34,6 +34,8 @@ export interface IBroker<TConfig = any> {
   setRequestMapper(requestMapper: RequestMapper): void;
   log(message: any, options?: any, level?: keyof ILogger): void;
   setRouteMapper(setRouteMapper: RouteMapper): void;
+  getDefaultTimeout(): number;
+  setDefaultTimeout(val: number): void;
 
   /**
    * Starts the broker connection

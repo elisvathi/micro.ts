@@ -100,6 +100,11 @@ export interface BaseRouteDefinition {
    * Queue options, specific to RabbitMQ
    */
   queueOptions?: QueueOptions;
+
+  /**
+   * Timeout configured for the handler
+   */
+  timeout? : number;
 }
 
 export type AssertExchange = {

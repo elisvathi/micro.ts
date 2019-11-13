@@ -6,12 +6,13 @@ import "../src/brokers/http/hapi";
 import { HapiBroker } from "../src/brokers/http/hapi";
 import "../src/brokers/socketio";
 import "../src/plugins/typeorm";
-import { AppBuilder, OptionsBuilder, StartupBase, BaseServer , ServerOptions} from "../src/server";
+import { AppBuilder, OptionsBuilder, StartupBase, BaseServer , ServerOptions, IConfiguration} from "../src/server";
 import { AmqpController } from './AmqpController';
 import { TestController } from './TestController';
 import { TestErrorHandler } from './TestErrorHandler';
 import { Log } from "../src/server/Logger";
 import chalk from "chalk";
+import config from 'config';
 
 class Startup extends StartupBase {
   hapibroker!: HapiBroker;
@@ -44,10 +45,13 @@ class Startup extends StartupBase {
   }
 
 }
-
-
+class DefaultConfig implements IConfiguration{
+  getFromPath<T>(path: string): T {
+    return config.get(path);
+  }
+}
 async function main() {
-  const builder = new AppBuilder(new BaseConfiguration()).useStartup(Startup);
+  const builder = new AppBuilder(new DefaultConfig()).useStartup(Startup);
   await builder.start();
 }
 

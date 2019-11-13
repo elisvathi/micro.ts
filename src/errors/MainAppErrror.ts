@@ -85,3 +85,10 @@ export class NotFound extends MainAppError {
     this.code = "not_found";
   }
 }
+export class TimeoutError extends MainAppError {
+  constructor(public message: string = "Request timeout", public data?: any, public stack?: any) {
+    super();
+    this.statusCode = 408;
+    this.code = "timeout";
+  }
+}

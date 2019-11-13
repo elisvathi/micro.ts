@@ -20,6 +20,11 @@ export abstract class BrokerBuilder<T extends AbstractBroker<TConfig>, TConfig> 
     return this;
   }
 
+  public withTimeout(timeout: number): BrokerBuilder<T, TConfig>{
+    this.broker.setDefaultTimeout(timeout);
+   return this ;
+  }
+
   public getBroker(): T {
     return this.broker;
   }

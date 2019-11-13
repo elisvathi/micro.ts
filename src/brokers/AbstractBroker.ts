@@ -4,6 +4,8 @@ import { IBroker, RequestMapper, RouteMapper } from "./IBroker";
 import { IConfiguration } from "../server";
 import { ILogger, Log } from "../server/Logger";
 import chalk from 'chalk';
+import { TransformerClass, EmptyTransformer, BaseTransformer } from "../transformers/types";
+import { Container } from "../di";
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
 export type DefinitionHandlerPair = {
@@ -15,7 +17,26 @@ export type ActionToRouteMapper = (route: string,
   pairs: DefinitionHandlerPair[]) => ActionHandler;
 export type ConfigResolver<T> = (config: IConfiguration) => T;
 
-export abstract class AbstractBroker<TConfig> implements IBroker {
+export abstract class AbstractBroker<TConfig, TNativeBodyFormat = any> implements IBroker {
+
+  protected defaultEncoder: TransformerClass = EmptyTransformer;
+  protected defaultDecoder: TransformerClass = EmptyTransformer;
+
+  public setDefaultEncoder(transformer: TransformerClass) {
+    this.defaultEncoder = transformer;
+  }
+
+  public setDefaultDecoder(transformer: TransformerClass) {
+    this.defaultDecoder = transformer;
+  }
+
+  protected async encode<T = any>(payload: any, transformer: TransformerClass = this.defaultEncoder): Promise<TNativeBodyFormat> {
+    return Container.get<BaseTransformer>(transformer).encode<T>(payload);
+  }
+
+  protected decode<T = any>(payload: any, transformer: TransformerClass = this.defaultDecoder): any {
+    return Container.get<BaseTransformer>(transformer).decode<T>(payload);
+  }
   public abstract name: string;
   /**
    * Configuration getter

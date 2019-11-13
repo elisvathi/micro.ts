@@ -54,7 +54,7 @@ export class BaseContainer {
     this.resolvers.set(key, resolver);
   }
 
-  public hasResolver(key: any){
+  public hasResolver(key: any) {
     return this.resolvers.has(key);
   }
 

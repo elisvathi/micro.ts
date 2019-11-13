@@ -14,7 +14,7 @@ export function errorToObject(error: IErrorData, stack: boolean = false): IError
     data: error.data,
   }
   if (stack && error.stack) {
-    payload.stackTrace = error.stack.split("\n").slice(1).map(x=>x.trim());
+    payload.stackTrace = error.stack.split("\n").slice(1).map(x => x.trim());
   }
   return payload;
 }
@@ -28,6 +28,21 @@ export class MainAppError extends Error {
   data?: any;
   toObject(): IErrorData {
     return { statusCode: this.statusCode, message: this.message, data: this.data, stack: this.stack, code: this.code }
+  }
+}
+export class DecoderError extends MainAppError {
+  constructor(public data?: any) {
+    super();
+    this.statusCode = 400;
+    this.code = "invalid_format";
+  }
+}
+
+export class EncoderError extends MainAppError {
+  constructor(public data?: any) {
+    super();
+    this.statusCode = 400;
+    this.code = "invalid_format";
   }
 }
 

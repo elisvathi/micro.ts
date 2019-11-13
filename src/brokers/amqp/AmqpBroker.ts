@@ -379,7 +379,8 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     /**
      * Reply if the message has rpcReply and correlationId
      */
-    this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), { correlationId, headers });
+    const responseBody = await this.encode(body);
+    this.channel.sendToQueue(replyToQueue, responseBody, { correlationId, headers });
   }
 
   protected get connectionConfig(): IAmqpConfig {

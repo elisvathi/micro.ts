@@ -1,26 +1,34 @@
 import { Body, Get, JsonController, Post, Query, Encoder, Decoder } from "../src/decorators";
-import { BadRequest, NotAuthorized } from "../src";
 import { Log } from "../src/server/Logger";
-import { BufferJsonTransformer, BufferStringTransformer, EmptyTransformer } from "../src/transformers/types";
+import { EmptyTransformer, BufferJsonTransformer } from "../src/transformers/types";
+import { IBroker } from "../src/brokers/IBroker";
+import { TopicBasedAmqpBroker } from "../src/brokers/amqp";
+import { BadRequest } from "../src";
+const AmqpTransformer = (b: IBroker) => {
+  if (b.constructor === TopicBasedAmqpBroker) {
+    return {transformer: BufferJsonTransformer}
+  }
+  return {transformer: EmptyTransformer}
+}
 @JsonController("amqp")
-@Decoder(BufferStringTransformer)
+@Decoder(AmqpTransformer)
+@Encoder(AmqpTransformer)
 export class AmqpController {
   @Get("test")
   getData(@Query() qs: any) {
-    Log.warn("Error, returning bad request", {ok: false});
-    throw new Error();
+    Log.warn("Error, returning bad request", { ok: false });
+    throw new BadRequest();
   }
-  @Post("data-simple")
-  @Decoder(EmptyTransformer)
-  postData(@Body({ required: true })
-    body: any) {
+
+  @Get("data-simple")
+  postData(@Body({ required: false })
+  body: any) {
     console.log("BODY", body);
-    return {"ok": true}
+    return { "ok": true, test: 1 }
   }
 
   @Post("data-transformed")
-  @Decoder(BufferStringTransformer)
-  transformData(@Body({required: true}) body: any){
+  transformData(@Body({ required: true }) body: any) {
     console.log("BODY TRANSFORMED", body);
   }
 }

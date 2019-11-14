@@ -5,7 +5,7 @@ import { getGlobalMetadata, getHandlerMetadata } from '../decorators/GlobalMetad
 import { MiddlewareFunction, AppMiddleware, IMiddleware, TimeoutError, errorToObject } from '..';
 import { BaseRouteDefinition, Action } from './types';
 import { Container } from '../di';
-import { MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions, TransformerDefinition } from '../decorators/types';
+import { MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions, TransformerDefinition, BrokerTransformerFunction } from '../decorators/types';
 import { NotAuthorized, BadRequest } from '../errors';
 import { ParamDescription, ParamOptions, ParamDecoratorType } from '../decorators/types';
 import { AppErrorHandler, IErrorHandler, ErrorHandlerFunction } from '../errors';
@@ -36,8 +36,8 @@ interface RegisterMethodParams {
    * Request timeout
    */
   timeout?: number;
-  controllerEncoder?: TransformerDefinition,
-  controllerDecoder?: TransformerDefinition,
+  controllerEncoder?: BrokerTransformerFunction,
+  controllerDecoder?: BrokerTransformerFunction,
 }
 
 interface ValidateParamParams {
@@ -583,13 +583,16 @@ export class BaseServer {
    * @param brokers List of brokers enabled for this handler
    * @param params List of parameters required for this handler (to be used when generating API specifications)
    */
-  private async addRoute(def: BaseRouteDefinition, brokers: IBroker[], params: ParamDescription[]) {
+  private async addRoute(def: BaseRouteDefinition, brokers: IBroker[], params: ParamDescription[], encoderSelector?: BrokerTransformerFunction, decoderSelector?: BrokerTransformerFunction) {
     const result: any = {};
     if (brokers && brokers.length) {
       for (let i = 0; i < brokers.length; i++) {
+        let newDef = {...def};
         const broker = brokers[i];
+        newDef.encoder = encoderSelector? encoderSelector(broker): undefined;
+        newDef.decoder = decoderSelector? decoderSelector(broker): undefined;
         const name = broker.name;
-        const route = await broker.addRoute(def, (action: Action) => {
+        const route = await broker.addRoute(newDef, (action: Action) => {
           return this.executeRequest(def, action, broker);
         });
         result[name] = route;
@@ -646,9 +649,9 @@ export class BaseServer {
     if (handlerBrokersFilter) {
       methodBrokers = methodBrokers.filter(handlerBrokersFilter);
     }
+    let encoder = desc.metadata!.brokerEncoder || controllerEncoder;
+    let decoder = desc.metadata!.brokerDecoder || controllerDecoder;
     const routeDefinition: BaseRouteDefinition = {
-      encoder: desc.metadata!.encoder || controllerEncoder,
-      decoder: desc.metadata!.decoder || controllerDecoder,
       base: basePath,
       controller: controllerPath,
       controllerCtor: ctor,
@@ -659,7 +662,7 @@ export class BaseServer {
       json: isJson,
       timeout: timeout
     };
-    const results = await this.addRoute(routeDefinition, methodBrokers, desc.params || []);
+    const results = await this.addRoute(routeDefinition, methodBrokers, desc.params || [], encoder, decoder);
     const brokerNames = methodBrokers.map(x => {
       return x.name;
     }).join(", ");
@@ -723,8 +726,8 @@ export class BaseServer {
           brokers: controllerBrokers,
           routes,
           controllerName: name,
-          controllerEncoder: controllerMetadata.options!.encoder,
-          controllerDecoder: controllerMetadata.options!.decoder,
+          controllerEncoder: controllerMetadata.options!.brokerEncoder,
+          controllerDecoder: controllerMetadata.options!.brokerDecoder,
         });
       }));
     }

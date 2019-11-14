@@ -6,6 +6,7 @@ import { IBroker } from "../../brokers/IBroker";
 import { TransformerClass } from "../../transformers/types";
 export type BrokerFilter = (broker: IBroker) => boolean;
 export type TransformerDefinition  = {transformer: TransformerClass, options?: any[]}
+export type BrokerTransformerFunction = (b: IBroker)=>TransformerDefinition;
 export interface MethodDescription {
   name?: string;
   metadata?: MethodOptions;
@@ -20,8 +21,8 @@ export interface MethodOptions {
   method?: string;
   path?: string;
   brokers?: BrokerFilter;
-  encoder?: TransformerDefinition,
-  decoder?: TransformerDefinition,
+  brokerEncoder?: BrokerTransformerFunction,
+  brokerDecoder?: BrokerTransformerFunction,
   queueOptions?: QueueOptions;
   timeout?: number;
 }
@@ -29,8 +30,8 @@ export interface MethodOptions {
 export interface ControllerOptions {
   json?: boolean;
   path?: string;
-  encoder?: TransformerDefinition,
-  decoder?: TransformerDefinition,
+  brokerEncoder?: BrokerTransformerFunction,
+  brokerDecoder?: BrokerTransformerFunction,
   brokersFilter?: BrokerFilter;
   authorize?: boolean;
   authorization?: AuthorizeOptions;

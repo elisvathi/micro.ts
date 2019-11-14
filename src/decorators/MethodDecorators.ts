@@ -1,4 +1,4 @@
-import { AuthorizeOptions, BrokerFilter } from "./types/MethodMetadataTypes";
+import { AuthorizeOptions, BrokerFilter, BrokerTransformerFunction } from "./types/MethodMetadataTypes";
 import { attachHandlerAuthorization, attachHandlerErrorHandler, attachHandlerBrokersFilter, attachControllerAuthorization, attachControllerErrorHandlers, registerControllerMetadata, registerHandlerMetadata } from "./BaseDecorators";
 import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
 import { TransformerClass } from "../transformers/types";
@@ -57,22 +57,22 @@ export function FilterBrokers(brokers: BrokerFilter) {
     }
   }
 }
-export function Encoder(encoder: TransformerClass, ...options: any[]) {
+export function Encoder(fn: BrokerTransformerFunction) {
   return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
     if (propertyKey) {
-      registerHandlerMetadata(target, propertyKey, descriptor as PropertyDescriptor, { encoder: { transformer: encoder, options } })
+      registerHandlerMetadata(target, propertyKey, descriptor as PropertyDescriptor, {brokerEncoder: fn})
     } else {
-      registerControllerMetadata(target, { encoder: { transformer: encoder, options } })
+      registerControllerMetadata(target, {brokerEncoder: fn})
     }
   }
 }
 
-export function Decoder(decoder: TransformerClass, ...options: any[]) {
+export function Decoder(fn: BrokerTransformerFunction) {
   return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
     if (propertyKey) {
-      registerHandlerMetadata(target, propertyKey, descriptor as PropertyDescriptor, { decoder: { transformer: decoder, options } })
+      registerHandlerMetadata(target, propertyKey, descriptor as PropertyDescriptor, {brokerDecoder: fn})
     } else {
-      registerControllerMetadata(target, { decoder: { transformer: decoder, options } })
+      registerControllerMetadata(target, {brokerDecoder: fn})
     }
   }
 }

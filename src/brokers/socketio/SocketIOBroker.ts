@@ -3,6 +3,7 @@ import Socket, {Server as SocketServer} from 'socket.io';
 import {RouteMapper, RequestMapper} from "../IBroker";
 import {BaseRouteDefinition, Action} from "../../server/types";
 import {Server as HttpServer} from "http";
+import { TransformerDefinition } from "../../decorators";
 
 export type SocketIOConfig = number | Socket.ServerOptions | HttpServer;
 
@@ -37,14 +38,14 @@ export class SocketIOBroker extends AbstractBroker<SocketIOConfig> {
   public onDisconnected(cb: (action: Action) => any) {
   }
 
-  protected requestMapper: RequestMapper = (clientId: string, query: any, headers: any, body: any, path: string, socket: Socket.Socket) => {
+  protected requestMapper: RequestMapper = async (clientId: string, query: any, headers: any, body: any, path: string, socket: Socket.Socket, decoder?: TransformerDefinition) => {
     const act: Action = {
       request: {
         params: {},
         path,
         headers: {...headers, socket_id: clientId},
         method: 'post',
-        body,
+        body: await this.decode(body, decoder),
         qs: query,
         raw: {clientId, query, body, headers, path},
       },
@@ -64,9 +65,12 @@ export class SocketIOBroker extends AbstractBroker<SocketIOConfig> {
       const headers = socket.handshake.headers;
       this.registeredRoutes.forEach((defs, key) => {
         socket.on(key, async (body) => {
-          const action: Action = this.requestMapper(clientId, query, headers, body, key, socket);
+          const action: Action = await this.requestMapper(clientId, query, headers, body, key, socket, defs[0].def.decoder);
           const handler = this.actionToRouteMapper(key, action, defs);
           const response = await handler(action);
+          response.response = response.response || {};
+          response.response.body = response.response.body || {};
+          response.response.body = await this.encode(response.response.body, defs[0].def.encoder);
           socket.emit(key, response.response);
         });
       });

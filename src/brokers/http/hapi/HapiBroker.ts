@@ -3,6 +3,7 @@ import { Action } from '../../../server/types';
 import { DefinitionHandlerPair } from '../../AbstractBroker';
 import { RequestMapper } from '../../IBroker';
 import { HttpBroker } from "../HttpBroker";
+import { TransformerDefinition } from '../../../decorators';
 
 export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseToolkit, HapiServerOptions> {
   public name: string = "HapiBroker";
@@ -11,14 +12,14 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
     this.server = new HapiServer(this.config);
   }
 
-  protected requestMapper: RequestMapper = (r: HapiRequest) => {
+  protected requestMapper: RequestMapper = async (r: HapiRequest, decoder? : TransformerDefinition) => {
     const act: Action = {
       request: {
         params: r.params,
         path: r.path,
         headers: r.headers,
         method: r.method,
-        body: r.payload,
+        body: await this.decode(r.payload, decoder),
         qs: r.query,
         raw: r,
       },
@@ -27,8 +28,9 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
     return act;
   };
 
-  protected respond(result: Action, h: ResponseToolkit) {
+  protected async respond(result: Action, h: ResponseToolkit, encoder?: TransformerDefinition) {
     let body = result.response!.body || result.response!.error;
+    body = await this.encode(body, encoder);
     let response = h.response(body).code(result.response!.statusCode || 200);
     const headers = result.response!.headers || {};
     Object.keys(headers).forEach(h => {
@@ -42,11 +44,11 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
       method: method,
       path: route,
       handler: async (r: HapiRequest, h: ResponseToolkit) => {
-        const action = this.requestMapper(r);
+        const action = await this.requestMapper(r, value[0].def.decoder);
         const handler = this.actionToRouteMapper(route, action, value);
         const result: Action = await handler(action);
         result.response = result.response || {};
-        return this.respond(result, h);
+        return this.respond(result, h, value[0].def.encoder);
       }
     });
   }

@@ -13,6 +13,7 @@ import { TestErrorHandler } from './TestErrorHandler';
 import { Log } from "../src/server/Logger";
 import chalk from "chalk";
 import config from 'config';
+import { BufferJsonTransformer, BufferStringTransformer } from "../src/transformers/types";
 
 class Startup extends StartupBase {
   hapibroker!: HapiBroker;
@@ -20,7 +21,7 @@ class Startup extends StartupBase {
 
   configureServer(builder: OptionsBuilder): void {
     builder.setBasePath('api');
-    builder.setLogErrors(false);
+    builder.setLogErrors(true);
     builder.setLogRequests(true);
     builder.setDevMode(true);
     this.hapibroker = builder.useHapiBroker(b => b.named("HAPI_BROKER").withConfigResolver(c => c.getFromPath('http.hapi')));

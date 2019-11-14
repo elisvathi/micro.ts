@@ -108,7 +108,7 @@ export function attachHandlerMiddleware(target: any, propertyKey: string, _descr
     metadata.methods.set(target, controller);
 }
 
-export function attachHandlerBrokersFitler(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options: BrokerFilter) {
+export function attachHandlerBrokersFilter(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options: BrokerFilter) {
     registerHandlerMetadata(target, propertyKey, _descriptor, { brokers: options });
 }
 
@@ -172,4 +172,3 @@ export function attachControllerMiddleware(target: any, middlewares: AppMiddlewa
 export function attachControllerAuthorization(target: any, options?: AuthorizeOptions) {
     registerControllerMetadata(target, { authorize: true, authorization: options });
 }
-

@@ -1,16 +1,14 @@
-import {AbstractBroker, ActionHandler, DefinitionHandlerPair} from "../AbstractBroker";
-import {Channel, connect, Connection, ConsumeMessage, Message, Options} from 'amqplib';
-import {RequestMapper, RouteMapper} from "../IBroker";
-import {Action, BaseRouteDefinition, IAmqpExchangeConfig, QueueOptions} from "../../server/types";
-import {AmqpClient, AmqpClientOptions} from "./AmqpClient";
-import {Container} from "../../di";
-import {ILogger, LoggerKey} from "../../server/Logger";
+import { AbstractBroker, ActionHandler, DefinitionHandlerPair } from "../AbstractBroker";
+import { Channel, connect, Connection, ConsumeMessage, Message, Options } from 'amqplib';
+import { RequestMapper, RouteMapper } from "../IBroker";
+import { Action, BaseRouteDefinition, IAmqpExchangeConfig, QueueOptions } from "../../server/types";
+import { AmqpClient, AmqpClientOptions } from "./AmqpClient";
+import { TransformerDefinition } from "../../decorators";
 
 /**
  * Configuration for amqp connection
  */
-export type IAmqpConfig = string | Options.Connect;
-/**
+export type IAmqpConfig = string | Options.Connect; /**
  * Binding pair with the queue name and the binding pattern
  */
 export type IAmqpBindingConfig = { queue: string, pattern: string };
@@ -25,7 +23,7 @@ export interface IAmqpConnectionHooks {
   getConnection(): Connection;
 
   /**
-   * Return an existing chanel
+   * Return an existing channel
    */
   getChannel(): Channel;
 }
@@ -76,19 +74,8 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    * @param routingKey
    * @param json
    */
-  protected requestMapper: RequestMapper = (r: Message, queue: string, routingKey: string, json: boolean) => {
-    const payloadString = r.content.toString();
-    let payload: any;
-    if (json) {
-      try {
-        payload = JSON.parse(payloadString);
-      } catch (err) {
-        this.channel.ack(r);
-        throw (err);
-      }
-    } else {
-      payload = payloadString;
-    }
+  protected requestMapper: RequestMapper = async (r: Message, queue: string, routingKey: string, decoder?: TransformerDefinition) => {
+    const payload = await this.decode(r.content, decoder);
     const routingKeySplit = routingKey.split('.');
     const queueSplit = this.extractQueueParamNames(queue);
     const params: any = {};
@@ -169,14 +156,14 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
   protected async consumeMessage(route: string,
     message: ConsumeMessage | null,
     value: DefinitionHandlerPair[],
-    json: boolean) {
+    decoder?: TransformerDefinition, encoder?: TransformerDefinition) {
     if (message) {
       const exchange = message.fields.exchange || "";
       const routingKey = message.fields.routingKey;
       /**
        * Convert message to action
        */
-      const mapped: Action = this.requestMapper(message, route, routingKey, json);
+      const mapped: Action = await this.requestMapper(message, route, routingKey, decoder);
       /**
        * Find the corresponding handler for the action object
        */
@@ -189,7 +176,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
        * If possible publish the value to the replyTo queue
        */
       if (result && message.properties.replyTo && message.properties.correlationId) {
-        await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId);
+        await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId, encoder);
       }
       this.channel.ack(message);
     }
@@ -205,6 +192,8 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     let json = false;
     let totalConsumers = 0;
     let queueOptions: QueueOptions = {};
+    let encoder : TransformerDefinition | undefined = undefined;
+    let decoder : TransformerDefinition | undefined = undefined;
     /*
      * Finds the number of consumers and the assertQueue options
      */
@@ -220,8 +209,11 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
         delete queueOptions.consumers;
       }
       const consumers = v.def.queueOptions ? v.def.queueOptions.consumers || 1 : 1;
-      if (v.def.json) {
-        json = true;
+      if (v.def.encoder) {
+        encoder = v.def.encoder;
+      }
+      if (v.def.decoder) {
+        decoder = v.def.decoder;
       }
       totalConsumers += consumers;
     });
@@ -253,7 +245,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
        */
       for (let i = 0; i < totalConsumers; i++) {
         await this.channel.consume(route, async (message: ConsumeMessage | null) => {
-          await this.consumeMessage(route, message, value, json);
+          await this.consumeMessage(route, message, value, decoder, encoder);
         });
       }
       return true;
@@ -368,7 +360,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    * @param replyToQueue
    * @param correlationId
    */
-  protected async rpcReply(data: Action, replyToQueue: string, correlationId: string) {
+  protected async rpcReply(data: Action, replyToQueue: string, correlationId: string, encoder? : TransformerDefinition) {
     const response = data.response || {};
     const body = response.body || response.error;
     const headers = response.headers || {};
@@ -379,7 +371,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     /**
      * Reply if the message has rpcReply and correlationId
      */
-    const responseBody = await this.encode(body);
+    const responseBody = await this.encode(body, encoder);
     this.channel.sendToQueue(replyToQueue, responseBody, { correlationId, headers });
   }
 

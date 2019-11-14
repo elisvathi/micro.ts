@@ -4,6 +4,7 @@ import Router from 'koa-router';
 import bodyParser from "koa-bodyparser";
 import {Action} from "../../../server/types";
 import {DefinitionHandlerPair} from "../../AbstractBroker";
+import { TransformerDefinition } from "../../../decorators";
 
 export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpListnerConfig> {
   public name: string = "KoaBroker";
@@ -14,8 +15,9 @@ export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpLi
     return `:${paramName}`;
   }
 
-  protected respond(result: Action, ctx: koa.Context) {
-    const body = result.response!.body || result.response!.error;
+  protected async respond(result: Action, ctx: koa.Context, encoder?: TransformerDefinition) {
+    let body = result.response!.body || result.response!.error;
+    body = await this.encode(body, encoder);
     const headers = result.response!.headers || {};
     ctx.status = result.response!.statusCode || 200;
     ctx.body = body;
@@ -25,19 +27,19 @@ export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpLi
 
   protected registerHandler(value: DefinitionHandlerPair[], route: string, method: HttpVerbs): void {
     this.router[method](route, async (ctx: koa.Context): Promise<any> =>{
-      const action = this.requestMapper(ctx);
+      const action = await this.requestMapper(ctx, value[0].def.decoder);
       const handler = this.actionToRouteMapper(route, action, value);
       const result: Action = await handler(action);
       result.response = result.response || {};
-      return this.respond(result, ctx);
+      return this.respond(result, ctx, value[0].def.encoder);
     })
   }
 
-  protected requestMapper: (r: koa.Context) => Action = (r: koa.Context)=>{
+  protected requestMapper = async (r: koa.Context, decoder?: TransformerDefinition)=>{
     const action: Action = {
       request: {
         headers: r.headers,
-        body: r.request.body,
+        body: await this.decode(r.request.body, decoder),
         method: r.method,
         qs: r.query,
         params: r.params,

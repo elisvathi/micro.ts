@@ -18,6 +18,7 @@ export abstract class BaseTransformer<TFirst = any, TSecond = any> implements Da
     try {
       return await this.tryDecode<T>(input, ...options);
     } catch (err) {
+      console.log("DECODER ERROR", err);
       throw new DecoderError(err);
     }
   }
@@ -64,8 +65,8 @@ export class StringJsonTransformer extends BaseTransformer<string, any>{
   }
 }
 export class BufferStringTransformer extends BaseTransformer<Buffer, string>{
-  protected async tryDecode<T = Buffer>(input: T, encoding: BufferEncoding = 'utf-8'): Promise<string> {
-    return (input as any as Buffer).toString(encoding);
+  protected async tryDecode<T = Buffer>(input: T, encoding: string = 'utf8'): Promise<string> {
+    return (input as any as Buffer).toString();
   }
 
   protected async tryEncode<T = string>(input: T, encoding: BufferEncoding = 'utf-8'): Promise<Buffer> {
@@ -83,6 +84,6 @@ export class EmptyTransformer extends BaseTransformer<any, any>{
 
 export class BufferJsonTransformer extends ChainTransformer<Buffer, any>{
   constructor(){
-    super([BufferJsonTransformer, StringJsonTransformer]);
+    super([BufferStringTransformer, StringJsonTransformer]);
   }
 }

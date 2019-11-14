@@ -18,10 +18,10 @@ export interface CommandInterfaceConfig {
 
 export class CommandBroker extends AbstractBroker<CommandInterfaceConfig> {
   name: string = "CommandBroker";
-  protected requestMapper: RequestMapper = (req: BaseCommandRequest) => {
+  protected requestMapper: RequestMapper = async (req: BaseCommandRequest) => {
     const action: Action = {
       request: {
-        body: req.body,
+        body: await this.decode(req.body),
         qs: req.qs,
         params: req.params,
         method: req.method,
@@ -47,14 +47,14 @@ export class CommandBroker extends AbstractBroker<CommandInterfaceConfig> {
     if (!value || value.length === 0) {
       throw new NotFound();
     } else {
-      const action = this.requestMapper(request);
+      const action = await this.requestMapper(request);
       const handler = this.actionToRouteMapper(request.path, action, value);
       const result: Action = await handler(action);
       result.response = result.response || {};
       if (result.response.is_error) {
-        throw result.response.error;
+        throw await this.encode(result.response.error);
       } else {
-        return result.response.body;
+        return await this.encode(result.response.body);
       }
     }
   }

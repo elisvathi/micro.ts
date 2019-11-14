@@ -6,6 +6,7 @@ import { ILogger, Log } from "../server/Logger";
 import chalk from 'chalk';
 import { TransformerClass, EmptyTransformer, BaseTransformer } from "../transformers/types";
 import { Container } from "../di";
+import { TransformerDefinition } from "../decorators";
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
 export type DefinitionHandlerPair = {
@@ -19,23 +20,23 @@ export type ConfigResolver<T> = (config: IConfiguration) => T;
 
 export abstract class AbstractBroker<TConfig, TNativeBodyFormat = any> implements IBroker {
 
-  protected defaultEncoder: TransformerClass = EmptyTransformer;
-  protected defaultDecoder: TransformerClass = EmptyTransformer;
+  protected defaultEncoder: TransformerDefinition = {transformer: EmptyTransformer};
+  protected defaultDecoder: TransformerDefinition = {transformer: EmptyTransformer};
 
-  public setDefaultEncoder(transformer: TransformerClass) {
-    this.defaultEncoder = transformer;
+  public setDefaultEncoder(transformer: TransformerClass, ...options: any[]) {
+    this.defaultEncoder = {transformer, options};
   }
 
-  public setDefaultDecoder(transformer: TransformerClass) {
-    this.defaultDecoder = transformer;
+  public setDefaultDecoder(transformer: TransformerClass, ...options: any[]) {
+    this.defaultDecoder = {transformer, options};
   }
 
-  protected async encode<T = any>(payload: any, transformer: TransformerClass = this.defaultEncoder): Promise<TNativeBodyFormat> {
-    return Container.get<BaseTransformer>(transformer).encode<T>(payload);
+  protected async encode<T = any>(payload: any, transformer: TransformerDefinition = this.defaultEncoder): Promise<TNativeBodyFormat> {
+    return Container.get<BaseTransformer>(transformer.transformer).encode<T>(payload, transformer.options);
   }
 
-  protected decode<T = any>(payload: any, transformer: TransformerClass = this.defaultDecoder): any {
-    return Container.get<BaseTransformer>(transformer).decode<T>(payload);
+  protected decode<T = any>(payload: any, transformer: TransformerDefinition = this.defaultDecoder): any {
+    return Container.get<BaseTransformer>(transformer.transformer).decode<T>(payload, transformer.options);
   }
   public abstract name: string;
   private timeout: number = 0;

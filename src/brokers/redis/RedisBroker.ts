@@ -2,6 +2,7 @@ import {AbstractBroker} from "../AbstractBroker";
 import {RequestMapper, RouteMapper} from "../IBroker";
 import IORedis, {Redis} from "ioredis";
 import {Action, BaseRouteDefinition} from "../../server/types";
+import { TransformerDefinition } from "../../decorators";
 export type RedisConfig = string;
 export class RedisBroker extends AbstractBroker<RedisConfig> {
   public name: string = "RedisBroker";
@@ -12,13 +13,13 @@ export class RedisBroker extends AbstractBroker<RedisConfig> {
     this.server = new IORedis(this.config);
     this.subscriber = new IORedis(this.config);
   }
-  protected requestMapper: RequestMapper = (path: string, fullPath: string, body: any)=>{
+  protected requestMapper: RequestMapper = async (path: string, fullPath: string, body: any, decoder?: TransformerDefinition)=>{
       const action: Action = {
         request: {
           params: {},
           path: fullPath,
           headers: {},
-          body,
+          body: await this.decode(body, decoder),
           method: 'post',
           qs: {},
           raw: {pattern: fullPath, channel: path, message: body}
@@ -55,7 +56,7 @@ export class RedisBroker extends AbstractBroker<RedisConfig> {
       }
       const def = handlerPairs[0].def;
       const originalPath = `${def.base}/${def.controller}/${def.handler}`.replace(/\/\//g, '/');
-      const action = this.requestMapper(path, fullPath, body);
+      const action = await this.requestMapper(path, fullPath, body, def.decoder);
       action.request.params = this.parseParams(fullPath, originalPath);
       const handler = this.actionToRouteMapper(path, action, handlerPairs);
       const result = await handler(action);

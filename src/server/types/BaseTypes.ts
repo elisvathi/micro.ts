@@ -1,3 +1,6 @@
+import { TransformerClass } from "../../transformers/types";
+import { TransformerDefinition } from "../../decorators";
+
 export interface ActionResponse {
   /**
    * Status code of the response
@@ -104,7 +107,9 @@ export interface BaseRouteDefinition {
   /**
    * Timeout configured for the handler
    */
-  timeout? : number;
+  timeout?: number;
+  encoder?: TransformerDefinition,
+  decoder?: TransformerDefinition,
 }
 
 export type AssertExchange = {

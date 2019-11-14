@@ -2,6 +2,7 @@ import {DefinitionHandlerPair} from "../../AbstractBroker";
 import {HttpBroker, HttpVerbs, IHttpListnerConfig} from "../HttpBroker";
 import express, {Application, Request, Response} from 'express'
 import {Action} from "../../../server/types";
+import { TransformerDefinition } from "../../../decorators";
 
 
 export class ExpressBroker extends HttpBroker<Application, Request, Response, IHttpListnerConfig> {
@@ -12,11 +13,11 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
 
   protected server!: Application;
 
-  protected requestMapper: (r: Request) => Action = (r: Request) => {
+  protected requestMapper =  async (r: Request, decoder?: TransformerDefinition) => {
     const action: Action = {
       request: {
         headers: r.headers,
-        body: r.body,
+        body: await this.decode(r.body, decoder),
         method: r.method,
         qs: r.query,
         params: r.params,
@@ -40,11 +41,11 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
    */
   protected registerHandler(value: DefinitionHandlerPair[], route: string, method: HttpVerbs): void {
     this.server[method](route, async (req: Request, res: Response) => {
-      const action = this.requestMapper(req);
+      const action = await this.requestMapper(req, value[0].def.decoder);
       const handler = this.actionToRouteMapper(route, action, value);
       const result: Action = await handler(action);
       result.response = result.response || {};
-      return this.respond(result, res);
+      return this.respond(result, res, value[0].def.encoder);
     });
   }
 
@@ -53,8 +54,9 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
    * @param result
    * @param ctx
    */
-  protected respond(result: Action, ctx: Response): any {
-    const body = result.response!.body || result.response!.error;
+  protected async respond(result: Action, ctx: Response, encoder? : TransformerDefinition): Promise<any> {
+    let body = result.response!.body || result.response!.error;
+    body = await this.encode(body, encoder);
     const headers = result.response!.headers || {};
     ctx.status(result.response!.statusCode || 200);
     Object.keys(headers).forEach(h => {

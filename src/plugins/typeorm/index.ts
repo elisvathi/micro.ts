@@ -1,7 +1,7 @@
 import { OptionsBuilder, Class } from "../../server";
-import typeorm, { useContainer, createConnection as createDatabaseConnection, ConnectionOptions, ConnectionManager } from 'typeorm';
+import typeorm, { useContainer, createConnection as createDatabaseConnection, ConnectionOptions, ConnectionManager, Repository } from 'typeorm';
 import { Container, Inject } from "../../di";
-import {ILogger, LoggerKey} from "../../server/Logger";
+import { ILogger, LoggerKey } from "../../server/Logger";
 
 declare module "../../server/OptionsBuilder" {
   interface OptionsBuilder {
@@ -41,17 +41,30 @@ export function InjectRepository<T>(model: Class<T>, name: string = 'default') {
     model,
     connectionName: name
   };
-  if (!Container.hasResolver(key)) {
-    Container.bindResolver(key, () => {
-      try {
-        const connectionManager = Container.get<ConnectionManager>(ConnectionManager);
-        const connection = connectionManager.get(name);
-        const repo = connection.getRepository<T>(model);
-        return repo;
-      } catch (err) {
-        console.log("ERROR GETTING REPOSITORY", err);
-      }
-    });
+  return (target: any, _propertyKey: string, parameterIndex: number) => {
+    let ctorMetadata = Reflect.getOwnMetadata('design:injectparamtypes', target);
+    if (!ctorMetadata) {
+      const constructorArgs = Reflect.getOwnMetadata('design:paramtypes', target) || [];
+      ctorMetadata = constructorArgs.map((x: any) => {
+        return { type: x };
+      });
+    }
+    const paramType = ctorMetadata[parameterIndex].type;
+    if (!Container.hasResolver(key)) {
+      Container.bindResolver(key, () => {
+        try {
+          const connectionManager = Container.get<ConnectionManager>(ConnectionManager);
+          const connection = connectionManager.get(name);
+          if (paramType === Repository) {
+            return connection.getRepository<T>(model);
+          }
+          else return connection.getCustomRepository<T>(paramType);
+        } catch (err) {
+          console.log("ERROR GETTING REPOSITORY", err);
+        }
+      });
+    }
+    ctorMetadata[parameterIndex].injectOptions = { key: key || ctorMetadata[parameterIndex].type };
+    Reflect.defineMetadata('design:injectparamtypes', ctorMetadata, target);
   }
-  return Inject(key);
 }

@@ -6,7 +6,7 @@ import { TopicBasedAmqpBroker } from "../src/brokers/amqp";
 import { BadRequest } from "../src";
 const AmqpTransformer = (b: IBroker) => {
   if (b.constructor === TopicBasedAmqpBroker) {
-    return {transformer: BufferJsonTransformer}
+    return {transformer: BufferJsonTransformer, options: ['utf-8']}
   }
   return {transformer: EmptyTransformer}
 }
@@ -14,6 +14,7 @@ const AmqpTransformer = (b: IBroker) => {
 @Decoder(AmqpTransformer)
 @Encoder(AmqpTransformer)
 export class AmqpController {
+
   @Get("test")
   getData(@Query() qs: any) {
     Log.warn("Error, returning bad request", { ok: false });

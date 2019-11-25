@@ -27,6 +27,7 @@
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
+    "@elisvathi/json-compressor": "^1.0.0",
     "@types/amqplib": "^0.5.13",
     "@types/chai": "^4.2.3",
     "@types/chalk": "^2.2.0",
@@ -58,6 +59,7 @@
     "mocha": "^5.2.0",
     "nodemon": "^1.19.0",
     "npm-auto-version": "^1.0.0",
+    "pg": "^7.14.0",
     "rimraf": "^2.6.3",
     "socket.io": "^2.3.0",
     "ts-node": "^8.4.1",

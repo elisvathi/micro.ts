@@ -16,4 +16,15 @@ services:
     container_name: ms-mobile-redis
     ports:
       - "6379:6379"
-
+  postgres:
+    image: postgres:10.3
+    container_name: notifications-postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=user-manager
+      - PGDATA=/tmp

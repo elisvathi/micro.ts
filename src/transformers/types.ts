@@ -1,12 +1,18 @@
 import { DecoderError, EncoderError } from "../errors";
 import { Class } from "../server";
-import { Container } from "../di";
-
+import { Container, Service } from "../di";
+const compressor = require('@elisvathi/json-compressor');
 export interface DataTransformer<TFirst = any, TSecond = any> {
   decode(input: TFirst, ...options: any[]): Promise<TSecond>;
   encode(input: TSecond, ...options: any[]): Promise<TFirst>;
 }
 export type TransformerClass = Class<DataTransformer>;
+export function DataTransformer(){
+  return (target: any)=>{
+    Reflect.decorate([Service()], target);
+  }
+}
+
 export abstract class BaseTransformer<TFirst = any, TSecond = any> implements DataTransformer<TFirst, TSecond>{
   protected abstract async tryDecode<T = TFirst>(input: T, ...options: any[]): Promise<TSecond>;
   protected abstract async tryEncode<T = TSecond>(input: T, ...options: any[]): Promise<TFirst>;
@@ -34,6 +40,7 @@ export abstract class BaseTransformer<TFirst = any, TSecond = any> implements Da
     }
   }
 }
+
 export class ChainTransformer<TFirst, TSecond> extends BaseTransformer<TFirst, TSecond>{
   constructor(private transformers: TransformerClass[]) {
     super();
@@ -56,6 +63,8 @@ export class ChainTransformer<TFirst, TSecond> extends BaseTransformer<TFirst, T
     return transformed as TFirst;
   }
 }
+
+@DataTransformer()
 export class StringJsonTransformer extends BaseTransformer<string, any>{
   protected async tryDecode<T = string>(input: T): Promise<any> {
     return JSON.parse(input as any as string);
@@ -64,6 +73,8 @@ export class StringJsonTransformer extends BaseTransformer<string, any>{
     return JSON.stringify(input);
   }
 }
+
+@DataTransformer()
 export class BufferStringTransformer extends BaseTransformer<Buffer, string>{
   protected async tryDecode<T = Buffer>(input: T, encoding: string = 'utf8'): Promise<string> {
     return (input as any as Buffer).toString();
@@ -73,6 +84,7 @@ export class BufferStringTransformer extends BaseTransformer<Buffer, string>{
     return Buffer.from((input as any) as string, encoding);
   }
 }
+@DataTransformer()
 export class EmptyTransformer extends BaseTransformer<any, any>{
   protected tryDecode<T = any>(input: T, ...options: any[]): Promise<any> {
     return input as any;
@@ -82,8 +94,23 @@ export class EmptyTransformer extends BaseTransformer<any, any>{
   }
 }
 
+@DataTransformer()
 export class BufferJsonTransformer extends ChainTransformer<Buffer, any>{
-  constructor(){
+  constructor() {
     super([BufferStringTransformer, StringJsonTransformer]);
   }
+}
+
+@DataTransformer()
+export class CompressedJsonTransformer extends BaseTransformer<{ keys: any, data: any }, any>{
+
+  protected tryDecode<T = { keys: any; data: any; }>(input: T, ...options: any[]): Promise<any> {
+    const castedInput = input as any as {keys: any, data: any};
+    return compressor.decompress(castedInput.data, castedInput.keys);
+  }
+
+  protected tryEncode<T = any>(input: T, ...options: any[]): Promise<{ keys: any; data: any; }> {
+    return compressor.compress(input);
+  }
+
 }

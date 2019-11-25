@@ -15,6 +15,13 @@ export type RequestMapper = (...input: any[]) => Action | Promise<Action>;
 export interface BrokerConnection<T> {
   connection: T;
 }
+export enum BrokerProtocol {
+  HTTP,
+  AMQP,
+  REDIS,
+  WEBSOCKET,
+  COMMAND
+}
 
 export interface IBroker<TConfig = any> {
   appConfiguration?: IConfiguration;

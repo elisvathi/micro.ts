@@ -27,7 +27,7 @@ export function Service(options?: ServiceOptions) {
  */
 export function Inject(key?: any) {
     return (target: any, _propertyKey: string, parameterIndex: number) => {
-        let ctorMetadata = Reflect.getOwnMetadata('desing:injectparamtypes', target);
+        let ctorMetadata = Reflect.getOwnMetadata('design:injectparamtypes', target);
         if (!ctorMetadata) {
             const constructorArgs = Reflect.getOwnMetadata('design:paramtypes', target) || [];
             ctorMetadata = constructorArgs.map((x: any) => {

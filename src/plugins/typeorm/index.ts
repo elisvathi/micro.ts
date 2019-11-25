@@ -35,7 +35,7 @@ OptionsBuilder.prototype.addModels = function(...models: Class<any>[]) {
   this.options.models.push(...models);
 };
 
-export function InjectRepository<T>(model: Class<T>, name: string = 'default') {
+export function InjectRepository<T=any>(model?: Class<T>, name: string = 'default') {
   const key = {
     type: '__repository',
     model,
@@ -55,7 +55,7 @@ export function InjectRepository<T>(model: Class<T>, name: string = 'default') {
         try {
           const connectionManager = Container.get<ConnectionManager>(ConnectionManager);
           const connection = connectionManager.get(name);
-          if (paramType === Repository) {
+          if (paramType === Repository && model) {
             return connection.getRepository<T>(model);
           }
           else return connection.getCustomRepository<T>(paramType);

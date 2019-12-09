@@ -1,13 +1,14 @@
 {
   "name": "@micro.ts/core",
-  "version": "0.0.55",
+  "version": "0.0.57",
   "description": "Microservice framework with Typescript",
   "main": "lib/index.js",
   "scripts": {
     "start": "npx ts-node --project=tsconfig.playground.json ./playground/playground.ts",
-    "update": "npx npm-auto-version && node update-version.js && npm run build && npm run push && cd lib && npm publish",
+    "update": "npx npm-auto-version && node update-version.js && npm run build && npm run commit:version && npm run push && cd lib && npm publish",
     "pack": "npm run prepack && cd lib && npm pack",
     "prepack": "npm run clean && npm run build",
+    "commit:version": "git add . && git commit -m 'version' && git push origin",
     "push": "git push origin --tags",
     "dev": "nodemon",
     "build": "./node_modules/typescript/bin/tsc -p tsconfig.json && cp package-production.json ./lib/package.json",

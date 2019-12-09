@@ -690,7 +690,7 @@ export class BaseServer {
       }
       const cPath = options.path;
       const isJson = !!options.json;
-      const controllerPath = cPath || name;
+      const controllerPath = cPath || "";
       const handlers = controllerMetadata.handlers as any;
       const controllerTimeout = controllerMetadata.options && controllerMetadata.options.timeout || 0;
       /**

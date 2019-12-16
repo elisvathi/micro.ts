@@ -3,9 +3,8 @@ import "../src/brokers/amqp";
 import "../src/brokers/http/hapi";
 import "../src/brokers/socketio";
 import "../src/plugins/typeorm";
-import { AppBuilder, IConfiguration, StartupBase, OptionsBuilder } from "../src/server";
-import { User } from './models/entities/User';
-import {DataController} from './controllers/DataController';
+import { AppBuilder, IConfiguration, OptionsBuilder, StartupBase } from "../src/server";
+import { DataController } from './controllers/DataController';
 
 class Startup extends StartupBase {
 
@@ -19,8 +18,8 @@ class Startup extends StartupBase {
     builder.setDevMode(true);
     builder.setLogRequests(true);
     builder.setLogErrors(true);
-    builder.useTypeOrm(config.get('database'));
-    builder.addModels(User);
+    // builder.useTypeOrm(config.get('database'));
+    // builder.addModels(User);
     builder.addControllers(DataController);
     builder.useHapiBroker(b => b.withConfigResolver(c => c.getFromPath("http.hapi")));
   }

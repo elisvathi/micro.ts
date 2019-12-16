@@ -1,18 +1,16 @@
 import { Get, JsonController } from '../../src';
-import { InjectRepository } from '../../src/plugins/typeorm';
-import { UsersRepository } from '../models/repositories/UserRepository';
 
-@JsonController("data")
+@JsonController("")
 export class DataController{
-  constructor(@InjectRepository() private repo: UsersRepository){
+  constructor(){
   }
   @Get('')
   public async getData(){
-    return this.repo.find();
+    return "get data called"
   }
 
   @Get('custom')
   public async customCall(){
-    return this.repo.getData();
+    return "custom call called"
   }
 }

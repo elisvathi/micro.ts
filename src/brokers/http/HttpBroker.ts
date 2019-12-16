@@ -33,7 +33,7 @@ export abstract class HttpBroker<TServer, TRequest, TContext, TConfig extends IH
    */
   protected routeMapper: RouteMapper = (def: BaseRouteDefinition) => {
     let basePart: string = def.base;
-    if (basePart.indexOf("/") !== 0) {
+    if (basePart && basePart.indexOf("/") !== 0) {
       basePart = `/${basePart}`;
     }
     let controllerPart = def.controller;

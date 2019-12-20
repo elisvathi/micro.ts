@@ -1,6 +1,6 @@
-import { OptionsBuilder, Class } from "../../server";
-import typeorm, { useContainer, createConnection as createDatabaseConnection, ConnectionOptions, ConnectionManager, Repository } from 'typeorm';
-import { Container, Inject } from "../../di";
+import typeorm, { ConnectionManager, ConnectionOptions, createConnection as createDatabaseConnection, Repository, useContainer } from 'typeorm';
+import { Container } from "../../di";
+import { Class, OptionsBuilder } from "../../server";
 import { ILogger, LoggerKey } from "../../server/Logger";
 
 declare module "../../server/OptionsBuilder" {
@@ -35,7 +35,69 @@ OptionsBuilder.prototype.addModels = function(...models: Class<any>[]) {
   this.options.models.push(...models);
 };
 
-export function InjectRepository<T=any>(model?: Class<T>, name: string = 'default') {
+export function InjectConnection(name: string = 'default') {
+  const key = {
+    type: '__typeorm_connection',
+    connectionName: name
+  }
+  return (target: any, _propertyKey: string, parameterIndex: number) => {
+    let ctorMetadata = Reflect.getOwnMetadata('design:injectparamtypes', target);
+    if (!ctorMetadata) {
+      const constructorArgs = Reflect.getOwnMetadata('design:paramtypes', target) || [];
+      ctorMetadata = constructorArgs.map((x: any) => {
+        return { type: x };
+      });
+    }
+    if (!Container.hasResolver(key)) {
+      Container.bindResolver(key, () => {
+        try {
+          const connectionManager = Container.get<ConnectionManager>(ConnectionManager);
+          const connection = connectionManager.get(name);
+          return connection;
+        } catch (err) {
+          console.log("ERROR GETTING CONNECTION", err);
+        }
+      });
+    }
+    ctorMetadata[parameterIndex].injectOptions = { key: key || ctorMetadata[parameterIndex].type };
+    Reflect.defineMetadata('design:injectparamtypes', ctorMetadata, target);
+  }
+}
+
+export function InjectManager(name: string = 'default', transient: boolean = false){
+  const key = {
+    type: '__typeorm_entity_manager',
+    connectionname: name,
+    transient
+  }
+  return (target: any, _propertyKey: string, parameterIndex: number) => {
+    let ctorMetadata = Reflect.getOwnMetadata('design:injectparamtypes', target);
+    if (!ctorMetadata) {
+      const constructorArgs = Reflect.getOwnMetadata('design:paramtypes', target) || [];
+      ctorMetadata = constructorArgs.map((x: any) => {
+        return { type: x };
+      });
+    }
+    if (!Container.hasResolver(key)) {
+      Container.bindResolver(key, () => {
+        try {
+          const connectionManager = Container.get<ConnectionManager>(ConnectionManager);
+          const connection = connectionManager.get(name);
+          if(transient){
+            return connection.createEntityManager();
+          }
+          return connection.manager;
+        } catch (err) {
+          console.log("ERROR GETTING CONNECTION", err);
+        }
+      });
+    }
+    ctorMetadata[parameterIndex].injectOptions = { key: key || ctorMetadata[parameterIndex].type };
+    Reflect.defineMetadata('design:injectparamtypes', ctorMetadata, target);
+  }
+}
+
+export function InjectRepository<T = any>(model?: Class<T>, name: string = 'default') {
   const key = {
     type: '__repository',
     model,

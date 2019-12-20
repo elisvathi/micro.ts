@@ -5,34 +5,39 @@ import { ILogger, LoggerKey } from "../../server/Logger";
 
 declare module "../../server/OptionsBuilder" {
   interface OptionsBuilder {
-    useTypeOrm(config: typeorm.ConnectionOptions): void;
-    addModels(...models: Class<any>[]): void;
+    useTypeOrm(config: typeorm.ConnectionOptions, name?: string): void;
+    addModels(...models: Class<any>[], name?: string): void;
   }
 }
 
 declare module "../../server/types/ServerOptions" {
   interface ServerOptions {
-    typeormOptions?: ConnectionOptions;
-    models?: Class<any>[];
+    typeormOptions?: { [key: string]: ConnectionOptions };
+    models?: { [key: string]: Class<any>[] };
   }
 }
 
-OptionsBuilder.prototype.useTypeOrm = function(config: typeorm.ConnectionOptions) {
+OptionsBuilder.prototype.useTypeOrm = function(config: typeorm.ConnectionOptions, name: string = 'default') {
   useContainer(Container);
-  this.options.typeormOptions = config;
+  this.options.typeormOptions = this.options.typeormOptions || {};
+  this.options.typeormOptions[name] = config;
   this.addBeforeStartHook(async () => {
-    let dbOptions: any = this.options.typeormOptions;
-    dbOptions = { ...dbOptions, entities: this.options.models || [] };
+    let dbOptions: any = this.options.typeormOptions![name];
+    this.options.models = this.options.models || {};
+    dbOptions = { ...dbOptions, entities: this.options.models[name] || [] };
     await createDatabaseConnection({ ...dbOptions });
     Container.get<ILogger>(LoggerKey).info("Database connected");
   });
 };
 
-OptionsBuilder.prototype.addModels = function(...models: Class<any>[]) {
+OptionsBuilder.prototype.addModels = function(...models: Class<any>[], name: string = 'default') {
   if (!this.options.models) {
-    this.options.models = [];
+    this.options.models = {};
   }
-  this.options.models.push(...models);
+  if (!this.options.models[name]){
+    this.options.models[name] = [];
+  }
+    this.options.models[name].push(...models);
 };
 
 export function InjectConnection(name: string = 'default') {
@@ -64,7 +69,7 @@ export function InjectConnection(name: string = 'default') {
   }
 }
 
-export function InjectManager(name: string = 'default', transient: boolean = false){
+export function InjectManager(name: string = 'default', transient: boolean = false) {
   const key = {
     type: '__typeorm_entity_manager',
     connectionname: name,
@@ -83,7 +88,7 @@ export function InjectManager(name: string = 'default', transient: boolean = fal
         try {
           const connectionManager = Container.get<ConnectionManager>(ConnectionManager);
           const connection = connectionManager.get(name);
-          if(transient){
+          if (transient) {
             return connection.createEntityManager();
           }
           return connection.manager;

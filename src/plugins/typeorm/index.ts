@@ -6,7 +6,7 @@ import { ILogger, LoggerKey } from "../../server/Logger";
 declare module "../../server/OptionsBuilder" {
   interface OptionsBuilder {
     useTypeOrm(config: typeorm.ConnectionOptions, name?: string): void;
-    addModels(...models: Class<any>[], name?: string): void;
+    addModels(models: Class<any>[], name?: string): void;
   }
 }
 
@@ -30,7 +30,7 @@ OptionsBuilder.prototype.useTypeOrm = function(config: typeorm.ConnectionOptions
   });
 };
 
-OptionsBuilder.prototype.addModels = function(...models: Class<any>[], name: string = 'default') {
+OptionsBuilder.prototype.addModels = function(models: Class<any>[], name: string = 'default') {
   if (!this.options.models) {
     this.options.models = {};
   }

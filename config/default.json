@@ -2,7 +2,35 @@
     "http": {
         "hapi": {
             "port": 8080,
-            "address": "0.0.0.0"
+            "address": "0.0.0.0",
+            "routes": {
+                "cors": {
+                    "origin": [
+                        "*"
+                    ],
+                    "headers": [
+                        "platform",
+                        "jwt",
+                        "content-type"
+                    ]
+                }
+            }
+        },
+        "private": {
+            "port": 8081,
+          "address": "0.0.0.0",
+            "routes": {
+                "cors": {
+                    "origin": [
+                        "*"
+                    ],
+                    "headers": [
+                        "platform",
+                        "jwt",
+                        "content-type"
+                    ]
+                }
+            }
         },
         "express": {
             "port": 8081,

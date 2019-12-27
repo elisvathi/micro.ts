@@ -1,17 +1,15 @@
 import chalk from 'chalk';
-import {ServerOptions} from './types';
-import {GlobalMetadata, ControllerMetadata} from '../decorators';
-import {getGlobalMetadata, getHandlerMetadata} from '../decorators/GlobalMetadata';
-import {MiddlewareFunction, AppMiddleware, IMiddleware, TimeoutError} from '..';
-import {BaseRouteDefinition, Action} from './types';
-import {Container} from '../di';
-import {MethodDescription, MethodControllerOptions, MiddlewareOptions, MethodOptions} from '../decorators/types';
-import {NotAuthorized, BadRequest} from '../errors';
-import {ParamDescription, ParamOptions, ParamDecoratorType} from '../decorators/types';
-import {AppErrorHandler, IErrorHandler, ErrorHandlerFunction} from '../errors';
-import {IBroker} from "../brokers/IBroker";
-import {ILogger, LoggerKey} from "./Logger";
-import {minNonZero, sleep} from "../helpers/BaseHelpers";
+import { AppMiddleware, IMiddleware, MiddlewareFunction, TimeoutError } from '..';
+import { IBroker } from "../brokers/IBroker";
+import { ControllerMetadata, GlobalMetadata } from '../decorators';
+import { getGlobalMetadata, getHandlerMetadata } from '../decorators/GlobalMetadata';
+import { MethodControllerOptions, MethodDescription, MethodOptions, MiddlewareOptions, ParamDecoratorType, ParamDescription, ParamOptions } from '../decorators/types';
+import { Container } from '../di';
+import { AppErrorHandler, BadRequest, ErrorHandlerFunction, IErrorHandler, NotAuthorized } from '../errors';
+import { minNonZero, sleep } from "../helpers/BaseHelpers";
+import { ILogger, LoggerKey } from "./Logger";
+import { Action, BaseRouteDefinition, ServerOptions } from './types';
+import { SpecBuilder } from '../openapi/SpecBuilder';
 
 interface RegisterMethodParams {
   /** Name of the method */
@@ -205,7 +203,7 @@ export class BaseServer {
    * @param middlewares List of middleware options
    */
   private groupMiddlewares(middlewares: MiddlewareOptions[]): { before: AppMiddleware[], after: AppMiddleware[] } {
-    const result: { before: AppMiddleware[], after: AppMiddleware[] } = {before: [], after: []};
+    const result: { before: AppMiddleware[], after: AppMiddleware[] } = { before: [], after: [] };
     middlewares.forEach(m => {
       if (m.before) {
         result.before.push(m.middleware);
@@ -230,7 +228,7 @@ export class BaseServer {
    * @param methodMetadata
    */
   private getMiddlewares(methodMetadata: MethodControllerOptions): { before: any[], after: any[] } {
-    const middlewares: { before: any[], after: any[] } = {before: [], after: []};
+    const middlewares: { before: any[], after: any[] } = { before: [], after: [] };
     let afterMiddlewares: any[] = [];
     /**
      * App level before middlewares
@@ -310,10 +308,10 @@ export class BaseServer {
    * @param methodControllerMetadata Handler metadata
    */
   private async handleRequest(def: BaseRouteDefinition,
-                              action: Action,
-                              broker: IBroker,
-                              controllerInstance: any,
-                              methodControllerMetadata: MethodControllerOptions) {
+    action: Action,
+    broker: IBroker,
+    controllerInstance: any,
+    methodControllerMetadata: MethodControllerOptions) {
     /**
      * If route requires authorization, check it with the autorization function
      */
@@ -363,7 +361,7 @@ export class BaseServer {
    * @param broker
    */
   private async buildParams(action: Action,
-                            metadata: MethodDescription, broker: IBroker): Promise<any[]> {
+    metadata: MethodDescription, broker: IBroker): Promise<any[]> {
     return Promise.all(metadata.params.map(async (p) => {
       return this.buildSingleParam(action, p, broker);
     }));
@@ -391,7 +389,7 @@ export class BaseServer {
    * @param isObject if the value is a key-value object
    * @param notEmpty if the value should not be empty
    */
-  private async validateParam({value, required, validate, name, type, isObject, notEmpty}: ValidateParamParams): Promise<any> {
+  private async validateParam({ value, required, validate, name, type, isObject, notEmpty }: ValidateParamParams): Promise<any> {
     if (required && !value) {
       throw new BadRequest(`${name} is required`);
     }
@@ -418,7 +416,7 @@ export class BaseServer {
    * @param broker Broker instance
    */
   private async buildSingleParam(action: Action,
-                                 metadata: ParamDescription, broker: IBroker): Promise<any> {
+    metadata: ParamDescription, broker: IBroker): Promise<any> {
     if (!metadata.options) {
       return action.request.body || action.request.qs || {};
     } else {
@@ -594,9 +592,11 @@ export class BaseServer {
         });
         result[name] = route;
         const brokerServerInfo = this._serverInfo.get(broker) || [];
-        brokerServerInfo.push({route, def, params});
+        brokerServerInfo.push({ route, def, params });
         this._serverInfo.set(broker, brokerServerInfo);
       }
+      const schemaBuilder = Container.get<SpecBuilder>(SpecBuilder);
+      schemaBuilder.registerRoute(def, brokers, params);
     }
     return result;
   }
@@ -633,7 +633,7 @@ export class BaseServer {
    * @param routes Routes to append to the result
    * @param controllerName Name of the controller
    */
-  private async buildSingleMethodRoute({methodName, desc, basePath, controllerPath, ctor, isJson, brokers, routes, controllerName, timeout}: RegisterMethodParams) {
+  private async buildSingleMethodRoute({ methodName, desc, basePath, controllerPath, ctor, isJson, brokers, routes, controllerName, timeout }: RegisterMethodParams) {
     const metadata: MethodOptions = desc.metadata || {};
     const methodPath = metadata.path;
     let path = methodPath || methodName;

@@ -5,6 +5,7 @@ import "../src/brokers/socketio";
 import "../src/plugins/typeorm";
 import { AppBuilder, IConfiguration, OptionsBuilder, StartupBase } from "../src/server";
 import { DataController } from './controllers/DataController';
+import { UsersController } from './controllers/UsersController';
 
 class Startup extends StartupBase {
 
@@ -18,10 +19,9 @@ class Startup extends StartupBase {
     builder.setDevMode(true);
     builder.setLogRequests(true);
     builder.setLogErrors(true);
-    // builder.useTypeOrm(config.get('database'));
-    // builder.addModels(User);
-    builder.addControllers(DataController);
+    builder.addControllers(DataController, UsersController);
     builder.useHapiBroker(b => b.withConfigResolver(c => c.getFromPath("http.hapi")));
+    builder.useHapiBroker(b => b.named('private').withConfigResolver(c => c.getFromPath("http.private")));
   }
 
 }

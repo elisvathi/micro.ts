@@ -38,7 +38,7 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
 
   protected abstract construct(): void;
 
-  get config(): TConfig {
+  public get config(): TConfig {
     if (this.absoluteConfig) {
       return this.absoluteConfig;
     }

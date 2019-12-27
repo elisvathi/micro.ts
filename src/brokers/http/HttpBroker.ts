@@ -1,14 +1,15 @@
-import {AbstractBroker, DefinitionHandlerPair} from "../AbstractBroker";
-import {RouteMapper} from "../IBroker";
-import {Action, BaseRouteDefinition} from "../../server/types";
+import { AbstractBroker, DefinitionHandlerPair } from "../AbstractBroker";
+import { RouteMapper } from "../IBroker";
+import { Action, BaseRouteDefinition } from "../../server/types";
 export type HttpVerbs = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options';
+import { OpenAPIV3 } from 'openapi-types'
 
 export interface IHttpListnerConfig {
   address?: string;
   port?: string | number;
 }
 
-export abstract class HttpBroker<TServer, TRequest, TContext, TConfig extends IHttpListnerConfig> extends AbstractBroker<TConfig> {
+export abstract class HttpBroker<TServer = any, TRequest = any, TContext = any, TConfig extends IHttpListnerConfig = any> extends AbstractBroker<TConfig> {
 
   /**
    * Broker specific server
@@ -66,6 +67,10 @@ export abstract class HttpBroker<TServer, TRequest, TContext, TConfig extends IH
         this.registerHandler(value, route, method);
       })
     }
+  }
+
+  public getFullPath(): string{
+    return `http://${this.config.address || 'localhost'}:${this.config.port || 80}`
   }
 
   protected registerRoutes() {

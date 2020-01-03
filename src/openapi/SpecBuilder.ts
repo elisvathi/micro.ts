@@ -10,7 +10,6 @@ import { Service } from "..";
 
 @Service()
 export class SpecBuilder {
-  private servers: Map<IBroker, OpenAPIV3.ServerObject> = new Map();
   private schemas: Map<Class<any>, any> = new Map();
   private paths: OpenAPIV3.PathsObject = {};
 
@@ -104,6 +103,7 @@ export class SpecBuilder {
 
     const operation: OpenAPIV3.OperationObject = {
       tags: [def.controllerCtor.name],
+      description: def.handlerName,
       parameters: [
         ...this.buildPathParams(mappedParams.path),
         ...this.buildHeaderParams(mappedParams.header),
@@ -146,7 +146,7 @@ export class SpecBuilder {
           accum.push({
             name: x.options?.name || "",
             in: inType,
-            required: true,
+            required: inType === 'header' ? !!x.options.headerParamOptions?.required : (inType === 'query'? !!x.options.queryParamOptions?.required: true),
             schema: { type: x.type.name.toLowerCase() }
           });
         } else {
@@ -156,7 +156,7 @@ export class SpecBuilder {
               const item: OpenAPIV3.ParameterObject = {
                 name: fieldName,
                 in: inType,
-                required: true,
+                required: !!objMetadata[fieldName].required,
                 explode: true
               };
               const obj: FieldDescription = objMetadata[fieldName];

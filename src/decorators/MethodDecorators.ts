@@ -7,7 +7,7 @@ import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
  * by filtering the request through authorizationChecker server function
  * If used on a controller you can bypass this check by usig AllowAnonymous decorator on a method
  * Throws NotAuthorized error if the authorizationChecker returns false
- * @param options Allows any nested value inside authorize options, 
+ * @param options Allows any nested value inside authorize options,
  * this object, if exists,  will be passed in the authorizationChecker function
  */
 export function Authorize(options?: AuthorizeOptions) {

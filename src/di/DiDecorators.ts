@@ -6,19 +6,51 @@ import { Container } from "./BaseContainer";
  * @param options
  */
 export function Service(options?: ServiceOptions) {
-    return (target: any) => {
-        let constructorArgs = Reflect.getOwnMetadata('design:injectparamtypes', target);
-        if(!constructorArgs){
-            const paramTypes = Reflect.getOwnMetadata('design:paramtypes', target) || [];
-            constructorArgs = paramTypes.map((x: any)=>{
-                return {type: x};
-            });
-            Reflect.defineMetadata('design:injectparamtypes', constructorArgs, target);
-        }
-        options = options || {};
-        options.ctorParams = constructorArgs;
-        Container.registerService(target, options);
+  return (target: any) => {
+    let constructorArgs = getInjectParamTypes(target);
+    if (!constructorArgs) {
+      const paramTypes = getConstructorParams(target);
+      constructorArgs = paramTypes.map((x: any) => {
+        return { type: x };
+      });
+      Reflect.defineMetadata('design:injectparamtypes', constructorArgs, target);
     }
+    options = options || {};
+    options.ctorParams = constructorArgs;
+    Container.registerService(target, options);
+  }
+}
+
+/**
+ * Get constructor parameters even in constructor less services
+ * @param target
+ */
+export function getConstructorParams(target: any): any[] {
+  const paramTypes: any[] = Reflect.getOwnMetadata('design:paramtypes', target) || [];
+  if (paramTypes.length === 0) {
+    const superClass = Object.getPrototypeOf(target);
+    if (!!superClass && superClass !== Object) {
+      return getConstructorParams(superClass);
+    }
+    return [];
+  }
+  return paramTypes;
+}
+
+/**
+ * Get Inject param types even in constructor less services
+ * @param target
+ */
+export function getInjectParamTypes(target: any): any[] {
+  const paramTypes: any[] = Reflect.getOwnMetadata('design:injectparamtypes', target);
+  if (!paramTypes) {
+    const superClass = Object.getPrototypeOf(target);
+    if (!!superClass && superClass !== Object) {
+      const returnValue = getInjectParamTypes(superClass);
+      return returnValue;
+    }
+  }
+  return paramTypes;
 }
 
 /**
@@ -26,15 +58,15 @@ export function Service(options?: ServiceOptions) {
  * @param key
  */
 export function Inject(key?: any) {
-    return (target: any, _propertyKey: string, parameterIndex: number) => {
-        let ctorMetadata = Reflect.getOwnMetadata('design:injectparamtypes', target);
-        if (!ctorMetadata) {
-            const constructorArgs = Reflect.getOwnMetadata('design:paramtypes', target) || [];
-            ctorMetadata = constructorArgs.map((x: any) => {
-                return { type: x };
-            });
-        }
-        ctorMetadata[parameterIndex].injectOptions = {key: key || ctorMetadata[parameterIndex].type};
-        Reflect.defineMetadata('design:injectparamtypes', ctorMetadata, target);
+  return (target: any, _propertyKey: string, parameterIndex: number) => {
+    let ctorMetadata = getInjectParamTypes(target);
+    if (!ctorMetadata) {
+      const constructorArgs = Reflect.getOwnMetadata('design:paramtypes', target) || [];
+      ctorMetadata = constructorArgs.map((x: any) => {
+        return { type: x };
+      });
     }
+    ctorMetadata[parameterIndex].injectOptions = { key: key || ctorMetadata[parameterIndex].type };
+    Reflect.defineMetadata('design:injectparamtypes', ctorMetadata, target);
+  }
 }

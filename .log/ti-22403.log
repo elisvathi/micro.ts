@@ -1,0 +1,28 @@
+[11:43:35.914] Global cache location '/home/elis/.cache/typescript/3.7', safe file path '/home/elis/Projects/micro-node/node_modules/typescript/lib/typingSafeList.json', types map path /home/elis/Projects/micro-node/node_modules/typescript/lib/typesMap.json
+[11:43:35.915] Processing cache location '/home/elis/.cache/typescript/3.7'
+[11:43:35.916] Trying to find '/home/elis/.cache/typescript/3.7/package.json'...
+[11:43:35.917] Loaded content of '/home/elis/.cache/typescript/3.7/package.json': {"private":true,"dependencies":{"types-registry":"^0.1.472"},"devDependencies":{"@types/atob":"^2.1.2","@types/hapi":"^18.0.3","@types/joi":"^14.3.4","@types/jsonwebtoken":"^8.3.5","@types/lodash":"^4.14.149","@types/mysql":"^2.15.8","@types/nodemon":"^1.19.0","@types/rimraf":"^2.0.3","@types/sprintf":"^0.1.0"}}
+[11:43:35.917] Loaded content of '/home/elis/.cache/typescript/3.7/package-lock.json'
+[11:43:35.934] Adding entry into typings cache: 'atob' => '/home/elis/.cache/typescript/3.7/node_modules/@types/atob/index.d.ts'
+[11:43:35.938] Adding entry into typings cache: 'hapi' => '/home/elis/.cache/typescript/3.7/node_modules/@types/hapi/index.d.ts'
+[11:43:35.943] Adding entry into typings cache: 'joi' => '/home/elis/.cache/typescript/3.7/node_modules/@types/joi/index.d.ts'
+[11:43:35.948] Adding entry into typings cache: 'jsonwebtoken' => '/home/elis/.cache/typescript/3.7/node_modules/@types/jsonwebtoken/index.d.ts'
+[11:43:35.955] Adding entry into typings cache: 'lodash' => '/home/elis/.cache/typescript/3.7/node_modules/@types/lodash/ts3.1/index.d.ts'
+[11:43:35.958] Adding entry into typings cache: 'mysql' => '/home/elis/.cache/typescript/3.7/node_modules/@types/mysql/index.d.ts'
+[11:43:35.961] Adding entry into typings cache: 'nodemon' => '/home/elis/.cache/typescript/3.7/node_modules/@types/nodemon/index.d.ts'
+[11:43:35.963] Adding entry into typings cache: 'rimraf' => '/home/elis/.cache/typescript/3.7/node_modules/@types/rimraf/index.d.ts'
+[11:43:35.965] Adding entry into typings cache: 'sprintf' => '/home/elis/.cache/typescript/3.7/node_modules/@types/sprintf/index.d.ts'
+[11:43:35.965] Finished processing cache location '/home/elis/.cache/typescript/3.7'
+[11:43:35.966] Process id: 22413
+[11:43:35.966] NPM location: /usr/bin/npm (explicit '--npmLocation' not  provided)
+[11:43:35.966] validateDefaultNpmLocation: false
+[11:43:35.966] Npm config file: /home/elis/.cache/typescript/3.7/package.json
+[11:43:35.966] Updating types-registry npm package...
+[11:43:35.966] Exec: /usr/bin/npm install --ignore-scripts types-registry@latest
+[11:43:38.473]     Succeeded. stdout:
+    + types-registry@0.1.472
+    updated 1 package and audited 29 packages in 1.312s
+found 0 vulnerabilities
+
+
+[11:43:38.473] Updated types-registry npm package

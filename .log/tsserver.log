@@ -1,0 +1,679 @@
+Info 0    [11:43:35.107] Starting TS Server
+Info 1    [11:43:35.108] Version: 3.7.3
+Info 2    [11:43:35.108] Arguments: /usr/bin/node /home/elis/Projects/micro-node/node_modules/.bin/tsserver --logFile /home/elis/Projects/micro-node/.log/tsserver.log --logVerbosity info --cancellationPipeName /tmp/6f630a37a1c9f38d7b647cca4db8bf3e/tscancellation*
+Info 3    [11:43:35.108] Platform: linux NodeVersion: 8 CaseSensitive: true
+Info 4    [11:43:35.124] Search path: /home/elis/Projects/micro-node/src/di
+Info 5    [11:43:35.125] For info: /home/elis/Projects/micro-node/src/di/BaseContainer.ts :: Config file name: /home/elis/Projects/micro-node/tsconfig.json
+Info 6    [11:43:35.126] Opened configuration file /home/elis/Projects/micro-node/tsconfig.json
+Info 7    [11:43:35.182] Config: /home/elis/Projects/micro-node/tsconfig.json : {
+ "rootNames": [
+  "/home/elis/Projects/micro-node/src/index.ts",
+  "/home/elis/Projects/micro-node/src/brokers/AbstractBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/BrokerBuilder.ts",
+  "/home/elis/Projects/micro-node/src/brokers/BrokerResolver.ts",
+  "/home/elis/Projects/micro-node/src/brokers/IBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/amqp/AmqpBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/amqp/AmqpClient.ts",
+  "/home/elis/Projects/micro-node/src/brokers/amqp/TopicBasedAmqpBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/amqp/index.ts",
+  "/home/elis/Projects/micro-node/src/brokers/http/HttpBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/http/express/ExpressBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/http/express/index.ts",
+  "/home/elis/Projects/micro-node/src/brokers/http/fastify/FastifyBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/http/fastify/index.ts",
+  "/home/elis/Projects/micro-node/src/brokers/http/hapi/HapiBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/http/hapi/index.ts",
+  "/home/elis/Projects/micro-node/src/brokers/http/koa/KoaBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/http/koa/index.ts",
+  "/home/elis/Projects/micro-node/src/brokers/redis/RedisBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/redis/index.ts",
+  "/home/elis/Projects/micro-node/src/brokers/socketio/SocketIOBroker.ts",
+  "/home/elis/Projects/micro-node/src/brokers/socketio/index.ts",
+  "/home/elis/Projects/micro-node/src/decorators/BaseDecorators.ts",
+  "/home/elis/Projects/micro-node/src/decorators/ControllerDecorators.ts",
+  "/home/elis/Projects/micro-node/src/decorators/GlobalMetadata.ts",
+  "/home/elis/Projects/micro-node/src/decorators/MethodDecorators.ts",
+  "/home/elis/Projects/micro-node/src/decorators/ParameterDecorators.ts",
+  "/home/elis/Projects/micro-node/src/decorators/RestDecorators.ts",
+  "/home/elis/Projects/micro-node/src/decorators/index.ts",
+  "/home/elis/Projects/micro-node/src/decorators/types/ControllerMetadataTypes.ts",
+  "/home/elis/Projects/micro-node/src/decorators/types/MethodMetadataTypes.ts",
+  "/home/elis/Projects/micro-node/src/decorators/types/ParamMetadataTypes.ts",
+  "/home/elis/Projects/micro-node/src/decorators/types/index.ts",
+  "/home/elis/Projects/micro-node/src/di/BaseContainer.ts",
+  "/home/elis/Projects/micro-node/src/di/DiDecorators.ts",
+  "/home/elis/Projects/micro-node/src/di/index.ts",
+  "/home/elis/Projects/micro-node/src/di/types/DiOptionsTypes.ts",
+  "/home/elis/Projects/micro-node/src/di/types/index.ts",
+  "/home/elis/Projects/micro-node/src/errors/MainAppErrror.ts",
+  "/home/elis/Projects/micro-node/src/errors/index.ts",
+  "/home/elis/Projects/micro-node/src/errors/types/ErrorHandlerTypes.ts",
+  "/home/elis/Projects/micro-node/src/helpers/BaseHelpers.ts",
+  "/home/elis/Projects/micro-node/src/middlewares/IMiddleware.ts",
+  "/home/elis/Projects/micro-node/src/openapi/SpecBuilder.ts",
+  "/home/elis/Projects/micro-node/src/openapi/utils.ts",
+  "/home/elis/Projects/micro-node/src/plugins/typeorm/index.ts",
+  "/home/elis/Projects/micro-node/src/server/AppBuilder.ts",
+  "/home/elis/Projects/micro-node/src/server/BaseConfiguration.ts",
+  "/home/elis/Projects/micro-node/src/server/BaseServer.ts",
+  "/home/elis/Projects/micro-node/src/server/IConfiguration.ts",
+  "/home/elis/Projects/micro-node/src/server/Logger.ts",
+  "/home/elis/Projects/micro-node/src/server/OptionsBuilder.ts",
+  "/home/elis/Projects/micro-node/src/server/StartupBase.ts",
+  "/home/elis/Projects/micro-node/src/server/index.ts",
+  "/home/elis/Projects/micro-node/src/server/types/BaseTypes.ts",
+  "/home/elis/Projects/micro-node/src/server/types/ServerOptions.ts",
+  "/home/elis/Projects/micro-node/src/server/types/index.ts"
+ ],
+ "options": {
+  "target": 5,
+  "module": 1,
+  "declaration": true,
+  "sourceMap": false,
+  "outDir": "/home/elis/Projects/micro-node/lib",
+  "strict": true,
+  "rootDir": "/home/elis/Projects/micro-node/src",
+  "removeComments": false,
+  "esModuleInterop": true,
+  "types": [
+   "node",
+   "mocha",
+   "chai"
+  ],
+  "experimentalDecorators": true,
+  "emitDecoratorMetadata": true,
+  "configFilePath": "/home/elis/Projects/micro-node/tsconfig.json"
+ }
+}
+Info 8    [11:43:35.214] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 9    [11:43:39.277] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 1 structureChanged: true Elapsed: 4063ms
+Info 10   [11:43:39.277] Project '/home/elis/Projects/micro-node/tsconfig.json' (Configured) 
+Info 11   [11:43:39.277] 	Files (424)
+
+Info 12   [11:43:39.277] -----------------------------------------------
+Info 13   [11:44:16.349] Search path: /home/elis/Projects/micro-node/src/di/types
+Info 14   [11:44:16.350] For info: /home/elis/Projects/micro-node/src/di/types/DiOptionsTypes.ts :: Config file name: /home/elis/Projects/micro-node/tsconfig.json
+Info 15   [11:46:10.966] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 16   [11:46:11.23] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 2 structureChanged: false Elapsed: 57ms
+Info 17   [11:46:11.23] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 18   [11:46:11.102] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 19   [11:46:11.147] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 3 structureChanged: false Elapsed: 44ms
+Info 20   [11:46:11.147] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 21   [11:46:11.248] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 22   [11:46:11.280] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 4 structureChanged: false Elapsed: 32ms
+Info 23   [11:46:11.280] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 24   [11:46:11.360] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 25   [11:46:11.419] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 5 structureChanged: false Elapsed: 59ms
+Info 26   [11:46:11.419] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 27   [11:46:11.582] getCompletionData: Get current token: 0
+Info 28   [11:46:11.582] getCompletionData: Is inside comment: 0
+Info 29   [11:46:11.582] getCompletionData: Get previous token 1: 0
+Info 30   [11:46:11.582] getCompletionData: Get previous token 2: 0
+Info 31   [11:46:11.582] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 32   [11:46:11.588] getSymbolsFromOtherSourceFileExports: Recomputing list
+Info 33   [11:46:11.656] forEachExternalModuleToImportFrom: filtered out 20 modules by package.json contents
+Info 34   [11:46:11.656] getSymbolsFromOtherSourceFileExports: 68
+Info 35   [11:46:11.663] getCompletionData: Semantic work: 81
+Info 36   [11:46:11.683] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 19
+Info 37   [11:46:12.200] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 38   [11:46:12.230] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 6 structureChanged: false Elapsed: 30ms
+Info 39   [11:46:12.230] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 40   [11:46:14.103] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 41   [11:46:14.125] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 7 structureChanged: false Elapsed: 22ms
+Info 42   [11:46:14.125] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 43   [11:46:14.780] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 44   [11:46:14.814] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 8 structureChanged: false Elapsed: 34ms
+Info 45   [11:46:14.814] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 46   [11:46:15.641] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 47   [11:46:15.665] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 9 structureChanged: false Elapsed: 24ms
+Info 48   [11:46:15.665] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 49   [11:46:15.926] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 50   [11:46:15.959] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 10 structureChanged: false Elapsed: 33ms
+Info 51   [11:46:15.959] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 52   [11:46:24.916] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 53   [11:46:24.945] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 11 structureChanged: false Elapsed: 29ms
+Info 54   [11:46:24.945] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 55   [11:46:25.92] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 56   [11:46:25.145] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 12 structureChanged: false Elapsed: 53ms
+Info 57   [11:46:25.145] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 58   [11:46:25.269] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 59   [11:46:25.289] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 13 structureChanged: false Elapsed: 20ms
+Info 60   [11:46:25.289] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 61   [11:46:25.336] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 62   [11:46:25.356] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 14 structureChanged: false Elapsed: 20ms
+Info 63   [11:46:25.356] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 64   [11:46:25.475] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 65   [11:46:25.501] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 15 structureChanged: false Elapsed: 26ms
+Info 66   [11:46:25.501] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 67   [11:46:25.589] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 68   [11:46:25.620] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 16 structureChanged: false Elapsed: 31ms
+Info 69   [11:46:25.621] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 70   [11:46:25.963] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 71   [11:46:25.980] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 17 structureChanged: false Elapsed: 16ms
+Info 72   [11:46:25.980] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 73   [11:46:26.481] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 74   [11:46:26.501] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 18 structureChanged: false Elapsed: 20ms
+Info 75   [11:46:26.501] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 76   [11:46:26.505] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 77   [11:46:26.523] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 19 structureChanged: false Elapsed: 18ms
+Info 78   [11:46:26.523] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 79   [11:46:26.567] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 80   [11:46:26.585] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 20 structureChanged: false Elapsed: 18ms
+Info 81   [11:46:26.585] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 82   [11:46:26.693] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 83   [11:46:26.716] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 21 structureChanged: false Elapsed: 23ms
+Info 84   [11:46:26.716] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 85   [11:46:26.851] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 86   [11:46:26.879] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 22 structureChanged: false Elapsed: 28ms
+Info 87   [11:46:26.879] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 88   [11:46:27.5] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 89   [11:46:27.25] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 23 structureChanged: false Elapsed: 20ms
+Info 90   [11:46:27.25] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 91   [11:46:27.25] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 92   [11:46:27.43] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 24 structureChanged: false Elapsed: 18ms
+Info 93   [11:46:27.43] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 94   [11:46:27.69] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 95   [11:46:27.86] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 25 structureChanged: false Elapsed: 17ms
+Info 96   [11:46:27.86] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 97   [11:46:27.440] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 98   [11:46:27.474] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 26 structureChanged: false Elapsed: 34ms
+Info 99   [11:46:27.474] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 100  [11:46:32.541] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 101  [11:46:32.566] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 27 structureChanged: false Elapsed: 25ms
+Info 102  [11:46:32.566] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 103  [11:46:33.383] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 104  [11:46:33.411] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 28 structureChanged: false Elapsed: 28ms
+Info 105  [11:46:33.411] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 106  [11:46:34.181] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 107  [11:46:34.214] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 29 structureChanged: false Elapsed: 33ms
+Info 108  [11:46:34.214] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 109  [11:46:34.271] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 110  [11:46:34.302] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 30 structureChanged: false Elapsed: 31ms
+Info 111  [11:46:34.302] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 112  [11:46:34.371] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 113  [11:46:34.398] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 31 structureChanged: false Elapsed: 26ms
+Info 114  [11:46:34.398] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 115  [11:46:34.445] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 116  [11:46:34.471] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 32 structureChanged: false Elapsed: 25ms
+Info 117  [11:46:34.471] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 118  [11:46:34.663] getCompletionData: Get current token: 0
+Info 119  [11:46:34.663] getCompletionData: Is inside comment: 0
+Info 120  [11:46:34.663] getCompletionData: Get previous token 1: 0
+Info 121  [11:46:34.663] getCompletionData: Get previous token 2: 0
+Info 122  [11:46:34.663] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 123  [11:46:34.667] getSymbolsFromOtherSourceFileExports: Using cached list
+Info 124  [11:46:34.673] getCompletionData: Semantic work: 10
+Info 125  [11:46:34.682] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 9
+Info 126  [11:46:35.343] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 127  [11:46:35.367] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 33 structureChanged: false Elapsed: 24ms
+Info 128  [11:46:35.367] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 129  [11:46:35.943] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 130  [11:46:35.973] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 34 structureChanged: false Elapsed: 30ms
+Info 131  [11:46:35.973] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 132  [11:46:36.131] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 133  [11:46:36.147] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 35 structureChanged: false Elapsed: 16ms
+Info 134  [11:46:36.147] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 135  [11:46:36.193] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 136  [11:46:36.209] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 36 structureChanged: false Elapsed: 16ms
+Info 137  [11:46:36.210] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 138  [11:46:36.340] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 139  [11:46:36.356] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 37 structureChanged: false Elapsed: 16ms
+Info 140  [11:46:36.356] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 141  [11:46:36.598] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 142  [11:46:36.631] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 38 structureChanged: false Elapsed: 33ms
+Info 143  [11:46:36.631] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 144  [11:46:36.632] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 145  [11:46:36.658] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 39 structureChanged: false Elapsed: 26ms
+Info 146  [11:46:36.658] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 147  [11:46:36.717] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 148  [11:46:36.731] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 40 structureChanged: false Elapsed: 14ms
+Info 149  [11:46:36.732] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 150  [11:46:36.754] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 151  [11:46:36.770] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 41 structureChanged: false Elapsed: 16ms
+Info 152  [11:46:36.770] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 153  [11:46:37.344] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 154  [11:46:37.366] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 42 structureChanged: false Elapsed: 22ms
+Info 155  [11:46:37.366] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 156  [11:46:37.430] forEachExternalModuleToImportFrom: filtered out 20 modules by package.json contents
+Info 157  [11:46:37.476] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 158  [11:46:37.493] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 43 structureChanged: false Elapsed: 17ms
+Info 159  [11:46:37.494] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 160  [11:46:37.859] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 161  [11:46:37.894] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 44 structureChanged: false Elapsed: 35ms
+Info 162  [11:46:37.894] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 163  [11:46:38.151] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 164  [11:46:38.187] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 45 structureChanged: false Elapsed: 36ms
+Info 165  [11:46:38.187] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 166  [11:46:38.189] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 167  [11:46:38.224] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 46 structureChanged: false Elapsed: 35ms
+Info 168  [11:46:38.224] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 169  [11:46:38.226] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 170  [11:46:38.255] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 47 structureChanged: false Elapsed: 29ms
+Info 171  [11:46:38.255] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 172  [11:46:39.517] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 173  [11:46:39.535] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 48 structureChanged: false Elapsed: 18ms
+Info 174  [11:46:39.535] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 175  [11:46:40.693] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 176  [11:46:40.709] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 49 structureChanged: false Elapsed: 16ms
+Info 177  [11:46:40.709] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 178  [11:46:40.807] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 179  [11:46:40.823] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 50 structureChanged: false Elapsed: 16ms
+Info 180  [11:46:40.824] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 181  [11:46:40.882] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 182  [11:46:40.899] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 51 structureChanged: false Elapsed: 17ms
+Info 183  [11:46:40.899] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 184  [11:46:41.28] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 185  [11:46:41.43] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 52 structureChanged: false Elapsed: 15ms
+Info 186  [11:46:41.43] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 187  [11:46:41.90] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 188  [11:46:41.115] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 53 structureChanged: false Elapsed: 25ms
+Info 189  [11:46:41.115] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 190  [11:46:42.181] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 191  [11:46:42.204] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 54 structureChanged: false Elapsed: 23ms
+Info 192  [11:46:42.204] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 193  [11:46:42.802] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 194  [11:46:42.820] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 55 structureChanged: false Elapsed: 18ms
+Info 195  [11:46:42.820] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 196  [11:46:43.733] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 197  [11:46:43.750] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 56 structureChanged: false Elapsed: 17ms
+Info 198  [11:46:43.750] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 199  [11:46:43.893] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 200  [11:46:43.922] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 57 structureChanged: false Elapsed: 29ms
+Info 201  [11:46:43.922] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 202  [11:46:43.963] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 203  [11:46:43.987] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 58 structureChanged: false Elapsed: 24ms
+Info 204  [11:46:43.987] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 205  [11:46:44.99] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 206  [11:46:44.117] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 59 structureChanged: false Elapsed: 18ms
+Info 207  [11:46:44.117] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 208  [11:46:44.165] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 209  [11:46:44.183] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 60 structureChanged: false Elapsed: 18ms
+Info 210  [11:46:44.183] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 211  [11:46:45.68] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 212  [11:46:45.95] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 61 structureChanged: false Elapsed: 27ms
+Info 213  [11:46:45.95] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 214  [11:46:45.681] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 215  [11:46:45.697] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 62 structureChanged: false Elapsed: 16ms
+Info 216  [11:46:45.697] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 217  [11:46:45.917] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 218  [11:46:45.939] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 63 structureChanged: false Elapsed: 22ms
+Info 219  [11:46:45.939] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 220  [11:46:46.19] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 221  [11:46:46.48] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 64 structureChanged: false Elapsed: 29ms
+Info 222  [11:46:46.49] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 223  [11:46:46.144] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 224  [11:46:46.189] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 65 structureChanged: false Elapsed: 45ms
+Info 225  [11:46:46.189] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 226  [11:46:46.356] getCompletionData: Get current token: 0
+Info 227  [11:46:46.356] getCompletionData: Is inside comment: 0
+Info 228  [11:46:46.356] getCompletionData: Get previous token 1: 0
+Info 229  [11:46:46.356] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 230  [11:46:46.356] Returning an empty list because completion was requested in an invalid position.
+Info 231  [11:46:46.577] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 232  [11:46:46.606] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 66 structureChanged: false Elapsed: 29ms
+Info 233  [11:46:46.606] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 234  [11:46:46.613] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 235  [11:46:46.635] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 67 structureChanged: false Elapsed: 22ms
+Info 236  [11:46:46.635] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 237  [11:46:46.750] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 238  [11:46:46.767] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 68 structureChanged: false Elapsed: 17ms
+Info 239  [11:46:46.767] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 240  [11:46:47.666] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 241  [11:46:47.690] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 69 structureChanged: false Elapsed: 23ms
+Info 242  [11:46:47.690] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 243  [11:46:51.803] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 244  [11:46:51.830] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 70 structureChanged: false Elapsed: 27ms
+Info 245  [11:46:51.830] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 246  [11:46:53.872] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 247  [11:46:53.893] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 71 structureChanged: false Elapsed: 21ms
+Info 248  [11:46:53.893] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 249  [11:53:53.186] Search path: /home/elis/Projects/micro-node/src/di
+Info 250  [11:53:53.186] For info: /home/elis/Projects/micro-node/src/di/DiDecorators.ts :: Config file name: /home/elis/Projects/micro-node/tsconfig.json
+Info 251  [11:56:17.637] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 252  [11:56:17.665] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 72 structureChanged: false Elapsed: 28ms
+Info 253  [11:56:17.665] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 254  [11:56:18.623] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 255  [11:56:18.662] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 73 structureChanged: false Elapsed: 39ms
+Info 256  [11:56:18.662] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 257  [11:56:19.784] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 258  [11:56:19.814] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 74 structureChanged: false Elapsed: 30ms
+Info 259  [11:56:19.814] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 260  [11:56:21.370] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 261  [11:56:21.404] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 75 structureChanged: false Elapsed: 34ms
+Info 262  [11:56:21.404] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 263  [11:56:21.569] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 264  [11:56:21.609] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 76 structureChanged: false Elapsed: 40ms
+Info 265  [11:56:21.609] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 266  [11:56:21.700] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 267  [11:56:21.726] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 77 structureChanged: false Elapsed: 26ms
+Info 268  [11:56:21.726] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 269  [11:56:21.832] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 270  [11:56:21.862] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 78 structureChanged: false Elapsed: 30ms
+Info 271  [11:56:21.863] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 272  [11:56:22.35] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 273  [11:56:22.63] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 79 structureChanged: false Elapsed: 28ms
+Info 274  [11:56:22.63] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 275  [11:56:22.181] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 276  [11:56:22.206] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 80 structureChanged: false Elapsed: 25ms
+Info 277  [11:56:22.206] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 278  [11:56:22.293] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 279  [11:56:22.319] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 81 structureChanged: false Elapsed: 26ms
+Info 280  [11:56:22.319] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 281  [11:56:22.386] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 282  [11:56:22.411] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 82 structureChanged: false Elapsed: 25ms
+Info 283  [11:56:22.411] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 284  [11:56:22.484] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 285  [11:56:22.513] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 83 structureChanged: false Elapsed: 29ms
+Info 286  [11:56:22.513] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 287  [11:56:22.701] getCompletionData: Get current token: 0
+Info 288  [11:56:22.701] getCompletionData: Is inside comment: 0
+Info 289  [11:56:22.701] getCompletionData: Get previous token 1: 0
+Info 290  [11:56:22.701] getCompletionData: Get previous token 2: 0
+Info 291  [11:56:22.702] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 292  [11:56:22.707] getSymbolsFromOtherSourceFileExports: Using cached list
+Info 293  [11:56:22.712] getCompletionData: Semantic work: 10
+Info 294  [11:56:22.721] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 9
+Info 295  [11:56:23.28] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 296  [11:56:23.57] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 84 structureChanged: false Elapsed: 29ms
+Info 297  [11:56:23.57] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 298  [11:56:23.58] getCompletionData: Get current token: 0
+Info 299  [11:56:23.58] getCompletionData: Is inside comment: 0
+Info 300  [11:56:23.58] getCompletionData: Get previous token 1: 0
+Info 301  [11:56:23.58] getCompletionData: Get previous token 2: 0
+Info 302  [11:56:23.58] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 303  [11:56:23.67] getSymbolsFromOtherSourceFileExports: Using cached list
+Info 304  [11:56:23.75] getCompletionData: Semantic work: 17
+Info 305  [11:56:23.125] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 50
+Info 306  [11:56:23.149] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 307  [11:56:23.174] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 85 structureChanged: false Elapsed: 25ms
+Info 308  [11:56:23.174] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 309  [11:56:23.193] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 310  [11:56:23.223] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 86 structureChanged: false Elapsed: 30ms
+Info 311  [11:56:23.223] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 312  [11:56:23.270] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 313  [11:56:23.313] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 87 structureChanged: false Elapsed: 42ms
+Info 314  [11:56:23.313] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 315  [11:56:23.554] getCompletionData: Get current token: 0
+Info 316  [11:56:23.554] getCompletionData: Is inside comment: 0
+Info 317  [11:56:23.556] getCompletionData: Get previous token 1: 0
+Info 318  [11:56:23.556] getCompletionData: Get previous token 2: 0
+Info 319  [11:56:23.556] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 320  [11:56:23.561] getSymbolsFromOtherSourceFileExports: Using cached list
+Info 321  [11:56:23.568] getCompletionData: Semantic work: 12
+Info 322  [11:56:23.597] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 14
+Info 323  [11:56:23.610] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 324  [11:56:23.630] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 88 structureChanged: false Elapsed: 20ms
+Info 325  [11:56:23.630] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 326  [11:56:23.842] getCompletionData: Get current token: 0
+Info 327  [11:56:23.843] getCompletionData: Is inside comment: 0
+Info 328  [11:56:23.843] getCompletionData: Get previous token 1: 0
+Info 329  [11:56:23.843] getCompletionData: Get previous token 2: 0
+Info 330  [11:56:23.843] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 331  [11:56:23.849] getSymbolsFromOtherSourceFileExports: Using cached list
+Info 332  [11:56:23.855] getCompletionData: Semantic work: 12
+Info 333  [11:56:23.876] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 21
+Info 334  [11:56:23.883] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 335  [11:56:23.914] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 89 structureChanged: false Elapsed: 31ms
+Info 336  [11:56:23.914] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 337  [11:56:24.337] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 338  [11:56:24.353] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 90 structureChanged: false Elapsed: 16ms
+Info 339  [11:56:24.353] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 340  [11:56:25.132] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 341  [11:56:25.152] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 91 structureChanged: false Elapsed: 20ms
+Info 342  [11:56:25.152] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 343  [11:56:25.365] getCompletionData: Get current token: 0
+Info 344  [11:56:25.365] getCompletionData: Is inside comment: 0
+Info 345  [11:56:25.365] getCompletionData: Get previous token 1: 0
+Info 346  [11:56:25.365] getCompletionData: Get previous token 2: 0
+Info 347  [11:56:25.365] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 348  [11:56:25.368] getSymbolsFromOtherSourceFileExports: Using cached list
+Info 349  [11:56:25.370] getCompletionData: Semantic work: 5
+Info 350  [11:56:25.374] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 4
+Info 351  [11:56:25.593] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 352  [11:56:25.609] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 92 structureChanged: false Elapsed: 16ms
+Info 353  [11:56:25.609] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 354  [11:56:25.611] getCompletionData: Get current token: 0
+Info 355  [11:56:25.611] getCompletionData: Is inside comment: 0
+Info 356  [11:56:25.611] getCompletionData: Get previous token 1: 0
+Info 357  [11:56:25.611] getCompletionData: Get previous token 2: 0
+Info 358  [11:56:25.611] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 359  [11:56:25.618] getSymbolsFromOtherSourceFileExports: Using cached list
+Info 360  [11:56:25.619] getCompletionData: Semantic work: 8
+Info 361  [11:56:25.628] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 9
+Info 362  [11:56:25.657] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 363  [11:56:25.674] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 93 structureChanged: false Elapsed: 17ms
+Info 364  [11:56:25.674] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 365  [11:56:25.842] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 366  [11:56:25.866] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 94 structureChanged: false Elapsed: 24ms
+Info 367  [11:56:25.866] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 368  [11:56:25.894] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 369  [11:56:25.911] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 95 structureChanged: false Elapsed: 17ms
+Info 370  [11:56:25.911] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 371  [11:56:26.105] getCompletionData: Get current token: 0
+Info 372  [11:56:26.105] getCompletionData: Is inside comment: 0
+Info 373  [11:56:26.105] getCompletionData: Get previous token 1: 0
+Info 374  [11:56:26.105] getCompletionData: Get previous token 2: 0
+Info 375  [11:56:26.105] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 376  [11:56:26.109] getSymbolsFromOtherSourceFileExports: Using cached list
+Info 377  [11:56:26.115] getCompletionData: Semantic work: 10
+Info 378  [11:56:26.120] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 5
+Info 379  [11:56:26.636] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 380  [11:56:26.651] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 96 structureChanged: false Elapsed: 15ms
+Info 381  [11:56:26.651] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 382  [11:56:26.654] getCompletionData: Get current token: 0
+Info 383  [11:56:26.654] getCompletionData: Is inside comment: 0
+Info 384  [11:56:26.655] getCompletionData: Get previous token 1: 1
+Info 385  [11:56:26.655] getCompletionData: Get previous token 2: 0
+Info 386  [11:56:26.655] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 387  [11:56:26.659] getSymbolsFromOtherSourceFileExports: Using cached list
+Info 388  [11:56:26.661] getCompletionData: Semantic work: 6
+Info 389  [11:56:26.666] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 5
+Info 390  [11:56:27.371] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 391  [11:56:27.387] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 97 structureChanged: false Elapsed: 16ms
+Info 392  [11:56:27.387] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 393  [11:56:27.388] getCompletionData: Get current token: 0
+Info 394  [11:56:27.388] getCompletionData: Is inside comment: 0
+Info 395  [11:56:27.388] getCompletionData: Get previous token 1: 0
+Info 396  [11:56:27.388] getCompletionData: Get previous token 2: 0
+Info 397  [11:56:27.388] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 398  [11:56:27.394] getSymbolsFromOtherSourceFileExports: Recomputing list for details entry
+Info 399  [11:56:27.415] forEachExternalModuleToImportFrom: filtered out 0 modules by package.json contents
+Info 400  [11:56:27.415] getSymbolsFromOtherSourceFileExports: 21
+Info 401  [11:56:27.419] getCompletionData: Semantic work: 31
+Info 402  [11:56:28.209] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 403  [11:56:28.229] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 98 structureChanged: false Elapsed: 20ms
+Info 404  [11:56:28.229] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 405  [11:56:28.450] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 406  [11:56:28.475] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 99 structureChanged: false Elapsed: 25ms
+Info 407  [11:56:28.475] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 408  [11:56:29.103] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 409  [11:56:29.123] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 100 structureChanged: false Elapsed: 20ms
+Info 410  [11:56:29.123] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 411  [11:56:29.846] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 412  [11:56:29.866] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 101 structureChanged: false Elapsed: 20ms
+Info 413  [11:56:29.866] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 414  [11:56:30.331] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 415  [11:56:30.352] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 102 structureChanged: false Elapsed: 21ms
+Info 416  [11:56:30.352] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 417  [11:56:30.355] getCompletionData: Get current token: 1
+Info 418  [11:56:30.355] getCompletionData: Is inside comment: 0
+Info 419  [11:56:30.355] Returning an empty list because completion was inside a regular comment or plain text part of a JsDoc comment.
+Info 420  [11:56:30.617] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 421  [11:56:30.632] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 103 structureChanged: false Elapsed: 14ms
+Info 422  [11:56:30.632] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 423  [11:56:30.807] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 424  [11:56:30.829] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 104 structureChanged: false Elapsed: 22ms
+Info 425  [11:56:30.829] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 426  [11:56:31.33] getCompletionData: Get current token: 0
+Info 427  [11:56:31.33] getCompletionData: Is inside comment: 0
+Info 428  [11:56:31.33] Returning an empty list because completion was inside a regular comment or plain text part of a JsDoc comment.
+Info 429  [11:56:31.87] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 430  [11:56:31.101] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 105 structureChanged: false Elapsed: 14ms
+Info 431  [11:56:31.101] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 432  [11:56:31.130] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 433  [11:56:31.145] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 106 structureChanged: false Elapsed: 15ms
+Info 434  [11:56:31.145] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 435  [11:56:31.360] getCompletionData: Get current token: 0
+Info 436  [11:56:31.361] getCompletionData: Is inside comment: 0
+Info 437  [11:56:31.361] Returning an empty list because completion was inside a regular comment or plain text part of a JsDoc comment.
+Info 438  [11:56:31.763] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 439  [11:56:31.780] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 107 structureChanged: false Elapsed: 17ms
+Info 440  [11:56:31.780] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 441  [11:56:31.990] getCompletionData: Get current token: 0
+Info 442  [11:56:31.990] getCompletionData: Is inside comment: 0
+Info 443  [11:56:31.990] Returning an empty list because completion was inside a regular comment or plain text part of a JsDoc comment.
+Info 444  [11:56:32.222] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 445  [11:56:32.249] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 108 structureChanged: false Elapsed: 27ms
+Info 446  [11:56:32.249] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 447  [11:56:32.259] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 448  [11:56:32.289] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 109 structureChanged: false Elapsed: 30ms
+Info 449  [11:56:32.289] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 450  [11:56:32.398] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 451  [11:56:32.427] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 110 structureChanged: false Elapsed: 29ms
+Info 452  [11:56:32.427] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 453  [11:56:32.486] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 454  [11:56:32.501] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 111 structureChanged: false Elapsed: 15ms
+Info 455  [11:56:32.501] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 456  [11:56:32.830] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 457  [11:56:32.860] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 112 structureChanged: false Elapsed: 30ms
+Info 458  [11:56:32.860] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 459  [11:56:33.256] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 460  [11:56:33.286] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 113 structureChanged: false Elapsed: 30ms
+Info 461  [11:56:33.286] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 462  [11:56:33.346] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 463  [11:56:33.369] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 114 structureChanged: false Elapsed: 23ms
+Info 464  [11:56:33.369] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 465  [11:56:33.573] getCompletionData: Get current token: 0
+Info 466  [11:56:33.573] getCompletionData: Is inside comment: 0
+Info 467  [11:56:33.574] Returning an empty list because completion was inside a regular comment or plain text part of a JsDoc comment.
+Info 468  [11:56:33.929] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 469  [11:56:33.954] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 115 structureChanged: false Elapsed: 25ms
+Info 470  [11:56:33.954] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 471  [11:56:34.216] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 472  [11:56:34.241] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 116 structureChanged: false Elapsed: 24ms
+Info 473  [11:56:34.241] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 474  [11:56:34.335] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 475  [11:56:34.353] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 117 structureChanged: false Elapsed: 18ms
+Info 476  [11:56:34.353] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 477  [11:56:34.432] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 478  [11:56:34.446] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 118 structureChanged: false Elapsed: 14ms
+Info 479  [11:56:34.446] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 480  [11:56:34.658] getCompletionData: Get current token: 0
+Info 481  [11:56:34.658] getCompletionData: Is inside comment: 0
+Info 482  [11:56:34.658] Returning an empty list because completion was inside a regular comment or plain text part of a JsDoc comment.
+Info 483  [11:56:35.161] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 484  [11:56:35.175] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 119 structureChanged: false Elapsed: 14ms
+Info 485  [11:56:35.175] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 486  [11:56:35.253] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 487  [11:56:35.279] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 120 structureChanged: false Elapsed: 26ms
+Info 488  [11:56:35.279] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 489  [11:56:35.545] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 490  [11:56:35.577] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 121 structureChanged: false Elapsed: 32ms
+Info 491  [11:56:35.577] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 492  [11:56:35.734] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 493  [11:56:35.763] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 122 structureChanged: false Elapsed: 29ms
+Info 494  [11:56:35.763] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 495  [11:56:36.68] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 496  [11:56:36.92] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 123 structureChanged: false Elapsed: 24ms
+Info 497  [11:56:36.92] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 498  [11:56:36.219] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 499  [11:56:36.243] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 124 structureChanged: false Elapsed: 24ms
+Info 500  [11:56:36.243] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 501  [11:56:36.410] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 502  [11:56:36.428] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 125 structureChanged: false Elapsed: 18ms
+Info 503  [11:56:36.428] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 504  [11:56:36.564] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 505  [11:56:36.587] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 126 structureChanged: false Elapsed: 23ms
+Info 506  [11:56:36.587] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 507  [11:56:36.641] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 508  [11:56:36.656] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 127 structureChanged: false Elapsed: 15ms
+Info 509  [11:56:36.656] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 510  [11:56:36.858] getCompletionData: Get current token: 0
+Info 511  [11:56:36.858] getCompletionData: Is inside comment: 0
+Info 512  [11:56:36.858] Returning an empty list because completion was inside a regular comment or plain text part of a JsDoc comment.
+Info 513  [11:56:36.963] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 514  [11:56:36.989] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 128 structureChanged: false Elapsed: 26ms
+Info 515  [11:56:36.989] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 516  [11:56:37.188] getCompletionData: Get current token: 0
+Info 517  [11:56:37.189] getCompletionData: Is inside comment: 1
+Info 518  [11:56:37.189] Returning an empty list because completion was inside a regular comment or plain text part of a JsDoc comment.
+Info 519  [11:56:37.246] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 520  [11:56:37.262] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 129 structureChanged: false Elapsed: 16ms
+Info 521  [11:56:37.262] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 522  [11:56:37.519] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 523  [11:56:37.540] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 130 structureChanged: false Elapsed: 21ms
+Info 524  [11:56:37.540] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 525  [11:56:38.137] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 526  [11:56:38.170] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 131 structureChanged: false Elapsed: 33ms
+Info 527  [11:56:38.170] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 528  [11:56:38.847] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 529  [11:56:38.878] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 132 structureChanged: false Elapsed: 31ms
+Info 530  [11:56:38.878] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 531  [11:56:46.870] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 532  [11:56:46.891] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 133 structureChanged: false Elapsed: 21ms
+Info 533  [11:56:46.891] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 534  [11:56:46.983] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 535  [11:56:47.4] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 134 structureChanged: false Elapsed: 21ms
+Info 536  [11:56:47.4] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 537  [11:56:47.83] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 538  [11:56:47.109] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 135 structureChanged: false Elapsed: 26ms
+Info 539  [11:56:47.109] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 540  [11:56:47.313] getCompletionData: Get current token: 0
+Info 541  [11:56:47.313] getCompletionData: Is inside comment: 0
+Info 542  [11:56:47.313] getCompletionData: Get previous token 1: 0
+Info 543  [11:56:47.313] getCompletionData: Get previous token 2: 0
+Info 544  [11:56:47.314] getCompletionsAtPosition: isCompletionListBlocker: 0
+Info 545  [11:56:47.319] getSymbolsFromOtherSourceFileExports: Using cached list
+Info 546  [11:56:47.325] getCompletionData: Semantic work: 11
+Info 547  [11:56:47.331] getCompletionsAtPosition: getCompletionEntriesFromSymbols: 6
+Info 548  [11:56:47.967] forEachExternalModuleToImportFrom: filtered out 20 modules by package.json contents
+Info 549  [11:56:49.254] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 550  [11:56:49.273] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 136 structureChanged: false Elapsed: 19ms
+Info 551  [11:56:49.273] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 552  [11:56:51.288] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 553  [11:56:51.322] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 137 structureChanged: false Elapsed: 34ms
+Info 554  [11:56:51.322] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 555  [11:56:52.202] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 556  [11:56:52.230] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 138 structureChanged: false Elapsed: 28ms
+Info 557  [11:56:52.230] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 558  [12:22:2.564] Search path: /home/elis/Projects/micro-node/node_modules/typescript/lib
+Info 559  [12:22:2.564] For info: /home/elis/Projects/micro-node/node_modules/typescript/lib/lib.es2015.collection.d.ts :: Config file name: /home/elis/Projects/micro-node/tsconfig.json
+Info 560  [12:22:45.623] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 561  [12:22:45.672] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 139 structureChanged: false Elapsed: 48ms
+Info 562  [12:22:45.672] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 563  [12:22:45.673] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 564  [12:22:45.713] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 140 structureChanged: false Elapsed: 40ms
+Info 565  [12:22:45.713] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 566  [12:22:46.563] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 567  [12:22:46.594] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 141 structureChanged: false Elapsed: 31ms
+Info 568  [12:22:46.594] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 569  [12:23:8.857] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 570  [12:23:8.895] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 142 structureChanged: false Elapsed: 38ms
+Info 571  [12:23:8.895] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 572  [12:23:9.109] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 573  [12:23:9.157] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 143 structureChanged: false Elapsed: 48ms
+Info 574  [12:23:9.157] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 575  [12:24:49.419] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 576  [12:24:49.472] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 144 structureChanged: false Elapsed: 53ms
+Info 577  [12:24:49.472] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 578  [12:24:49.538] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 579  [12:24:49.574] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 145 structureChanged: false Elapsed: 36ms
+Info 580  [12:24:49.574] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 581  [12:24:57.233] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 582  [12:24:57.264] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 146 structureChanged: false Elapsed: 31ms
+Info 583  [12:24:57.264] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 584  [12:24:57.739] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 585  [12:24:57.761] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 147 structureChanged: false Elapsed: 22ms
+Info 586  [12:24:57.761] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 587  [12:24:58.825] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 588  [12:24:58.849] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 148 structureChanged: false Elapsed: 24ms
+Info 589  [12:24:58.850] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 590  [12:24:58.894] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 591  [12:24:58.912] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 149 structureChanged: false Elapsed: 18ms
+Info 592  [12:24:58.913] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 593  [12:24:59.592] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 594  [12:24:59.621] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 150 structureChanged: false Elapsed: 29ms
+Info 595  [12:24:59.621] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 596  [12:25:4.372] Starting updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json
+Info 597  [12:25:4.390] Finishing updateGraphWorker: Project: /home/elis/Projects/micro-node/tsconfig.json Version: 151 structureChanged: false Elapsed: 18ms
+Info 598  [12:25:4.390] Different program with same set of files:: oldProgram.structureIsReused:: 2

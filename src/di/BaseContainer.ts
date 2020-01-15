@@ -54,7 +54,7 @@ export class BaseContainer {
     this.resolvers.set(key, resolver);
   }
 
-  public hasResolver(key: any){
+  public hasResolver(key: any) {
     return this.resolvers.has(key);
   }
 
@@ -143,7 +143,7 @@ export class BaseContainer {
       /**
        * Get the constructor parameters metadata
        */
-      const ctorParams = serviceOptions.ctorParams as { type: any, injectOptions: InjectOptions }[];
+      const ctorParams = serviceOptions.ctorParams as { type: any, injectOptions: InjectOptions }[] || [];
       /**
        * Build the constructor arguments
        */

@@ -1,5 +1,5 @@
 import typeorm, { ConnectionManager, ConnectionOptions, createConnection as createDatabaseConnection, Repository, useContainer } from 'typeorm';
-import { Container } from "../../di";
+import { Container, getInjectParamTypes, getConstructorParams } from "../../di";
 import { Class, OptionsBuilder } from "../../server";
 import { ILogger, LoggerKey } from "../../server/Logger";
 
@@ -76,9 +76,9 @@ export function InjectManager(name: string = 'default', transient: boolean = fal
     transient
   }
   return (target: any, _propertyKey: string, parameterIndex: number) => {
-    let ctorMetadata = Reflect.getOwnMetadata('design:injectparamtypes', target);
+    let ctorMetadata = getInjectParamTypes(target);
     if (!ctorMetadata) {
-      const constructorArgs = Reflect.getOwnMetadata('design:paramtypes', target) || [];
+      const constructorArgs = getConstructorParams(target);
       ctorMetadata = constructorArgs.map((x: any) => {
         return { type: x };
       });
@@ -109,9 +109,9 @@ export function InjectRepository<T = any>(model?: Class<T>, name: string = 'defa
     connectionName: name
   };
   return (target: any, _propertyKey: string, parameterIndex: number) => {
-    let ctorMetadata = Reflect.getOwnMetadata('design:injectparamtypes', target);
+    let ctorMetadata = getInjectParamTypes(target);
     if (!ctorMetadata) {
-      const constructorArgs = Reflect.getOwnMetadata('design:paramtypes', target) || [];
+      let constructorArgs = getConstructorParams(target);
       ctorMetadata = constructorArgs.map((x: any) => {
         return { type: x };
       });

@@ -37,22 +37,28 @@ export abstract class HttpBroker<TServer = any, TRequest = any, TContext = any, 
     if (basePart && basePart.indexOf("/") !== 0) {
       basePart = `/${basePart}`;
     }
-    let controllerPart = def.controller;
+
+    let controllerPart: string = def.controller;
+
     if (controllerPart.indexOf("/") !== 0) {
       controllerPart = `/${controllerPart}`;
     }
-    let handlerPart = def.handler;
-    const params = this.extractParamNames(handlerPart);
-    handlerPart = params.map(x => {
+
+    let handlerPart: string = def.handler;
+
+    if (handlerPart.indexOf("/") !== 0 && handlerPart.length > 0) {
+      handlerPart = `/${handlerPart}`;
+    }
+    let completePath: string = `${basePart}/${controllerPart}/${handlerPart}`
+
+    const params = this.extractParamNames(completePath);
+    completePath = params.map(x => {
       if (x.param) {
         return this.paramWrapper(x.name);
       }
       return x.name;
     }).join('/');
-    if (handlerPart.indexOf("/") !== 0 && handlerPart.length > 0) {
-      handlerPart = `/${handlerPart}`;
-    }
-    return `${basePart}${controllerPart}${handlerPart}`.replace(/\/\//g, "/");
+    return `${completePath}`.replace(/\/{2,}/g, "/");
   };
 
   protected registerSingleRoute(value: DefinitionHandlerPair[], route: string) {

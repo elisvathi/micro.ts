@@ -50,7 +50,6 @@ export abstract class HttpBroker<TServer = any, TRequest = any, TContext = any, 
       handlerPart = `/${handlerPart}`;
     }
     let completePath: string = `${basePart}/${controllerPart}/${handlerPart}`
-
     const params = this.extractParamNames(completePath);
     completePath = params.map(x => {
       if (x.param) {
@@ -58,7 +57,11 @@ export abstract class HttpBroker<TServer = any, TRequest = any, TContext = any, 
       }
       return x.name;
     }).join('/');
-    return `${completePath}`.replace(/\/{2,}/g, "/");
+    let finalPath = `${completePath}`.replace(/\/{2,}/g, "/");
+    if (finalPath.endsWith("/")) {
+      finalPath = finalPath.slice(0, finalPath.length - 1);
+    }
+    return finalPath;
   };
 
   protected registerSingleRoute(value: DefinitionHandlerPair[], route: string) {
@@ -75,7 +78,7 @@ export abstract class HttpBroker<TServer = any, TRequest = any, TContext = any, 
     }
   }
 
-  public getFullPath(): string{
+  public getFullPath(): string {
     return `http://${this.config.address || 'localhost'}:${this.config.port || 80}`
   }
 

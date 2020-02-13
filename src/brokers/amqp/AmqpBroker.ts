@@ -1,10 +1,10 @@
-import {AbstractBroker, ActionHandler, DefinitionHandlerPair} from "../AbstractBroker";
-import {Channel, connect, Connection, ConsumeMessage, Message, Options} from 'amqplib';
-import {RequestMapper, RouteMapper} from "../IBroker";
-import {Action, BaseRouteDefinition, IAmqpExchangeConfig, QueueOptions} from "../../server/types";
-import {AmqpClient, AmqpClientOptions} from "./AmqpClient";
-import {Container} from "../../di";
-import {ILogger, LoggerKey} from "../../server/Logger";
+import { AbstractBroker, ActionHandler, DefinitionHandlerPair } from "../AbstractBroker";
+import { Channel, connect, Connection, ConsumeMessage, Message, Options } from 'amqplib';
+import { RequestMapper, RouteMapper } from "../IBroker";
+import { Action, BaseRouteDefinition, IAmqpExchangeConfig, QueueOptions } from "../../server/types";
+import { AmqpClient, AmqpClientOptions } from "./AmqpClient";
+import { Container } from "../../di";
+import { ILogger, LoggerKey } from "../../server/Logger";
 
 /**
  * Configuration for amqp connection
@@ -118,7 +118,12 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    * Default route mapping
    */
   protected routeMapper: RouteMapper = (def: BaseRouteDefinition) => {
-    return `${def.base}.${def.controller}.${def.handler}`.replace(/\//g, '.');
+    let result = `${def.base}/${def.controller}/${def.handler}`;
+    result = result.replace(/\/{2,}/g, "/").replace(/\//g, '.');
+    if (result.endsWith('.')) {
+      result = result.slice(0, result.length - 1);
+    }
+    return result;
   };
 
   /**

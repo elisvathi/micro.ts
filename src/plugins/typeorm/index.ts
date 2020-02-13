@@ -1,4 +1,4 @@
-import typeorm, { ConnectionManager, ConnectionOptions, createConnection as createDatabaseConnection, Repository, useContainer } from 'typeorm';
+import typeorm, { ConnectionManager, ConnectionOptions, createConnection as createDatabaseConnection, Repository, useContainer, MongoRepository } from 'typeorm';
 import { Container, getInjectParamTypes, getConstructorParams } from "../../di";
 import { Class, OptionsBuilder } from "../../server";
 import { ILogger, LoggerKey } from "../../server/Logger";
@@ -124,6 +124,9 @@ export function InjectRepository<T = any>(model?: Class<T>, name: string = 'defa
           const connection = connectionManager.get(name);
           if (paramType === Repository && model) {
             return connection.getRepository<T>(model);
+          }
+          if(paramType === MongoRepository && model){
+            return connection.getMongoRepository<T>(model);
           }
           else return connection.getCustomRepository<T>(paramType);
         } catch (err) {

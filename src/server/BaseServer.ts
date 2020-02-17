@@ -469,7 +469,7 @@ export class BaseServer {
         case ParamDecoratorType.ParamField:
           const paramField = action.request.params[options.name as string];
           return this.validateParam({
-            value: paramField,
+            value: paramField || "",
             isObject: false,
             required: false,
             validate: false,

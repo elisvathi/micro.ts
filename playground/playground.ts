@@ -21,7 +21,7 @@ class Startup extends StartupBase {
     builder.setLogErrors(true);
     builder.addControllers(DataController, UsersController);
     builder.useHapiBroker(b => b.withConfigResolver(c => c.getFromPath("http.hapi")));
-    builder.useHapiBroker(b => b.named('private').withConfigResolver(c => c.getFromPath("http.private")));
+    // builder.useHapiBroker(b => b.named('private').withConfigResolver(c => c.getFromPath("http.private")));
   }
 
 }

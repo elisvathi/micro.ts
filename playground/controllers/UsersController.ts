@@ -1,9 +1,11 @@
-import { JsonController, Get} from '../../src';
+import { JsonController, Get, Param} from '../../src';
 
 @JsonController("users")
 export class UsersController{
-  @Get("")
-  public getAllUsers(){
-    return ["user1", "user2", "user3"]
+
+  @Get(":params*")
+  public getAllUsers(@Param("params") param: string){
+    return ["user1", "user2", "user3", param];
   }
+
 }

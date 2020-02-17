@@ -471,7 +471,7 @@ export class BaseServer {
           return this.validateParam({
             value: paramField,
             isObject: false,
-            required: true,
+            required: false,
             validate: false,
             name: options.name
           });

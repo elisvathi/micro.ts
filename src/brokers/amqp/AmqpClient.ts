@@ -26,7 +26,7 @@ export interface AmqpClientOptions {
 
 export class AmqpClient {
 
-  private channel!: Channel;
+  public channel!: Channel;
   private uniqueId?: string;
   private rpcCallbacks: { [correlationid: string]: (err?: any, payload?: any) => any } = {};
 

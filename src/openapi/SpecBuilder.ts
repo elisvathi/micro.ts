@@ -1,5 +1,4 @@
 import joiSwagger from "joi-to-swagger";
-import { FieldDescription, getSchema } from "joi-typescript-validator";
 import { getMetadata } from "joi-typescript-validator/lib/utils/MetadataHelpers";
 import { OpenAPIV3 } from "openapi-types";
 import { HttpBroker, HttpVerbs } from "../brokers/http/HttpBroker";
@@ -7,6 +6,7 @@ import { IBroker } from "../brokers/IBroker";
 import { ParamDecoratorType, ParamDescription } from "../decorators";
 import { BaseRouteDefinition, Class } from "../server";
 import { Service } from "..";
+import { getSchema, FieldDescription } from "joi-typescript-validator";
 
 @Service()
 export class SpecBuilder {

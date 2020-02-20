@@ -67,12 +67,12 @@ export class BaseServer {
    * @param controller The controller instance
    * @param broker The broker instance
    */
-  private static async executeMiddleware(middleware: AppMiddleware, def: BaseRouteDefinition, action: Action, controller: any, broker: IBroker): Promise<Action> {
+  private static async executeMiddleware(middleware: AppMiddleware, def: BaseRouteDefinition, action: Action, controller: any, broker: IBroker, send?: (args: any)=> Action): Promise<Action> {
     if (middleware.prototype && ('do' in middleware.prototype)) {
       const casted: IMiddleware = Container.get(middleware.prototype.constructor);
-      return casted.do(action, def, controller, broker);
+      return casted.do(action, def, controller, broker, send);
     }
-    return (middleware as MiddlewareFunction)(action, def, controller, broker);
+    return (middleware as MiddlewareFunction)(action, def, controller, broker, send);
   }
 
   /**
@@ -320,35 +320,52 @@ export class BaseServer {
      * Build middlewares
      */
     const middlewares = this.getMiddlewares(methodControllerMetadata);
+    let broken = false;
+    const send = (result: any) => {
+      broken = true;
+      action.response = action.response || {};
+      action.response.headers = action.response.headers || {};
+      action.response.statusCode = 200;
+      action.response.body = result;
+      return action;
+    }
     /**
      * Execute before middlewares
      */
     if (middlewares.before.length) {
       for (let i = 0; i < middlewares.before.length; i++) {
-        action = await BaseServer.executeMiddleware(middlewares.before[i], def, action, controllerInstance, broker);
+        action = await BaseServer.executeMiddleware(middlewares.before[i], def, action, controllerInstance, broker, send);
+        if (broken) {
+          break;
+        }
       }
     }
-    /**
-     * Build handler parameters
-     */
-    const args = await this.buildParams(action, methodControllerMetadata.method, broker);
-    /**
-     * Execute the handler
-     */
-    let result = await controllerInstance[def.handlerName](...args);
-    /**
-     * Build response
-     */
-    action.response = action.response || {};
-    action.response.headers = action.response.headers || {};
-    action.response.statusCode = 200;
-    action.response.body = result;
-    /**
-     * Execute after middlewares
-     */
-    if (middlewares.after.length) {
-      for (let i = 0; i < middlewares.after.length; i++) {
-        action = await BaseServer.executeMiddleware(middlewares.after[i], def, action, controllerInstance, broker);
+    if (!broken) {
+      /**
+       * Build handler parameters
+       */
+      const args = await this.buildParams(action, methodControllerMetadata.method, broker);
+      /**
+       * Execute the handler
+       */
+      let result = await controllerInstance[def.handlerName](...args);
+      /**
+       * Build response
+       */
+      action.response = action.response || {};
+      action.response.headers = action.response.headers || {};
+      action.response.statusCode = 200;
+      action.response.body = result;
+      /**
+       * Execute after middlewares
+       */
+      if (middlewares.after.length) {
+        for (let i = 0; i < middlewares.after.length; i++) {
+          action = await BaseServer.executeMiddleware(middlewares.after[i], def, action, controllerInstance, broker, send);
+          if(broken){
+            break;
+          }
+        }
       }
     }
     return action;

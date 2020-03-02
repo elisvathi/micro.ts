@@ -1,7 +1,7 @@
 {
     "http": {
         "hapi": {
-            "port": 8081,
+            "port": 7071,
             "address": "0.0.0.0",
             "routes": {
                 "cors": {

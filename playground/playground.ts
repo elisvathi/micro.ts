@@ -6,7 +6,7 @@ import "../src/plugins/typeorm";
 import { AppBuilder, IConfiguration, OptionsBuilder, StartupBase } from "../src/server";
 import { DataController } from './controllers/DataController';
 import { UsersController } from './controllers/UsersController';
-import { IMiddleware , Action, BaseRouteDefinition} from '../src';
+import { IMiddleware, Action, BaseRouteDefinition, Forbidden} from '../src';
 import {IBroker} from '../src/brokers/IBroker';
 
 class InterruptMiddleware implements IMiddleware {
@@ -33,6 +33,12 @@ class Startup extends StartupBase {
     builder.addBeforeMiddlewares(InterruptMiddleware);
     builder.addControllers(DataController, UsersController);
     builder.useHapiBroker(b => b.withConfigResolver(c => c.getFromPath("http.hapi")));
+    builder.useAuthorization((a: Action, options: any)=>{
+      return false;
+    });
+    builder.setAuthorizationError((a: Action, options: any)=>{
+      return new Forbidden("You are not authorized to use this feature");
+    });
     // builder.useHapiBroker(b => b.named('private').withConfigResolver(c => c.getFromPath("http.private")));
   }
 

@@ -193,6 +193,10 @@ export class BaseServer {
       const options = methodMetadata.method.authorization || methodMetadata.controller.authorization || {};
       const authorized = await this.options.authorizationChecker(action, options);
       if (!authorized) {
+        if(this.options.getNotAuthorizedError){
+          const error = await this.options.getNotAuthorizedError(action, options);
+          throw error;
+        }
         throw new NotAuthorized("You are not authorized to make this request");
       }
     }

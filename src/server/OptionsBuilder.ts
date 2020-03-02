@@ -4,8 +4,10 @@ import { IConfiguration } from "./IConfiguration";
 import { IBroker } from "../brokers/IBroker";
 import {ILogger, LoggerKey} from "./Logger";
 import {BaseContainer} from "../di/BaseContainer";
+import { MainAppError } from "../errors";
 export type CurrentUserCheckerFunction<TUser> = (action: Action, broker?: IBroker) => TUser | Promise<TUser>;
 export type AuthorizationFunction = (action: Action, options?: AuthorizeOptions) => boolean | Promise<boolean>;
+export type GetNotAuthorizedErrorFuntion = (action: Action, options?: AuthorizeOptions) => MainAppError | Promise<MainAppError>;
 export type ValidateFunction = <T>(value: any, type: Class<T>) => Promise<T>;
 export type StartupHook = () => Promise<void>;
 
@@ -124,6 +126,15 @@ export class OptionsBuilder {
    */
   public useAuthorization(handler: AuthorizationFunction): OptionsBuilder {
     this.options.authorizationChecker = handler;
+    return this;
+  }
+
+  /**
+   * Add authorization error function to be called if @Authorized routes are not authorized
+   * @param handler
+   */
+  public setAuthorizationError(handler: GetNotAuthorizedErrorFuntion): OptionsBuilder{
+    this.options.getNotAuthorizedError = handler;
     return this;
   }
 

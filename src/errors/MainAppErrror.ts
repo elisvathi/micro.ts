@@ -42,7 +42,7 @@ export class NotAuthorized extends MainAppError {
 export class Forbidden extends MainAppError {
   constructor(message: string = "Forbidden", data?: any, stack?: any) {
     super();
-    this.statusCode = 301;
+    this.statusCode = 403;
     this.data = data;
     this.message = message;
     this.code = "forbidden";

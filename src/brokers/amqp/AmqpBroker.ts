@@ -77,7 +77,9 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     const messageBytes = r.content;
     let messageString = r.content.toString();
     if(isGzip){
-      messageString = zlib.unzipSync(messageBytes).toString();
+      messageString = messageBytes.toString();
+      const gzipBytes = Buffer.from(messageString, 'base64');
+      messageString = zlib.unzipSync(gzipBytes).toString();
     }
     if(isJson){
       return JSON.parse(messageString);
@@ -95,7 +97,8 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
       payloadString = payload.toString();
     }
     if(isGzip){
-      return zlib.gzipSync(Buffer.from(payloadString));
+      const gzipBytes = zlib.gzipSync(Buffer.from(payloadString));
+      return Buffer.from(gzipBytes.toString('base64'));
     }
     return Buffer.from(payloadString);
   }

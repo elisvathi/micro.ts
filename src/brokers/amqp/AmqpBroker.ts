@@ -5,6 +5,7 @@ import { Action, BaseRouteDefinition, IAmqpExchangeConfig, QueueOptions } from "
 import { AmqpClient, AmqpClientOptions } from "./AmqpClient";
 import { Container } from "../../di";
 import { ILogger, LoggerKey } from "../../server/Logger";
+import zlib from 'zlib';
 
 /**
  * Configuration for amqp connection
@@ -69,6 +70,36 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    */
   private bindings: Map<IAmqpExchangeConfig, IAmqpBindingConfig[]> = new Map<IAmqpExchangeConfig, IAmqpBindingConfig[]>();
 
+  private getPayload(r: Message, json: boolean){
+    const headers = r.properties.headers || {};
+    const isJson = !!headers['json'] && json;
+    const isGzip = !!headers['gzip'];
+    const messageBytes = r.content;
+    let messageString = r.content.toString();
+    if(isGzip){
+      messageString = zlib.unzipSync(messageBytes).toString();
+    }
+    if(isJson){
+      return JSON.parse(messageString);
+    }
+    return messageString;
+  }
+
+  private convertPayload(payload: any, requestHeaders: any): Buffer{
+    const isJson = requestHeaders['json'];
+    const isGzip = requestHeaders['gzip'];
+    let payloadString = "";
+    if(isJson){
+      payloadString = JSON.stringify(payload);
+    }else{
+      payloadString = payload.toString();
+    }
+    if(isGzip){
+      return zlib.gzipSync(Buffer.from(payloadString));
+    }
+    return Buffer.from(payloadString);
+  }
+
   /**
    * Map an amqp message on a given queue to Action object
    * @param r
@@ -77,17 +108,12 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    * @param json
    */
   protected requestMapper: RequestMapper = (r: Message, queue: string, routingKey: string, json: boolean) => {
-    const payloadString = r.content.toString();
-    let payload: any;
-    if (json) {
-      try {
-        payload = JSON.parse(payloadString);
-      } catch (err) {
-        this.channel.ack(r);
-        throw (err);
-      }
-    } else {
-      payload = payloadString;
+    let payload;
+    try{
+      payload = this.getPayload(r, json);
+    }catch(err){
+      this.channel.ack(r);
+      throw (err);
     }
     const routingKeySplit = routingKey.split('.');
     const queueSplit = this.extractQueueParamNames(queue);
@@ -194,7 +220,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
        * If possible publish the value to the replyTo queue
        */
       if (result && message.properties.replyTo && message.properties.correlationId) {
-        await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId);
+        await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId, message.properties.headers);
       }
       this.channel.ack(message);
     }
@@ -373,7 +399,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    * @param replyToQueue
    * @param correlationId
    */
-  protected async rpcReply(data: Action, replyToQueue: string, correlationId: string) {
+  protected async rpcReply(data: Action, replyToQueue: string, correlationId: string, requestHeaders: any = {}) {
     const response = data.response || {};
     const body = response.body || response.error;
     const headers = response.headers || {};
@@ -381,10 +407,13 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
       headers.error = true;
     }
     headers.statusCode = response.statusCode;
+    headers.json = !!requestHeaders.json;
+    headers.gzip = !!requestHeaders.gzip;
+    const reply = this.convertPayload(body, requestHeaders);
     /**
      * Reply if the message has rpcReply and correlationId
      */
-    this.channel.sendToQueue(replyToQueue, Buffer.from(JSON.stringify(body)), { correlationId, headers });
+    this.channel.sendToQueue(replyToQueue, reply, { correlationId, headers });
   }
 
   protected get connectionConfig(): IAmqpConfig {

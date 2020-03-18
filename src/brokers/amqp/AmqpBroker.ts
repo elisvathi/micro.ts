@@ -73,13 +73,11 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
   private getPayload(r: Message, json: boolean){
     const headers = r.properties.headers || {};
     const isJson = !!headers['json'] && json;
-    const isGzip = !!headers['gzip'];
+    const isGzip = headers['Content-Encoding'] === 'gzip';
     const messageBytes = r.content;
     let messageString = r.content.toString();
     if(isGzip){
-      messageString = messageBytes.toString();
-      const gzipBytes = Buffer.from(messageString, 'base64');
-      messageString = zlib.unzipSync(gzipBytes).toString();
+      messageString = zlib.unzipSync(messageBytes).toString();
     }
     if(isJson){
       return JSON.parse(messageString);
@@ -89,7 +87,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
 
   private convertPayload(payload: any, requestHeaders: any): Buffer{
     const isJson = requestHeaders['json'];
-    const isGzip = requestHeaders['gzip'];
+    const isGzip = requestHeaders['Content-Encoding'] === 'gzip';
     let payloadString = "";
     if(isJson){
       payloadString = JSON.stringify(payload);
@@ -98,7 +96,8 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     }
     if(isGzip){
       const gzipBytes = zlib.gzipSync(Buffer.from(payloadString));
-      return Buffer.from(gzipBytes.toString('base64'));
+      return gzipBytes;
+      // return Buffer.from(gzipBytes.toString());
     }
     return Buffer.from(payloadString);
   }

@@ -95,9 +95,8 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
       payloadString = payload.toString();
     }
     if(isGzip){
-      const gzipBytes = zlib.gzipSync(Buffer.from(payloadString));
+      const gzipBytes = zlib.gzipSync(payloadString);
       return gzipBytes;
-      // return Buffer.from(gzipBytes.toString());
     }
     return Buffer.from(payloadString);
   }
@@ -410,7 +409,9 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     }
     headers.statusCode = response.statusCode;
     headers.json = !!requestHeaders.json;
-    headers.gzip = !!requestHeaders.gzip;
+    if(requestHeaders['Content-Encoding']) {
+      headers['Content-Encoding'] = requestHeaders['Content-Encoding'];
+    }
     const reply = this.convertPayload(body, requestHeaders);
     /**
      * Reply if the message has rpcReply and correlationId

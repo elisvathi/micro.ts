@@ -26,9 +26,10 @@ export class DataController {
   }
 
   @Get(':name')
-  @Authorize()
-  public async getData(@Param('name') name: string) {
-    return "get data called"
+  // @Authorize()
+  public async getData(@Body() body: any) {
+    console.dir( body, {depth: null});
+    return {ok: true, body};
   }
 
   @Post(':name')

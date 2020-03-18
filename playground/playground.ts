@@ -33,6 +33,7 @@ class Startup extends StartupBase {
     builder.addBeforeMiddlewares(InterruptMiddleware);
     builder.addControllers(DataController, UsersController);
     builder.useHapiBroker(b => b.withConfigResolver(c => c.getFromPath("http.hapi")));
+    builder.useAmqpBroker(b=>b.withConfigResolver(c=>c.getFromPath("amqp.url")));
     builder.useAuthorization((a: Action, options: any)=>{
       return false;
     });

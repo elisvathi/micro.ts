@@ -5,17 +5,17 @@ services:
     container_name: optimizer-swagger
     ports:
       - 8888:8080
-  # rabbitmq:
-  #   image: rabbitmq:3-management
-  #   container_name: ms-mobile-rabbitmq
-  #   ports:
-  #     - "15672:15672"
-  #     - "5672:5672"
-  #     - "5671:5671"
-  #   environment:
-  #     RABBITMQ_DEFAULT_PASS: "guest"
-  #     RABBITMQ_DEFAULT_USER: "guest"
-  #     RABBITMQ_DEFAULT_VHOST: "/"
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ms-mobile-rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+      - "5671:5671"
+    environment:
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"
   # redis:
   #   image: redis:latest
   #   container_name: ms-mobile-redis

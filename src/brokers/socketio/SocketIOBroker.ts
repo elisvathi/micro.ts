@@ -37,7 +37,7 @@ export class SocketIOBroker extends AbstractBroker<SocketIOConfig> {
   public onDisconnected(cb: (action: Action) => any) {
   }
 
-  protected requestMapper: RequestMapper = (clientId: string, query: any, headers: any, body: any, path: string, socket: Socket.Socket) => {
+  protected requestMapper: RequestMapper = async (clientId: string, query: any, headers: any, body: any, path: string, socket: Socket.Socket) => {
     const act: Action = {
       request: {
         params: {},
@@ -64,7 +64,7 @@ export class SocketIOBroker extends AbstractBroker<SocketIOConfig> {
       const headers = socket.handshake.headers;
       this.registeredRoutes.forEach((defs, key) => {
         socket.on(key, async (body) => {
-          const action: Action = this.requestMapper(clientId, query, headers, body, key, socket);
+          const action: Action = await this.requestMapper(clientId, query, headers, body, key, socket);
           const handler = this.actionToRouteMapper(key, action, defs);
           const response = await handler(action);
           socket.emit(key, response.response);

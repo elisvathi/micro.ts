@@ -9,7 +9,7 @@ export type RouteMapper = (def: BaseRouteDefinition) => string;
 /**
  * Maps the specific request object of the broker to an Action object
  */
-export type RequestMapper = (...input: any[]) => Action;
+export type RequestMapper = (...input: any[]) => Promise<Action>;
 
 export interface BrokerConnection<T> {
     connection: T;

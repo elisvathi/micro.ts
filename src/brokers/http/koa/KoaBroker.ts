@@ -25,7 +25,7 @@ export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpLi
 
   protected registerHandler(value: DefinitionHandlerPair[], route: string, method: HttpVerbs): void {
     this.router[method](route, async (ctx: koa.Context): Promise<any> =>{
-      const action = this.requestMapper(ctx);
+      const action = await this.requestMapper(ctx);
       const handler = this.actionToRouteMapper(route, action, value);
       const result: Action = await handler(action);
       result.response = result.response || {};
@@ -33,7 +33,7 @@ export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpLi
     })
   }
 
-  protected requestMapper: (r: koa.Context) => Action = (r: koa.Context)=>{
+  protected requestMapper: (r: koa.Context) => Promise<Action> = async (r: koa.Context)=>{
     const action: Action = {
       request: {
         headers: r.headers,

@@ -12,7 +12,7 @@ export class RedisBroker extends AbstractBroker<RedisConfig> {
     this.server = new IORedis(this.config);
     this.subscriber = new IORedis(this.config);
   }
-  protected requestMapper: RequestMapper = (path: string, fullPath: string, body: any)=>{
+  protected requestMapper: RequestMapper = async (path: string, fullPath: string, body: any)=>{
       const action: Action = {
         request: {
           params: {},
@@ -55,7 +55,7 @@ export class RedisBroker extends AbstractBroker<RedisConfig> {
       }
       const def = handlerPairs[0].def;
       const originalPath = `${def.base}/${def.controller}/${def.handler}`.replace(/\/\//g, '/');
-      const action = this.requestMapper(path, fullPath, body);
+      const action = await this.requestMapper(path, fullPath, body);
       action.request.params = this.parseParams(fullPath, originalPath);
       const handler = this.actionToRouteMapper(path, action, handlerPairs);
       const result = await handler(action);

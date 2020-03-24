@@ -12,7 +12,7 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
 
   protected server!: Application;
 
-  protected requestMapper: (r: Request) => Action = (r: Request) => {
+  protected requestMapper: (r: Request) => Promise<Action> = async (r: Request) => {
     const action: Action = {
       request: {
         headers: r.headers,
@@ -40,7 +40,7 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
    */
   protected registerHandler(value: DefinitionHandlerPair[], route: string, method: HttpVerbs): void {
     this.server[method](route, async (req: Request, res: Response) => {
-      const action = this.requestMapper(req);
+      const action = await this.requestMapper(req);
       const handler = this.actionToRouteMapper(route, action, value);
       const result: Action = await handler(action);
       result.response = result.response || {};

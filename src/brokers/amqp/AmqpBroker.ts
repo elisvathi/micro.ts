@@ -1,12 +1,11 @@
-import { AbstractBroker, ActionHandler, DefinitionHandlerPair } from "../AbstractBroker";
 import { Channel, connect, Connection, ConsumeMessage, Message, Options } from 'amqplib';
-import { RequestMapper, RouteMapper } from "../IBroker";
-import { Action, BaseRouteDefinition, IAmqpExchangeConfig, QueueOptions } from "../../server/types";
-import { AmqpClient, AmqpClientOptions } from "./AmqpClient";
 import { Container } from "../../di";
+import { unzipAsync, zipAsync } from "../../helpers/BaseHelpers";
 import { ILogger, LoggerKey } from "../../server/Logger";
-import zlib from 'zlib';
-
+import { Action, BaseRouteDefinition, IAmqpExchangeConfig, QueueOptions } from "../../server/types";
+import { AbstractBroker, ActionHandler, DefinitionHandlerPair } from "../AbstractBroker";
+import { RequestMapper, RouteMapper } from "../IBroker";
+import { AmqpClient, AmqpClientOptions } from "./AmqpClient";
 /**
  * Configuration for amqp connection
  */
@@ -70,32 +69,33 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    */
   private bindings: Map<IAmqpExchangeConfig, IAmqpBindingConfig[]> = new Map<IAmqpExchangeConfig, IAmqpBindingConfig[]>();
 
-  private getPayload(r: Message, json: boolean){
+  private async getPayload(r: Message, json: boolean) {
     const headers = r.properties.headers || {};
     const isJson = !!headers['json'] && json;
     const isGzip = headers['Content-Encoding'] === 'gzip';
     const messageBytes = r.content;
     let messageString = r.content.toString();
-    if(isGzip){
-      messageString = zlib.unzipSync(messageBytes).toString();
+    if (isGzip) {
+      const unzippedBytes = await unzipAsync(messageBytes);
+      messageString = unzippedBytes.toString();
     }
-    if(isJson){
+    if (isJson) {
       return JSON.parse(messageString);
     }
     return messageString;
   }
 
-  private convertPayload(payload: any, requestHeaders: any): Buffer{
+  private async convertPayload(payload: any, requestHeaders: any): Promise<Buffer> {
     const isJson = requestHeaders['json'];
     const isGzip = requestHeaders['Content-Encoding'] === 'gzip';
     let payloadString = "";
-    if(isJson){
+    if (isJson) {
       payloadString = JSON.stringify(payload);
-    }else{
+    } else {
       payloadString = payload.toString();
     }
-    if(isGzip){
-      const gzipBytes = zlib.gzipSync(payloadString);
+    if (isGzip) {
+      const gzipBytes = await zipAsync(payloadString);
       return gzipBytes;
     }
     return Buffer.from(payloadString);
@@ -108,11 +108,11 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    * @param routingKey
    * @param json
    */
-  protected requestMapper: RequestMapper = (r: Message, queue: string, routingKey: string, json: boolean) => {
+  protected requestMapper: RequestMapper = async (r: Message, queue: string, routingKey: string, json: boolean) => {
     let payload;
-    try{
-      payload = this.getPayload(r, json);
-    }catch(err){
+    try {
+      payload = await this.getPayload(r, json);
+    } catch (err) {
       this.channel.ack(r);
       throw (err);
     }
@@ -208,7 +208,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
       /**
        * Convert message to action
        */
-      const mapped: Action = this.requestMapper(message, route, routingKey, json);
+      const mapped: Action = await this.requestMapper(message, route, routingKey, json);
       /**
        * Find the corresponding handler for the action object
        */
@@ -409,10 +409,10 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     }
     headers.statusCode = response.statusCode;
     headers.json = !!requestHeaders.json;
-    if(requestHeaders['Content-Encoding']) {
+    if (requestHeaders['Content-Encoding']) {
       headers['Content-Encoding'] = requestHeaders['Content-Encoding'];
     }
-    const reply = this.convertPayload(body, requestHeaders);
+    const reply = await this.convertPayload(body, requestHeaders);
     /**
      * Reply if the message has rpcReply and correlationId
      */

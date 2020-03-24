@@ -1,7 +1,11 @@
 import config from 'config';
 import "../src/brokers/amqp";
 import "../src/brokers/http/hapi";
+import "../src/brokers/http/fastify";
+import "../src/brokers/http/express";
+import "../src/brokers/http/koa";
 import "../src/brokers/socketio";
+import "../src/brokers/redis";
 import "../src/plugins/typeorm";
 import { AppBuilder, IConfiguration, OptionsBuilder, StartupBase } from "../src/server";
 import { DataController } from './controllers/DataController';

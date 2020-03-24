@@ -17,7 +17,7 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
     this.server = new HapiServer(this.config);
   }
 
-  protected requestMapper: RequestMapper = (r: HapiRequest) => {
+  protected requestMapper: RequestMapper = async (r: HapiRequest) => {
     const act: Action = {
       request: {
         params: r.params,
@@ -48,7 +48,7 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
       method: method,
       path: route,
       handler: async (r: HapiRequest, h: ResponseToolkit) => {
-        const action = this.requestMapper(r);
+        const action = await this.requestMapper(r);
         const handler = this.actionToRouteMapper(route, action, value);
         const result: Action = await handler(action);
         result.response = result.response || {};

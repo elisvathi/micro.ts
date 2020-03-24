@@ -26,7 +26,7 @@ export abstract class HttpBroker<TServer = any, TRequest = any, TContext = any, 
 
   protected abstract registerHandler(value: DefinitionHandlerPair[], route: string, method: string): void;
 
-  protected abstract requestMapper: (r: TRequest) => Action;
+  protected abstract requestMapper: (r: TRequest) => Promise<Action>;
 
   /**
    * Maps from route definition to broker-specific route

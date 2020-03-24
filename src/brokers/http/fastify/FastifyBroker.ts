@@ -7,7 +7,7 @@ export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, F
   public name: string = "FastifyBroker";
   protected server!: FastifyInstance;
 
-  protected requestMapper: (r: fastify.FastifyRequest) => Action = (r: FastifyRequest) => {
+  protected requestMapper: (r: fastify.FastifyRequest) => Promise<Action> = async (r: FastifyRequest) => {
     const action: Action = {
       request: {
         headers: r.headers,
@@ -29,7 +29,7 @@ export class FastifyBroker extends HttpBroker<FastifyInstance, FastifyRequest, F
 
   protected registerHandler(value: DefinitionHandlerPair[], route: string, method: HttpVerbs): void {
     this.server[method](route, async (req: FastifyRequest, res: FastifyReply<any>) => {
-      const action = this.requestMapper(req);
+      const action = await this.requestMapper(req);
       const handler = this.actionToRouteMapper(route, action, value);
       const result: Action = await handler(action);
       result.response = result.response || {};

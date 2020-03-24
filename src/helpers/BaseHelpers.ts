@@ -1,3 +1,5 @@
+import zlib from 'zlib';
+
 export async function sleep(time: number = 1000): Promise<void> {
   return new Promise((ok) => {
     setTimeout(() => {
@@ -11,4 +13,26 @@ export function minNonZero(...numbers: number[]){
   if(sorted.length){
     return sorted[0];
   }
+}
+
+export async function zipAsync(value: string): Promise<Buffer>{
+  return new Promise((resolve, reject)=>{
+    zlib.gzip(value, (err, value)=>{
+      if(err){
+        reject(err);
+      }
+      resolve(value);
+    });
+  });
+}
+
+export async function unzipAsync(value: Buffer): Promise<Buffer>{
+  return new Promise((resolve, reject)=>{
+    zlib.unzip(value, (err, value)=>{
+      if(err){
+        reject(err);
+      }
+      resolve(value);
+    })
+  })
 }

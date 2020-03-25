@@ -58,6 +58,8 @@ export class SocketIOBroker extends AbstractBroker<SocketIOConfig> {
    */
   async start() {
     this.construct();
+    this.server.on("close", (e: any)=>this.handleConnectionError(e));
+    this.server.on("error", (e: any)=>this.handleConnectionError(e));
     this.server.on('connection', (socket) => {
       const clientId = socket.client.id;
       const query = socket.handshake.query;

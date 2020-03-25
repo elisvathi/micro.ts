@@ -1,8 +1,9 @@
-import {Channel, ConsumeMessage, Options} from "amqplib";
+import { Channel, ConsumeMessage, Options, Message} from "amqplib";
 import {IAmqpConnectionHooks} from ".";
 import uuid from "uuid";
 import {Container} from "../../di";
 import {ILogger, LoggerKey} from "../../server/Logger";
+import { unzipAsync, zipAsync } from "../../helpers/BaseHelpers";
 
 export interface AmqpClientOptions {
   /**
@@ -29,6 +30,38 @@ export class AmqpClient {
   public channel!: Channel;
   private uniqueId?: string;
   private rpcCallbacks: { [correlationid: string]: (err?: any, payload?: any) => any } = {};
+
+  private async getPayload(r: Message) {
+    const headers = r.properties.headers || {};
+    const isJson = !!headers['json'];
+    const isGzip = headers['Content-Encoding'] === 'gzip';
+    const messageBytes = r.content;
+    let messageString = r.content.toString();
+    if (isGzip) {
+      const unzippedBytes = await unzipAsync(messageBytes);
+      messageString = unzippedBytes.toString();
+    }
+    if (isJson) {
+      return JSON.parse(messageString);
+    }
+    return messageString;
+  }
+
+  private async convertPayload(payload: any, requestHeaders: any): Promise<Buffer> {
+    const isJson = requestHeaders['json'];
+    const isGzip = requestHeaders['Content-Encoding'] === 'gzip';
+    let payloadString = "";
+    if (isJson) {
+      payloadString = JSON.stringify(payload);
+    } else {
+      payloadString = payload.toString();
+    }
+    if (isGzip) {
+      const gzipBytes = await zipAsync(payloadString);
+      return gzipBytes;
+    }
+    return Buffer.from(payloadString);
+  }
 
   /**
    * Return full rpcQueue name
@@ -68,20 +101,6 @@ export class AmqpClient {
   }
 
   /**
-   * Try parse value to json, if unsuccessful return the string
-   * @param buffer
-   */
-  private parseBuffer(buffer: Buffer) {
-    const str = buffer.toString();
-    try {
-      const json = JSON.parse(str);
-      return json;
-    } catch (err) {
-      return str;
-    }
-  }
-
-  /**
    * Handle if received a message on the default RPC queue
    * @param msg
    */
@@ -101,12 +120,12 @@ export class AmqpClient {
            */
           if (msg.properties.headers.error) {
             // Return error
-            this.rpcCallbacks[correlationId](this.parseBuffer(msg.content));
+            this.rpcCallbacks[correlationId](this.getPayload(msg));
           } else {
             /**
              * Return success
              */
-            this.rpcCallbacks[correlationId](null, this.parseBuffer(msg.content));
+            this.rpcCallbacks[correlationId](null, this.getPayload(msg));
           }
         } catch (err) {
           /**
@@ -153,7 +172,7 @@ export class AmqpClient {
    */
   public async rpc(exchange: string, routingKey: string, payload: any, options?: Options.Publish): Promise<any> {
     const correlationId = uuid();
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       /**
        * Callback to register on rpc reply or timeout error
        * @param err
@@ -183,7 +202,7 @@ export class AmqpClient {
       /**
        * Send message and wait for reply
        */
-      this.publish(exchange, routingKey, payload, {
+      await this.publish(exchange, routingKey, payload, {
         ...options || {},
         replyTo: this.baseRpcQueue,
         correlationId: correlationId
@@ -197,8 +216,11 @@ export class AmqpClient {
    * @param payload
    * @param options
    */
-  public sendToQueue(queue: string, payload: any, options?: Options.Publish) {
-    this.channel.sendToQueue(queue, Buffer.from(JSON.stringify(payload)), options);
+  public async sendToQueue(queue: string, payload: any, options?: Options.Publish) {
+    options = options || {};
+    options.headers = options.headers || {};
+    const bytes = await this.convertPayload(payload, options.headers)
+    this.channel.sendToQueue(queue, bytes, options);
   }
 
   /**
@@ -208,8 +230,11 @@ export class AmqpClient {
    * @param routingKey
    * @param options
    */
-  public publish(exchange: string, routingKey: string = "", payload: any, options: Options.Publish | undefined = undefined) {
-    this.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(payload)), options);
+  public async publish(exchange: string, routingKey: string = "", payload: any, options: Options.Publish | undefined = undefined) {
+    options = options || {};
+    options.headers = options.headers || {};
+    const bytes = await this.convertPayload(payload, options.headers);
+    this.channel.publish(exchange, routingKey, bytes, options);
   }
 
 }

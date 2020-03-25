@@ -630,7 +630,18 @@ export class BaseServer {
     await this.buildRoutes();
     if (this.options.brokers) {
       await Promise.all(this.options.brokers.map(async (x) => {
-        await x.start();
+        if(this.options.onBrokerConnnectionError){
+          x.setConnectionErrorHandler(this.options.onBrokerConnnectionError);
+        }
+        try{
+          await x.start();
+        }catch(brokerConnectionError) {
+          if(this.options.onBrokerConnnectionError){
+            this.options.onBrokerConnnectionError(x, brokerConnectionError);
+          }else{
+            throw brokerConnectionError;
+          }
+        }
       }));
       this.logger.info("Base Server Started");
     }

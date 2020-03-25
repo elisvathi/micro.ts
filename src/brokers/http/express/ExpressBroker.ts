@@ -69,6 +69,8 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
       this.server.listen(this.config.port as number, this.config.address as string, () => {
         resolve();
       });
+      this.server.on("error", (e)=>this.handleConnectionError(e));
+      this.server.on("close", (e)=>this.handleConnectionError(e));
     });
     console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }

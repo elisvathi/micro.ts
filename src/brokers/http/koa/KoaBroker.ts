@@ -53,6 +53,8 @@ export class KoaBroker extends HttpBroker<koa, koa.Context, koa.Context, IHttpLi
     this.server.use(bodyParser());
     this.server.use(this.router.routes());
     this.server.listen(this.config.port as number, this.config.address as string);
+    this.server.on("error", (e)=>this.handleConnectionError(e));
+    this.server.on("close", (e)=>this.handleConnectionError(e));
     console.log(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 

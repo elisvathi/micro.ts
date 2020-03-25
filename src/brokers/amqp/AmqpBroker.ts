@@ -431,6 +431,12 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    */
   public async start(): Promise<void> {
     this.connection = await connect(this.connectionConfig);
+    this.connection.on('close', (e)=>{
+      this.handleConnectionError(e);
+    });
+    this.connection.on("error", (e)=>{
+      this.handleConnectionError(e);
+    });
     this.channel = await this.connection.createChannel();
     await this.registerRoutes();
     Container.get<ILogger>(LoggerKey).info(`AMQP Connected on ${this.connectionConfig}`);

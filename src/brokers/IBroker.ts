@@ -1,5 +1,5 @@
 import {Action, BaseRouteDefinition} from "../server/types/BaseTypes";
-import {IConfiguration} from "../server";
+import { IConfiguration, BrokerConnectionErrorHandler} from "../server";
 
 /**
  * Maps the app level route definitions passed in the BaseRouteDefinition object, with the broker specific routes
@@ -34,6 +34,7 @@ export interface IBroker<TConfig = any> {
     setRouteMapper(setRouteMapper: RouteMapper): void;
     getDefaultTimeout(): number;
     setDefaultTimeout(val: number): void;
+    setConnectionErrorHandler(handler: BrokerConnectionErrorHandler): void;
 
     /**
      * Starts the broker connection

@@ -1,7 +1,7 @@
 import {NotFound} from "../errors";
 import {Action, BaseRouteDefinition} from "../server/types";
 import {IBroker, RequestMapper, RouteMapper} from "./IBroker";
-import {IConfiguration} from "../server";
+import { IConfiguration, BrokerConnectionErrorHandler} from "../server";
 
 export type ActionHandler = (action: Action) => Action | Promise<Action>;
 export type DefinitionHandlerPair = {
@@ -16,6 +16,7 @@ export type ConfigResolver<T> = (config: IConfiguration) => T;
 export abstract class AbstractBroker<TConfig> implements IBroker {
   private timeout: number = 0;
   public abstract name: string;
+  private connectionErrorHandler?: BrokerConnectionErrorHandler;
   /**
    * Configuration getter
    */
@@ -77,6 +78,10 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
     this.construct();
   }
 
+  public setConnectionErrorHandler(handler: BrokerConnectionErrorHandler): void{
+    this.connectionErrorHandler = handler;
+  }
+
   public setRequestMapper(requestMapper: RequestMapper): void {
     this.requestMapper = requestMapper;
   }
@@ -132,4 +137,12 @@ export abstract class AbstractBroker<TConfig> implements IBroker {
   }
 
   abstract start(): Promise<void>;
+
+  protected handleConnectionError(e: any){
+    if(this.connectionErrorHandler){
+      this.connectionErrorHandler(this, e);
+    }else{
+      throw e;
+    }
+  }
 }

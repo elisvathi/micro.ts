@@ -1,8 +1,9 @@
-import {IBroker} from "../../brokers/IBroker";
-import {AppMiddleware} from "../..";
-import { Action, Class} from "./BaseTypes";
-import {AuthorizeOptions} from "../../decorators/types";
-import { AppErrorHandler, MainAppError} from "../../errors";
+import { IBroker } from "../../brokers/IBroker";
+import { AppMiddleware } from "../..";
+import { Action, Class } from "./BaseTypes";
+import { AuthorizeOptions } from "../../decorators/types";
+import { AppErrorHandler, MainAppError } from "../../errors";
+export type BrokerConnectionErrorHandler = (b: IBroker, error: any) => void;
 export interface ServerOptions {
   /**
    * Base path for all the server endpoints
@@ -64,10 +65,14 @@ export interface ServerOptions {
   /**
    * Global timeout for all the requests
    */
-  timeout? : number;
+  timeout?: number;
 
   /**
    * If this function is specified it overrides the default NotAuthorized function
    */
-  getNotAuthorizedError?: (action: Action, options?: AuthorizeOptions)=> MainAppError | Promise<MainAppError>;
+  getNotAuthorizedError?: (action: Action, options?: AuthorizeOptions) => MainAppError | Promise<MainAppError>;
+  /**
+   * If this function is specified it gets called if a broker throws during connection
+   */
+  onBrokerConnnectionError?: BrokerConnectionErrorHandler;
 }

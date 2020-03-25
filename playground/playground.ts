@@ -1,17 +1,18 @@
 import config from 'config';
+import { Action, BaseRouteDefinition, Forbidden, IMiddleware } from '../src';
 import "../src/brokers/amqp";
-import "../src/brokers/http/hapi";
-import "../src/brokers/http/fastify";
 import "../src/brokers/http/express";
+import "../src/brokers/http/fastify";
+import "../src/brokers/http/hapi";
 import "../src/brokers/http/koa";
-import "../src/brokers/socketio";
+import { IBroker } from '../src/brokers/IBroker';
 import "../src/brokers/redis";
+import "../src/brokers/socketio";
 import "../src/plugins/typeorm";
 import { AppBuilder, IConfiguration, OptionsBuilder, StartupBase } from "../src/server";
 import { DataController } from './controllers/DataController';
 import { UsersController } from './controllers/UsersController';
-import { IMiddleware, Action, BaseRouteDefinition, Forbidden} from '../src';
-import {IBroker} from '../src/brokers/IBroker';
+import { AmqpBroker } from '../src/brokers/amqp';
 
 class InterruptMiddleware implements IMiddleware {
   do(action: Action, def?: BaseRouteDefinition, controller?: any, broker?: IBroker<any>, send?: (data: any) => Action): Action | Promise<Action> {
@@ -37,6 +38,7 @@ class Startup extends StartupBase {
     builder.addBeforeMiddlewares(InterruptMiddleware);
     builder.addControllers(DataController, UsersController);
     builder.useHapiBroker(b => b.withConfigResolver(c => c.getFromPath("http.hapi")));
+    builder.useHapiBroker(b => b.withConfigResolver(c => c.getFromPath("http.hapi")));
     builder.useAmqpBroker(b=>b.withConfigResolver(c=>c.getFromPath("amqp.url")));
     builder.useAuthorization((a: Action, options: any)=>{
       return false;
@@ -44,7 +46,13 @@ class Startup extends StartupBase {
     builder.setAuthorizationError((a: Action, options: any)=>{
       return new Forbidden("You are not authorized to use this feature");
     });
-    // builder.useHapiBroker(b => b.named('private').withConfigResolver(c => c.getFromPath("http.private")));
+    builder.setConnectionErrorHandler((b: IBroker, err: any)=> {
+      console.log("Got connection error on broker " + b.name);
+      console.log("ERROR", err);
+      if(b.constructor === AmqpBroker){
+        process.exit(1);
+      }
+    });
   }
 
 }

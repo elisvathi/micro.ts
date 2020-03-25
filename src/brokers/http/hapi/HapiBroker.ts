@@ -61,6 +61,8 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
   public async start(): Promise<void> {
     this.registerRoutes();
     await this.server.start();
+    this.server.listener.on("close", (e: any)=>this.handleConnectionError(e));
+    this.server.listener.on("error", (e: any)=>this.handleConnectionError(e));
     this.logger.info(`Server listening on address ${this.config.address} and port ${this.config.port}`);
   }
 

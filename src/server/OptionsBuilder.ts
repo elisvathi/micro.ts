@@ -1,4 +1,4 @@
-import { Action, Class, ServerOptions } from "./types";
+import { Action, Class, ServerOptions, BrokerConnectionErrorHandler } from "./types";
 import {AppErrorHandler, AppMiddleware, AuthorizeOptions, Container} from "..";
 import { IConfiguration } from "./IConfiguration";
 import { IBroker } from "../brokers/IBroker";
@@ -169,5 +169,13 @@ export class OptionsBuilder {
     if(timeout > 0) {
       this.options.timeout = timeout;
     }
+  }
+
+  /**
+   * Set broker connection error handler
+   * @param handler
+   */
+  public setConnectionErrorHandler(handler: BrokerConnectionErrorHandler){
+    this.options.onBrokerConnnectionError = handler;
   }
 }

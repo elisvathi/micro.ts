@@ -1,7 +1,7 @@
 import IoRedis, { Redis } from "ioredis";
 
 export class RedisClient {
-  private redis?: Redis;
+  public redis?: Redis;
   constructor(private config: {url: string} & {[key: string]: any}) {
   }
 

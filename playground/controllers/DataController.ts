@@ -1,7 +1,11 @@
-import { Get, JsonController, Post, Body, ContainerInject, Service, FilterBrokers, Param, QueryParam, Header, Authorize } from '../../src';
-import { Required, Optional, ValidOptions, DateString } from 'joi-typescript-validator';
-import { getObjectSchema, getAppSchema } from '../../src/openapi/utils'
+import { Optional } from 'joi-typescript-validator';
+import { Body, FilterBrokers, Get, Header, JsonController, Param, Post, QueryParam, Service } from '../../src';
 import { SpecBuilder } from '../../src/openapi/SpecBuilder';
+
+export class TestValdiator{
+  @Optional()
+  items?: any[];
+}
 
 @Service()
 class LogService {
@@ -37,8 +41,8 @@ export class DataController {
     return "get data called"
   }
 
-  @Get('custom')
-  public async customCall() {
+  @Post('custom')
+  public async customCall(@Body({required: true, validate: true}) body: TestValdiator) {
     return "custom call called"
   }
 }

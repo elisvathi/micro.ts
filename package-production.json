@@ -1,6 +1,6 @@
 {
   "name": "@micro.ts/core",
-  "version": "0.0.88",
+  "version": "0.0.89",
   "description": "Microservice framework with Typescript",
   "main": "index.js",
   "types": "index.d.ts",

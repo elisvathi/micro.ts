@@ -1,8 +1,15 @@
-import typeorm, { ConnectionManager, ConnectionOptions, createConnection as createDatabaseConnection, Repository, useContainer, MongoRepository } from 'typeorm';
+import typeorm, {
+  ConnectionManager,
+  ConnectionOptions,
+  createConnection as createDatabaseConnection,
+  Repository,
+  useContainer,
+  MongoRepository
+} from "typeorm";
 import { Container, getInjectParamTypes, getConstructorParams } from "../../di";
 import { Class, OptionsBuilder } from "../../server";
 import { ILogger, LoggerKey } from "../../server/Logger";
-
+export type DbConnectionErrorHandler = (error: any, optionsRef: ConnectionOptions, retry: ()=>Promise<void>) => Promise<void>;
 declare module "../../server/OptionsBuilder" {
   interface OptionsBuilder {
     useTypeOrm(config: typeorm.ConnectionOptions, name?: string): void;
@@ -17,46 +24,59 @@ declare module "../../server/types/ServerOptions" {
   }
 }
 
-OptionsBuilder.prototype.useTypeOrm = function(dbOptions: typeorm.ConnectionOptions & {onError?: (err:any)=>void} , name: string = 'default') {
+OptionsBuilder.prototype.useTypeOrm = function(
+  dbOptions: typeorm.ConnectionOptions & {
+    errorHandler?: DbConnectionErrorHandler;
+  },
+  name: string = "default"
+) {
   useContainer(Container);
-  const {onError, ...config} = dbOptions;
+  const { errorHandler, ...config } = dbOptions;
   this.options.typeormOptions = this.options.typeormOptions || {};
   this.options.typeormOptions[name] = config;
-  this.addBeforeStartHook(async () => {
+  const hook = async () =>{
     let dbOptions: any = this.options.typeormOptions![name];
     this.options.models = this.options.models || {};
     dbOptions = { ...dbOptions, entities: this.options.models[name] || [] };
-    try{
+    try {
       await createDatabaseConnection({ ...dbOptions });
       Container.get<ILogger>(LoggerKey).info("Database connected");
-    }catch(err){
-      if(onError){
-        return onError(err);
+    } catch (err) {
+      if (errorHandler) {
+        await errorHandler(err, dbOptions, hook);
       }
       throw err;
     }
-  });
+  }
+  this.addBeforeStartHook(hook);
 };
 
-OptionsBuilder.prototype.addModels = function(models: Class<any>[], name: string = 'default') {
+OptionsBuilder.prototype.addModels = function(
+  models: Class<any>[],
+  name: string = "default"
+) {
   if (!this.options.models) {
     this.options.models = {};
   }
-  if (!this.options.models[name]){
+  if (!this.options.models[name]) {
     this.options.models[name] = [];
   }
-    this.options.models[name].push(...models);
+  this.options.models[name].push(...models);
 };
 
-export function InjectConnection(name: string = 'default') {
+export function InjectConnection(name: string = "default") {
   const key = {
-    type: '__typeorm_connection',
+    type: "__typeorm_connection",
     connectionName: name
-  }
+  };
   return (target: any, _propertyKey: string, parameterIndex: number) => {
-    let ctorMetadata = Reflect.getOwnMetadata('design:injectparamtypes', target);
+    let ctorMetadata = Reflect.getOwnMetadata(
+      "design:injectparamtypes",
+      target
+    );
     if (!ctorMetadata) {
-      const constructorArgs = Reflect.getOwnMetadata('design:paramtypes', target) || [];
+      const constructorArgs =
+        Reflect.getOwnMetadata("design:paramtypes", target) || [];
       ctorMetadata = constructorArgs.map((x: any) => {
         return { type: x };
       });
@@ -64,7 +84,9 @@ export function InjectConnection(name: string = 'default') {
     if (!Container.hasResolver(key)) {
       Container.bindResolver(key, () => {
         try {
-          const connectionManager = Container.get<ConnectionManager>(ConnectionManager);
+          const connectionManager = Container.get<ConnectionManager>(
+            ConnectionManager
+          );
           const connection = connectionManager.get(name);
           return connection;
         } catch (err) {
@@ -72,17 +94,22 @@ export function InjectConnection(name: string = 'default') {
         }
       });
     }
-    ctorMetadata[parameterIndex].injectOptions = { key: key || ctorMetadata[parameterIndex].type };
-    Reflect.defineMetadata('design:injectparamtypes', ctorMetadata, target);
-  }
+    ctorMetadata[parameterIndex].injectOptions = {
+      key: key || ctorMetadata[parameterIndex].type
+    };
+    Reflect.defineMetadata("design:injectparamtypes", ctorMetadata, target);
+  };
 }
 
-export function InjectManager(name: string = 'default', transient: boolean = false) {
+export function InjectManager(
+  name: string = "default",
+  transient: boolean = false
+) {
   const key = {
-    type: '__typeorm_entity_manager',
+    type: "__typeorm_entity_manager",
     connectionname: name,
     transient
-  }
+  };
   return (target: any, _propertyKey: string, parameterIndex: number) => {
     let ctorMetadata = getInjectParamTypes(target);
     if (!ctorMetadata) {
@@ -94,7 +121,9 @@ export function InjectManager(name: string = 'default', transient: boolean = fal
     if (!Container.hasResolver(key)) {
       Container.bindResolver(key, () => {
         try {
-          const connectionManager = Container.get<ConnectionManager>(ConnectionManager);
+          const connectionManager = Container.get<ConnectionManager>(
+            ConnectionManager
+          );
           const connection = connectionManager.get(name);
           if (transient) {
             return connection.createEntityManager();
@@ -105,14 +134,19 @@ export function InjectManager(name: string = 'default', transient: boolean = fal
         }
       });
     }
-    ctorMetadata[parameterIndex].injectOptions = { key: key || ctorMetadata[parameterIndex].type };
-    Reflect.defineMetadata('design:injectparamtypes', ctorMetadata, target);
-  }
+    ctorMetadata[parameterIndex].injectOptions = {
+      key: key || ctorMetadata[parameterIndex].type
+    };
+    Reflect.defineMetadata("design:injectparamtypes", ctorMetadata, target);
+  };
 }
 
-export function InjectRepository<T = any>(model?: Class<T>, name: string = 'default') {
+export function InjectRepository<T = any>(
+  model?: Class<T>,
+  name: string = "default"
+) {
   const key = {
-    type: '__repository',
+    type: "__repository",
     model,
     connectionName: name
   };
@@ -128,21 +162,24 @@ export function InjectRepository<T = any>(model?: Class<T>, name: string = 'defa
     if (!Container.hasResolver(key)) {
       Container.bindResolver(key, () => {
         try {
-          const connectionManager = Container.get<ConnectionManager>(ConnectionManager);
+          const connectionManager = Container.get<ConnectionManager>(
+            ConnectionManager
+          );
           const connection = connectionManager.get(name);
           if (paramType === Repository && model) {
             return connection.getRepository<T>(model);
           }
-          if(paramType === MongoRepository && model){
+          if (paramType === MongoRepository && model) {
             return connection.getMongoRepository<T>(model);
-          }
-          else return connection.getCustomRepository<T>(paramType);
+          } else return connection.getCustomRepository<T>(paramType);
         } catch (err) {
           console.log("ERROR GETTING REPOSITORY", err);
         }
       });
     }
-    ctorMetadata[parameterIndex].injectOptions = { key: key || ctorMetadata[parameterIndex].type };
-    Reflect.defineMetadata('design:injectparamtypes', ctorMetadata, target);
-  }
+    ctorMetadata[parameterIndex].injectOptions = {
+      key: key || ctorMetadata[parameterIndex].type
+    };
+    Reflect.defineMetadata("design:injectparamtypes", ctorMetadata, target);
+  };
 }

@@ -43,7 +43,7 @@ OptionsBuilder.prototype.useTypeOrm = function(
       Container.get<ILogger>(LoggerKey).info("Database connected");
     } catch (err) {
       if (errorHandler) {
-        await errorHandler(err, dbOptions, hook);
+        return errorHandler(err, dbOptions, hook);
       }
       throw err;
     }

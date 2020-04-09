@@ -17,16 +17,24 @@ declare module "../../server/types/ServerOptions" {
   }
 }
 
-OptionsBuilder.prototype.useTypeOrm = function(config: typeorm.ConnectionOptions, name: string = 'default') {
+OptionsBuilder.prototype.useTypeOrm = function(dbOptions: typeorm.ConnectionOptions & {onError?: (err:any)=>void} , name: string = 'default') {
   useContainer(Container);
+  const {onError, ...config} = dbOptions;
   this.options.typeormOptions = this.options.typeormOptions || {};
   this.options.typeormOptions[name] = config;
   this.addBeforeStartHook(async () => {
     let dbOptions: any = this.options.typeormOptions![name];
     this.options.models = this.options.models || {};
     dbOptions = { ...dbOptions, entities: this.options.models[name] || [] };
-    await createDatabaseConnection({ ...dbOptions });
-    Container.get<ILogger>(LoggerKey).info("Database connected");
+    try{
+      await createDatabaseConnection({ ...dbOptions });
+      Container.get<ILogger>(LoggerKey).info("Database connected");
+    }catch(err){
+      if(onError){
+        return onError(err);
+      }
+      throw err;
+    }
   });
 };
 

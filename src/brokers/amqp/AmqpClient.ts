@@ -48,7 +48,10 @@ export class AmqpClient {
   }
 
   private async convertPayload(payload: any, requestHeaders: any): Promise<Buffer> {
-    const isJson = requestHeaders['json'];
+    const isJson = requestHeaders['json'] || ( !!payload && payload instanceof Object );
+    if (isJson && !requestHeaders['json']) {
+      requestHeaders['json'] = true;
+    }
     const isGzip = requestHeaders['Content-Encoding'] === 'gzip';
     let payloadString = "";
     if (isJson) {

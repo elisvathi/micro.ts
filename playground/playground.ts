@@ -1,6 +1,7 @@
 import config from 'config';
 import { Action, BaseRouteDefinition, Forbidden, IMiddleware } from '../src';
 import "../src/brokers/amqp";
+import { AmqpBroker } from '../src/brokers/amqp';
 import "../src/brokers/http/express";
 import "../src/brokers/http/fastify";
 import "../src/brokers/http/hapi";
@@ -12,7 +13,6 @@ import "../src/plugins/typeorm";
 import { AppBuilder, IConfiguration, OptionsBuilder, StartupBase } from "../src/server";
 import { DataController } from './controllers/DataController';
 import { UsersController } from './controllers/UsersController';
-import { AmqpBroker } from '../src/brokers/amqp';
 
 class InterruptMiddleware implements IMiddleware {
   do(action: Action, def?: BaseRouteDefinition, controller?: any, broker?: IBroker<any>, send?: (data: any) => Action): Action | Promise<Action> {
@@ -62,6 +62,7 @@ class DefaultConfig implements IConfiguration {
   }
 
 }
+
 async function main() {
   const builder = new AppBuilder(new DefaultConfig()).useStartup(Startup);
   await builder.start();

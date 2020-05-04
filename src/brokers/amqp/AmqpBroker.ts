@@ -82,7 +82,13 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     if (isJson) {
       return JSON.parse(messageString);
     }
-    return messageString;
+    let msg: any = messageString;
+    try {
+      msg = JSON.parse(messageString);
+    } catch(jsonParseError) {
+      // ignore
+    }
+    return msg;
   }
 
   private async convertPayload(payload: any, requestHeaders: any): Promise<Buffer> {
@@ -93,7 +99,15 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     if (isJson) {
       payloadString = JSON.stringify(payload);
     } else {
-      payloadString = payload.toString();
+      if(!!payload && (payload instanceof Object)){
+        payloadString = JSON.stringify(payload);
+      }else{
+        if(payload !== null && payload !== undefined) {
+          payloadString = payload.toString();
+        }else{
+          payloadString = "";
+        }
+      }
     }
     if (isGzip) {
       const gzipBytes = await zipAsync(payloadString);

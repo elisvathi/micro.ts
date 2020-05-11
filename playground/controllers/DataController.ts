@@ -45,4 +45,14 @@ export class DataController {
   public async customCall(@Body({required: true, validate: true}) body: TestValdiator) {
     return "custom call called"
   }
+
+  @Post('slow-route', {queueOptions: {consumeOptions: {noAck: true}}})
+  public async slowRoute(){
+    return new Promise((resolve, reject)=>{
+      setTimeout(()=>{
+        resolve({ok: true});
+      }, 1 * 5 * 1000);
+    });
+  }
+
 }

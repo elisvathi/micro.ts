@@ -2,7 +2,7 @@ import { Channel, connect, Connection, ConsumeMessage, Message, Options } from '
 import { Container } from "../../di";
 import { unzipAsync, zipAsync } from "../../helpers/BaseHelpers";
 import { ILogger, LoggerKey } from "../../server/Logger";
-import { Action, BaseRouteDefinition, IAmqpExchangeConfig, QueueOptions } from "../../server/types";
+import { Action, BaseRouteDefinition, IAmqpExchangeConfig, QueueOptions, QueueConsumeOptions } from "../../server/types";
 import { AbstractBroker, ActionHandler, DefinitionHandlerPair } from "../AbstractBroker";
 import { RequestMapper, RouteMapper } from "../IBroker";
 import { AmqpClient, AmqpClientOptions } from "./AmqpClient";
@@ -123,12 +123,15 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    * @param routingKey
    * @param json
    */
-  protected requestMapper: RequestMapper = async (r: Message, queue: string, routingKey: string, json: boolean) => {
+  protected requestMapper: RequestMapper = async (r: Message, queue: string, routingKey: string, json: boolean, options?: QueueConsumeOptions) => {
     let payload;
     try {
       payload = await this.getPayload(r, json);
     } catch (err) {
-      this.channel.ack(r);
+      let shouldNotAck = !!options && !!options.noAck;
+      if(!shouldNotAck) {
+        this.channel.ack(r);
+      }
       throw (err);
     }
     const routingKeySplit = routingKey.split('.');
@@ -214,16 +217,17 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
    * @param json
    */
   protected async consumeMessage(route: string,
-    message: ConsumeMessage | null,
-    value: DefinitionHandlerPair[],
-    json: boolean) {
+                                 message: ConsumeMessage | null,
+                                 value: DefinitionHandlerPair[],
+                                 json: boolean,
+                                 options?: QueueConsumeOptions) {
     if (message) {
       const exchange = message.fields.exchange || "";
       const routingKey = message.fields.routingKey;
       /**
        * Convert message to action
        */
-      const mapped: Action = await this.requestMapper(message, route, routingKey, json);
+      const mapped: Action = await this.requestMapper(message, route, routingKey, json, options);
       /**
        * Find the corresponding handler for the action object
        */
@@ -238,7 +242,10 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
       if (result && message.properties.replyTo && message.properties.correlationId) {
         await this.rpcReply(result, message.properties.replyTo, message.properties.correlationId, message.properties.headers);
       }
-      this.channel.ack(message);
+      let shouldNotAck = !!options && !!options.noAck;
+      if (!shouldNotAck) {
+        this.channel.ack(message);
+      }
     }
   }
 
@@ -303,7 +310,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
        */
       for (let i = 0; i < totalConsumers; i++) {
         await this.channel.consume(route, async (message: ConsumeMessage | null) => {
-          await this.consumeMessage(route, message, value, json);
+          await this.consumeMessage(route, message, value, json, consumeOptions);
         }, consumeOptions);
       }
       return true;

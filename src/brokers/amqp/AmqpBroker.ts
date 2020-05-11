@@ -252,6 +252,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     let json = false;
     let totalConsumers = 0;
     let queueOptions: QueueOptions = {};
+    const consumeOptions = {};
     /*
      * Finds the number of consumers and the assertQueue options
      */
@@ -261,10 +262,12 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
          * Get the last queue options, in case there is collisions
          */
         queueOptions = { ...v.def.queueOptions };
+        Object.assign(consumeOptions, v.def.queueOptions.consumeOptions || {});
         /**
          * Remove the consumers key from the queue options, to use the resulting object as Options on queue assertion
          */
         delete queueOptions.consumers;
+        delete queueOptions.consumeOptions;
       }
       const consumers = v.def.queueOptions ? v.def.queueOptions.consumers || 1 : 1;
       if (v.def.json) {
@@ -301,7 +304,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
       for (let i = 0; i < totalConsumers; i++) {
         await this.channel.consume(route, async (message: ConsumeMessage | null) => {
           await this.consumeMessage(route, message, value, json);
-        });
+        }, consumeOptions);
       }
       return true;
     } else {

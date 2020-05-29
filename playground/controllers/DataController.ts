@@ -39,13 +39,11 @@ export class DataController {
   }
 
   @Post(':name')
-  @BrokerRouteOptions(b => {
-    return {
-      payload: {
-        parse: true
-      }
-    }
-  })
+	@BrokerRouteOptions(b=>{
+		return {payload: {
+			parse: false
+		}}
+	})
   public async postData(@Param('name') name: string, @Body() body: any) {
     console.log("BODY", body);
     return "get data called"

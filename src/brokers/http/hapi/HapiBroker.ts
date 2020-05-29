@@ -45,11 +45,14 @@ export class HapiBroker extends HttpBroker<HapiServer, HapiRequest, ResponseTool
 
   protected registerHandler(value: DefinitionHandlerPair[], route: string, method: string) {
     const filteredDef = value.find(x => x.def.method === method);
-    const options = filteredDef ? ( filteredDef.def.brokerRouteOptions || {}  ): {};
+		let options = {};
+		if (filteredDef && filteredDef.def.brokerRouteOptions) {
+			options = filteredDef.def.brokerRouteOptions(this);
+		}
     this.server.route({
       method: method,
       path: route,
-			options,
+      options,
       handler: async (r: HapiRequest, h: ResponseToolkit) => {
         const action = await this.requestMapper(r);
         const handler = this.actionToRouteMapper(route, action, value);

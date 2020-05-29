@@ -4,6 +4,7 @@ import { AppErrorHandler } from "../../errors";
 import { QueueOptions } from "../../server";
 import {IBroker} from "../../brokers/IBroker";
 export type BrokerFilter = (broker: IBroker) => boolean;
+export type BrokerRouteOptionsResolver = (broker: IBroker)=> any;
 export interface MethodDescription {
     name?: string;
     metadata?: MethodOptions;
@@ -20,6 +21,7 @@ export interface MethodOptions {
     brokers?: BrokerFilter;
     queueOptions?: QueueOptions;
     timeout? : number;
+    brokerRouteOptions?: BrokerRouteOptionsResolver ;
 }
 
 export interface ControllerOptions {
@@ -31,6 +33,7 @@ export interface ControllerOptions {
     middlewares?: MiddlewareOptions[];
     errorHandlers?: AppErrorHandler[];
     timeout?: number;
+    brokerRouteOptions?: BrokerRouteOptionsResolver;
 }
 
 export interface MethodControllerOptions {

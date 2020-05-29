@@ -1,3 +1,5 @@
+import { BrokerRouteOptionsResolver } from "../../decorators"
+
 export interface ActionResponse {
     /**
      * Status code of the response
@@ -104,7 +106,12 @@ export interface BaseRouteDefinition {
     /**
      * Timeout configured for the handler
      */
-    timeout?: number
+		timeout?: number,
+
+		/**
+		* Resolver for route specific broker options
+		*/
+		brokerRouteOptions?: BrokerRouteOptionsResolver
 }
 
 export type AssertExchange = {

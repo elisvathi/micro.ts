@@ -3,7 +3,7 @@ import { AppMiddleware, IMiddleware, MiddlewareFunction, TimeoutError } from '..
 import { IBroker } from "../brokers/IBroker";
 import { ControllerMetadata, GlobalMetadata } from '../decorators';
 import { getGlobalMetadata, getHandlerMetadata } from '../decorators/GlobalMetadata';
-import { MethodControllerOptions, MethodDescription, MethodOptions, MiddlewareOptions, ParamDecoratorType, ParamDescription, ParamOptions } from '../decorators/types';
+import { MethodControllerOptions, MethodDescription, MethodOptions, MiddlewareOptions, ParamDecoratorType, ParamDescription, ParamOptions, BrokerRouteOptionsResolver } from '../decorators/types';
 import { Container } from '../di';
 import { AppErrorHandler, BadRequest, ErrorHandlerFunction, IErrorHandler, NotAuthorized } from '../errors';
 import { minNonZero, sleep } from "../helpers/BaseHelpers";
@@ -34,6 +34,10 @@ interface RegisterMethodParams {
    * Request timeout
    */
   timeout?: number;
+  /**
+   * Rotue specific broker options
+   */
+	brokerRouteOptions? : BrokerRouteOptionsResolver;
 }
 
 interface ValidateParamParams {
@@ -665,7 +669,7 @@ export class BaseServer {
    * @param routes Routes to append to the result
    * @param controllerName Name of the controller
    */
-  private async buildSingleMethodRoute({ methodName, desc, basePath, controllerPath, ctor, isJson, brokers, routes, controllerName, timeout }: RegisterMethodParams) {
+  private async buildSingleMethodRoute({ methodName, desc, basePath, controllerPath, ctor, isJson, brokers, routes, controllerName, timeout , brokerRouteOptions}: RegisterMethodParams) {
     const metadata: MethodOptions = desc.metadata || {};
     const methodPath = metadata.path;
     let path = methodPath || methodName;
@@ -687,7 +691,8 @@ export class BaseServer {
       method: reqMethod || 'get',
       queueOptions: metadata.queueOptions,
       json: isJson,
-      timeout: timeout
+      timeout: timeout,
+			brokerRouteOptions
     };
     const results = await this.addRoute(routeDefinition, methodBrokers, desc.params || []);
     const brokerNames = methodBrokers.map(x => {
@@ -725,6 +730,7 @@ export class BaseServer {
       const controllerPath = cPath || "";
       const handlers = controllerMetadata.handlers as any;
       const controllerTimeout = controllerMetadata.options && controllerMetadata.options.timeout || 0;
+			const controllerBrokerRouteOptions = controllerMetadata.options?.brokerRouteOptions;
       /**
        * Build method handlers
        */
@@ -751,7 +757,9 @@ export class BaseServer {
           ctor: controllerMetadata.ctor,
           isJson,
           brokers: controllerBrokers,
-          routes, controllerName: name
+          routes,
+					controllerName: name,
+					brokerRouteOptions: methodDescriptor.metadata?.brokerRouteOptions || controllerBrokerRouteOptions
         });
       }));
     }

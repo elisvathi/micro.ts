@@ -1,5 +1,5 @@
 // HTTP BROKER BUILDERS
-import {ServerOptions as HapiServerOptions} from "hapi";
+import {ServerOptions as HapiServerOptions} from "@hapi/hapi";
 import {BrokerBuilder} from "../../BrokerBuilder";
 import {IConfiguration} from "../../../server";
 import {OptionsBuilder} from "../../../server";

@@ -1,6 +1,6 @@
 {
   "name": "@micro.ts/core",
-  "version": "0.0.96",
+  "version": "0.0.98",
   "description": "Microservice framework with Typescript",
   "main": "index.js",
   "types": "index.d.ts",
@@ -25,6 +25,7 @@
   "license": "MIT",
   "peerDependencies": {},
   "dependencies": {
+    "@hapi/hapi": "20.0.0",
     "chalk": "^2.4.2",
     "config": "^3.3.1",
     "joi-to-swagger": "^3.3.0",

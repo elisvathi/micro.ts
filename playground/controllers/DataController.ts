@@ -1,5 +1,5 @@
 import { Optional } from 'joi-typescript-validator';
-import { Body, FilterBrokers, Get, Header, JsonController, Param, Post, QueryParam, Service, BrokerRouteOptions } from '../../src';
+import { Body, FilterBrokers, Get, Header, JsonController, Param, Post, QueryParam, Service, BrokerRouteOptions, Authorize } from '../../src';
 import { SpecBuilder } from '../../src/openapi/SpecBuilder';
 
 export class TestValdiator {
@@ -12,7 +12,10 @@ class LogService {
   calls: number = 0;
 }
 
+type RoleAuth = {role: string};
+
 @JsonController("")
+@Authorize<RoleAuth>()
 export class DataController {
   constructor(private log: LogService, private swagger: SpecBuilder) {
   }

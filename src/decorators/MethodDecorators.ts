@@ -22,7 +22,7 @@ import { AppErrorHandler } from '../errors/types/ErrorHandlerTypes'
  * @param options Allows any nested value inside authorize options,
  * this object, if exists,  will be passed in the authorizationChecker function
  */
-export function Authorize(options?: AuthorizeOptions) {
+export function Authorize<T = AuthorizeOptions>(options?: T) {
 	return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
 		if (propertyKey) {
 			attachHandlerAuthorization(

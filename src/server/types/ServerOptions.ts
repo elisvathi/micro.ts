@@ -53,7 +53,7 @@ export interface ServerOptions {
    * @param action Action object
    * @param options Authorization options , the custom options specified in the @Authorized() decorator, are passed in this handler
    */
-  authorizationChecker?: (action: Action, options?: AuthorizeOptions) => boolean | Promise<boolean>;
+  authorizationChecker?: <T extends AuthorizeOptions>(action: Action, options?: T) => boolean | Promise<boolean>;
   /**
    * Function to validate the request components (body, headers, params, query) that have {validate: true}
    * The return value of this function, if it does not throw passes as a handler argument

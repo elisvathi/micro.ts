@@ -6,7 +6,7 @@ import {ILogger, LoggerKey} from "./Logger";
 import {BaseContainer} from "../di/BaseContainer";
 import { MainAppError } from "../errors";
 export type CurrentUserCheckerFunction<TUser> = (action: Action, broker?: IBroker) => TUser | Promise<TUser>;
-export type AuthorizationFunction = (action: Action, options?: AuthorizeOptions) => boolean | Promise<boolean>;
+export type AuthorizationFunction<T = AuthorizeOptions> = (action: Action, options?: T) => boolean | Promise<boolean>;
 export type GetNotAuthorizedErrorFuntion = (action: Action, options?: AuthorizeOptions) => MainAppError | Promise<MainAppError>;
 export type ValidateFunction = <T>(value: any, type: Class<T>) => Promise<T>;
 export type StartupHook = () => Promise<void>;

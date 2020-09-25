@@ -45,6 +45,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
   public name: string = "AmqpBroker";
   protected connection!: Connection;
   protected channel!: Channel;
+	private beforeAssertHooks: Array<()=>Promise<void>> = [];
   /**
    * Default exchange for all the queues
    */
@@ -55,6 +56,16 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
   public get defaultExchange(): IAmqpExchangeConfig {
     return this._defaultExchange;
   }
+
+	public addBeforeAssertHook(hook: ()=>Promise<void>){
+		this.beforeAssertHook.push(hook);
+	}
+
+	private async execBeforeAsssertHooks(){
+		for(const hook of this.beforeAssertHooks){
+			await hook();
+		}
+	}
 
   /**
    * Setter for the default exchange
@@ -414,9 +425,9 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
     /**
      * Await each item on registering the routes
      */
-    for (let i = 0; i < routes.length; i++) {
-      await this.registerSingleRoute(routes[i].value, routes[i].route);
-    }
+		for (let i = 0; i < routes.length; i++) {
+			await this.registerSingleRoute(routes[i].value, routes[i].route);
+		}
   }
 
   /**
@@ -463,6 +474,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
       this.handleConnectionError(e);
     });
     this.channel = await this.connection.createChannel();
+		await this.execBeforeAsssertHooks();
     await this.registerRoutes();
     Container.get<ILogger>(LoggerKey).info(`AMQP Connected on ${this.connectionConfig}`);
   }

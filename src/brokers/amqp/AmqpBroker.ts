@@ -58,7 +58,7 @@ export class AmqpBroker<T = IAmqpConfig> extends AbstractBroker<T> implements IA
   }
 
 	public addBeforeAssertHook(hook: ()=>Promise<void>){
-		this.beforeAssertHook.push(hook);
+		this.beforeAssertHooks.push(hook);
 	}
 
 	private async execBeforeAsssertHooks(){

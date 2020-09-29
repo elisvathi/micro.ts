@@ -22,7 +22,6 @@
   "license": "MIT",
   "peerDependencies": {},
   "dependencies": {
-    "@hapi/hapi": "20.0.0",
     "chalk": "^2.4.2",
     "config": "^3.3.1",
     "joi-to-swagger": "^3.3.0",
@@ -31,6 +30,7 @@
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
+    "@hapi/hapi": "20.0.0",
     "@types/amqplib": "^0.5.13",
     "@types/axios": "^0.14.0",
     "@types/chai": "^4.2.11",

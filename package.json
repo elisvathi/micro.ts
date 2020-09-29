@@ -48,7 +48,7 @@
     "@types/node": "^12.12.34",
     "@types/reflect-metadata": "^0.1.0",
     "@types/socket.io": "^2.1.4",
-    "@types/uuid": "^3.4.8",
+    "@types/uuid": "^8.3.0",
     "amqplib": "^0.5.5",
     "axios": "^0.19.2",
     "chai": "^4.2.0",
@@ -68,7 +68,7 @@
     "tslint": "^5.20.1",
     "typeorm": "^0.2.24",
     "typescript": "^3.8.3",
-    "uuid": "^3.4.0"
+    "uuid": "^8.3.0"
   },
   "repository": {
     "type": "git",

@@ -72,7 +72,7 @@ export class AmqpClient {
   public get baseRpcQueue() {
     if (this.clientOptions.unique) {
       if (!this.uniqueId) {
-        this.uniqueId = uuid();
+        this.uniqueId = uuid.v4();
       }
       /**
        * Default queue name + uuid4
@@ -174,7 +174,7 @@ export class AmqpClient {
    * @param options
    */
   public async rpc(exchange: string, routingKey: string, payload: any, options?: Options.Publish): Promise<any> {
-    const correlationId = uuid();
+    const correlationId = uuid.v4();
     return new Promise(async (resolve, reject) => {
       /**
        * Callback to register on rpc reply or timeout error

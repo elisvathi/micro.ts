@@ -1,6 +1,6 @@
 import { Channel, ConsumeMessage, Options, Message} from "amqplib";
 import {IAmqpConnectionHooks} from ".";
-import uuid from "uuid";
+import {v4 as uuidv4} from "uuid";
 import {Container} from "../../di";
 import {ILogger, LoggerKey} from "../../server/Logger";
 import { unzipAsync, zipAsync } from "../../helpers/BaseHelpers";
@@ -72,7 +72,7 @@ export class AmqpClient {
   public get baseRpcQueue() {
     if (this.clientOptions.unique) {
       if (!this.uniqueId) {
-        this.uniqueId = uuid.v4();
+        this.uniqueId = uuidv4();
       }
       /**
        * Default queue name + uuid4
@@ -174,7 +174,7 @@ export class AmqpClient {
    * @param options
    */
   public async rpc(exchange: string, routingKey: string, payload: any, options?: Options.Publish): Promise<any> {
-    const correlationId = uuid.v4();
+    const correlationId = uuidv4();
     return new Promise(async (resolve, reject) => {
       /**
        * Callback to register on rpc reply or timeout error

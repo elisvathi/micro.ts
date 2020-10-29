@@ -378,7 +378,7 @@ export class BaseServer {
 			/**
 			 * If all are successful execute redirect
 			 */
-			if (methodControllerMetadata.method.redirect) {
+			if (methodControllerMetadata.method.redirect && !broken) {
 				action.response = action.response || {};
 				action.response.headers = action.response.headers || {};
 				action.response.statusCode = 301;

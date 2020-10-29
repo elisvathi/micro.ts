@@ -374,7 +374,31 @@ export class BaseServer {
             break;
           }
         }
-      }
+			}
+			/**
+			 * If all are successful execute redirect
+			 */
+			if (methodControllerMetadata.method.redirect && !broken) {
+				action.response = action.response || {};
+				action.response.headers = action.response.headers || {};
+				action.response.statusCode = 301;
+
+				if (typeof action.response.body === "string") {
+					action.response.headers.Location = action.response.body;
+				} else if (typeof action.response.body === "object") {
+					let unparsedUrl = methodControllerMetadata.method.redirect;
+					const keys = Object.keys(action.response.body)
+
+					keys.forEach((key: string) => {
+						const match = new RegExp(`:${key}`, "gi")
+						unparsedUrl = unparsedUrl.replace(match, action.response!.body[key])
+					})
+
+					action.response.headers.Location = unparsedUrl
+				} else {
+					action.response.headers.Location = methodControllerMetadata.method.redirect;
+				}
+			}
     }
     return action;
   }

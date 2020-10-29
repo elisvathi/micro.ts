@@ -108,6 +108,17 @@ export function attachHandlerMiddleware(target: any, propertyKey: string, _descr
     metadata.methods.set(target, controller);
 }
 
+export function attachHandlerRedirect(target: any, propertyKey: string, _descriptor: PropertyDescriptor, url: string) {
+	const metadata = getGlobalMetadata();
+	let controller: { [key: string]: MethodDescription } = metadata.methods.get(target) as { [key: string]: MethodDescription };
+	controller = controller || {};
+	controller[propertyKey] = controller[propertyKey] || { params: [] };
+	const handlerObject = controller[propertyKey] || {};
+	handlerObject.redirect = handlerObject.redirect || url;
+	controller[propertyKey] = handlerObject;
+	metadata.methods.set(target, controller);
+}
+
 export function attachHandlerBrokersFitler(target: any, propertyKey: string, _descriptor: PropertyDescriptor, options: BrokerFilter) {
     registerHandlerMetadata(target, propertyKey, _descriptor, { brokers: options });
 }

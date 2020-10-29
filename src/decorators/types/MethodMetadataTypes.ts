@@ -12,7 +12,8 @@ export interface MethodDescription {
     authorize?: boolean;
     authorization?: AuthorizeOptions;
     middlewares?: MiddlewareOptions[];
-    errorHandlers?: AppErrorHandler[];
+		errorHandlers?: AppErrorHandler[];
+		redirect?: string;
 }
 
 export interface MethodOptions {

@@ -10,7 +10,8 @@ import {
 	attachControllerAuthorization,
 	attachControllerErrorHandlers,
   registerControllerMetadata,
-  registerHandlerMetadata
+  registerHandlerMetadata,
+	attachHandlerRedirect
 } from './BaseDecorators'
 import { AppErrorHandler } from '../errors/types/ErrorHandlerTypes'
 
@@ -92,4 +93,31 @@ export function BrokerRouteOptions(resolver: BrokerRouteOptionsResolver) {
       registerControllerMetadata(target, {brokerRouteOptions: resolver});
 		}
 	}
+}
+
+/**
+ * Use this decorator to redirect to another page. You can replace params starting
+ * with `:` by returning an object from the handler function that has a key with the
+ * name of the `:param`.
+ *
+ * @param url URL to be redirected to when the function handler executes successfully
+ *
+ * Example: `url: https://github.com/repos/:owner/:repo`. Returned object from handler:
+ *
+ * ```
+ * {
+ * 	  owner: "john",
+ * 	  repo: "doe"
+ * }
+ * ```
+ * Final URL: `https://github.com/repos/john/doe`
+ */
+export function Redirect(url: string) {
+	return function (
+		target: any,
+		propertyKey: string,
+		descriptor: PropertyDescriptor
+	) {
+		attachHandlerRedirect(target, propertyKey, descriptor, url)
+	};
 }

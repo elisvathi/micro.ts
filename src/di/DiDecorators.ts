@@ -1,12 +1,13 @@
+import { Class } from "..";
+import { ContainerRegistry } from "./DiRegistry";
 import { ServiceOptions } from "./types";
-import { Container } from "./BaseContainer";
 
 /**
  * Provide custom configuration (transient, or scoped)  for a service to register it in the DI container
  * @param options
  */
-export function Service(options?: ServiceOptions) {
-  return (target: any) => {
+export function Service<T>(options?: ServiceOptions) {
+  return (target: Class<T>) => {
     let constructorArgs = getInjectParamTypes(target);
     if (!constructorArgs) {
       const paramTypes = getConstructorParams(target);
@@ -17,7 +18,7 @@ export function Service(options?: ServiceOptions) {
     }
     options = options || {};
     options.ctorParams = constructorArgs;
-    Container.registerService(target, options);
+		ContainerRegistry.bind(target, options);
   }
 }
 

@@ -1,18 +1,18 @@
 import { expect } from "chai";
-import { Service, Container, Inject } from '../src'
-import { printContainer } from "../src/di/BaseContainer";
+import { Container, Inject, Service } from '../src';
+import { ServiceScope } from "../src/di/types/DiOptionsTypes";
 
 @Service()
 class SingletonService {
   public value: number = 0;
 }
 
-@Service({ transient: true })
+@Service({scope: ServiceScope.Transient})
 class TransientService {
   public value: number = 0;
 }
 
-@Service({ transient: true })
+@Service({scope: ServiceScope.Transient})
 class ConfigurableService {
   constructor(@Inject('obj') public config: any) { }
 }
@@ -23,11 +23,12 @@ class ScopedService {
   constructor() { };
 }
 
-@Service({ scope: "test-scope" })
+@Service({scope: ServiceScope.Transient})
 class ScopedConsumer {
   constructor(public service: ScopedService) {
   }
 }
+
 @Service()
 class Dependency {
 }

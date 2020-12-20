@@ -28,6 +28,7 @@ export class BaseContainer {
 	 * Bind a resolver function to a specific key
 	 * @param key
 	 * @param resolver
+	 * @param scope
 	 */
 	public bindResolver(
 		key: any,
@@ -37,6 +38,10 @@ export class BaseContainer {
 		this.registry.bindResolver(key, resolver, scope);
 	}
 
+	/**
+	 * Check if a resolver with the given key is registered in the registry
+	 * @param key
+	 */
 	public hasResolver(key: any) {
 		return this.registry.hasResolver(key);
 	}
@@ -54,7 +59,6 @@ export class BaseContainer {
 	 * Get the instance from the container,
 	 * if it does not exist, create a new instance
 	 * @param key Key or Class constructor of the instance
-	 * @param scope Scope of the instance
 	 */
 	public get<T = any>(key: Class<T> | string | any): T {
 		return this.root.get(key);

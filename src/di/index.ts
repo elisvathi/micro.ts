@@ -1,3 +1,5 @@
 export * from './types';
-export {Container} from './BaseContainer';
+export * from './BaseContainer';
 export * from './DiDecorators';
+export * from './DiRegistry';
+export * from './ContainerModule';

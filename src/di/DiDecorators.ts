@@ -1,9 +1,10 @@
-import { ContainerRegistry, DiRegistry } from './DiRegistry';
-import { ServiceOptions } from './types';
+import {ContainerRegistry, DiRegistry} from './DiRegistry';
+import {ServiceOptions} from './types';
 
 /**
  * Provide custom configuration (transient, or scoped)  for a service to register it in the DI container
  * @param options
+ * @param registry
  */
 export function Service(
 	options?: ServiceOptions,
@@ -57,8 +58,7 @@ export function getInjectParamTypes(target: any): any[] {
 	if (!paramTypes) {
 		const superClass = Object.getPrototypeOf(target);
 		if (!!superClass && superClass !== Object) {
-			const returnValue = getInjectParamTypes(superClass);
-			return returnValue;
+			return getInjectParamTypes(superClass);
 		}
 	}
 	return paramTypes;
@@ -93,7 +93,6 @@ export function Inject(key?: any) {
 		} else {
 			if (!parameterIndex) {
 			}
-			// const properytInjection = parameterIndex.
 		}
 	};
 }

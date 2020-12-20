@@ -1,96 +1,178 @@
 import { ServiceOptions } from '.';
 import { Class } from '..';
 import {
-  ContainerRegistry,
-  RegistryKey,
-  ResolverRegistryItem,
+	ContainerRegistry,
+	RegistryKey,
+	ResolverRegistryItem,
 } from './DiRegistry';
 import { InjectOptions, ServiceScope } from './types/DiOptionsTypes';
 
+/**
+ * Container Module is a scoped dependency resolver and container,
+ * The module is used to manage the main container dependencies,
+ * also the request scoped dependencies
+ * A new module is created when calling Container.newModule
+ * using the current container module as the parent of the new module
+ * therefore treating the newly created module as request scoped
+ */
 export class ContainerModule {
-  constructor(private parent?: ContainerModule) {
+	/**
+	 * If a parent is provided, this module is a scoped module,
+	 * meaning for singleton scoped dependencies it will fall back to the parent module
+	 * @param parent
+	 */
+	constructor(private parent?: ContainerModule) {
 		this.set(ContainerModule, this);
 	}
 
-  private instances: Map<RegistryKey, any> = new Map();
+	/**
+	 * Key value to store the resolved dependencies if they match the module scope
+	 */
+	private instances: Map<RegistryKey, any> = new Map();
 
-  private get isScoped(): boolean {
-    return !!this.parent;
-  }
+	/**
+	 * Return true only if it has a parent
+	 */
+	private get isScoped(): boolean {
+		return !!this.parent;
+	}
 
-  private buildValue<T>(ctor: Class<T>, keyMetadata: ServiceOptions): T {
-    const ctorParams =
-      (keyMetadata.ctorParams as {
-        type: any;
-        injectOptions: InjectOptions;
-      }[]) || [];
-    const args = ctorParams.map((x) => {
-      if (x.injectOptions) {
-        return this.get(x.injectOptions.key);
-      }
-      return this.get(x.type);
-    });
-    const value = new ctor(...args);
-    if (keyMetadata.scope !== ServiceScope.Transient) {
-      this.instances.set(ctor, value);
-    }
-    return value;
-  }
+	/**
+	 * Construct an object with its constructor,
+	 * using the information it has from the constructor metadata
+	 * If not in transient scope store the created value
+	 * @param ctor
+	 * @param keyMetadata
+	 */
+	private buildValue<T>(ctor: Class<T>, keyMetadata: ServiceOptions): T {
+		// Fetch the constructor metadata
+		const ctorParams =
+			(keyMetadata.ctorParams as {
+				type: any;
+				injectOptions: InjectOptions;
+			}[]) || [];
+		/**
+		 * Build or fetch each constructor argument using the modules's get method
+		 */
+		const args = ctorParams.map((x) => {
+			if (x.injectOptions) {
+				return this.get(x.injectOptions.key);
+			}
+			return this.get(x.type);
+		});
+		/**
+		 * Create the object
+		 */
+		const value = new ctor(...args);
+		/**
+		 * Check if the value should be stored
+		 */
+		if (keyMetadata.scope !== ServiceScope.Transient) {
+			this.instances.set(ctor, value);
+		}
+		return value;
+	}
 
-  private resolve<T>(
-    key: RegistryKey,
-    resolveItem: ResolverRegistryItem<T>
-  ): T {
-    const value = resolveItem.resolver(this);
-    if (resolveItem.scope !== ServiceScope.Transient) {
-      this.instances.set(key, value);
-    }
-    return value;
-  }
+	/**
+	 * Resolve with the resolver and store the value if not transient scoped
+	 * @param key
+	 * @param resolveItem
+	 */
+	private resolve<T>(
+		key: RegistryKey,
+		resolveItem: ResolverRegistryItem<T>
+	): T {
+		const value = resolveItem.resolver(this);
+		if (resolveItem.scope !== ServiceScope.Transient) {
+			this.instances.set(key, value);
+		}
+		return value;
+	}
 
-  private useParentScope(scope: ServiceScope): boolean {
-    if (this.isScoped && scope === ServiceScope.Singleton) {
-      return true;
-    } else if (scope === ServiceScope.Request && !this.isScoped) {
-      throw new Error(
-        'Can not inject a scoped dependency in a singleton dependency'
-      );
-    }
-    return false;
-  }
+	/**
+	 * Return true if this module is scoped and the required scope is singleton scope
+	 * Throws error if this module is not scoped and the required scope is request scoped
+	 * @param scope
+	 */
+	private useParentScope(scope: ServiceScope): boolean {
+		if (this.isScoped && scope === ServiceScope.Singleton) {
+			return true;
+		} else if (scope === ServiceScope.Request && !this.isScoped) {
+			throw new Error(
+				'Can not inject a scoped dependency in a singleton dependency'
+			);
+		}
+		return false;
+	}
 
-	public set<T>(key: RegistryKey<T>, value: T){
+	/**
+	 * Set an arbitrary value for the given key
+	 * @param key
+	 * @param value
+	 */
+	public set<T>(key: RegistryKey<T>, value: T) {
 		this.instances.set(key, value);
 	}
 
-  public get<T = any>(key: RegistryKey): T {
-    // Check if module contains an instance
-    const existing = this.instances.get(key);
-    // Exists in own instances
-    if (existing) {
-      return existing;
-    }
-    // Check for resolvers
-    if (ContainerRegistry.hasResolver(key)) {
-      const resolveItem = ContainerRegistry.getResolver(key);
-      if (this.useParentScope(resolveItem.scope)) {
-        return this.parent?.get(key) as T;
-      }
-      return this.resolve(key, resolveItem);
-    }
-    if (typeof key === "function") {
-      // Doesn't exist in own instances
-      const keyMetadata = ContainerRegistry.getMetadata(key);
-      if (!keyMetadata) {
-        // Initialize metadata and call this method again
-        ContainerRegistry.initalizeMetadata(key);
-        return this.get<T>(key);
-      }
-      if (this.useParentScope(keyMetadata.scope || ServiceScope.Singleton)) {
-        return this.parent?.get(key) as T;
-      }
-      return this.buildValue<T>(key as Class<T>, keyMetadata);
-    }
-		return {} as T;
-  }
+	/**
+	 * Try and resolve the value
+	 * Might return undefined if it doesn't find
+	 * the stored key and/or cannot construct the value
+	 * @param key
+	 */
+	public get<T = any>(key: RegistryKey): T {
+		/**
+		 * Check if module contains an instance
+		 */
+		const existing = this.instances.get(key);
+		/**
+		 * Exists in own instances
+		 */
+		if (existing) {
+			return existing;
+		}
+		/**
+		 * Check for resolvers
+		 */
+		if (ContainerRegistry.hasResolver(key)) {
+			/**
+			 * Get resolver info and function from the registry
+			 */
+			const resolveItem = ContainerRegistry.getResolver(key);
+			/**
+			 * Check if the parent should create the resolver
+			 */
+			if (this.useParentScope(resolveItem.scope)) {
+				return this.parent?.get(key) as T;
+			}
+			/**
+			 * If not resolve dhe dependency
+			 */
+			return this.resolve(key, resolveItem);
+		}
+		if (typeof key === 'function') {
+			/**
+			 * Doesn't exist in own instances
+			 */
+			const keyMetadata = ContainerRegistry.getMetadata(key);
+			if (!keyMetadata) {
+				/**
+				 * Initialize metadata and call this method again
+				 */
+				ContainerRegistry.initializeMetadata(key);
+				return this.get<T>(key);
+			}
+			/**
+			 * Check if parent should provide this dependency
+			 */
+			if (this.useParentScope(keyMetadata.scope || ServiceScope.Singleton)) {
+				return this.parent?.get(key) as T;
+			}
+			/**
+			 * Construct the value
+			 */
+			return this.buildValue<T>(key as Class<T>, keyMetadata);
+		}
+		return (undefined as unknown) as T;
+	}
 }

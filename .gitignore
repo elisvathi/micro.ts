@@ -3,3 +3,5 @@ lib/
 README.org
 README.md
 docs/
+.idea/
+.log/

@@ -1,6 +1,7 @@
 import { Optional } from 'joi-typescript-validator';
 import { Body, FilterBrokers, Get, Header, JsonController, Param, Post, QueryParam, Service, BrokerRouteOptions } from '../../src';
 import { SpecBuilder } from '../../src/openapi/SpecBuilder';
+import { FirstService } from '../services/FirstSerivce';
 
 export class TestValdiator {
   @Optional()
@@ -14,7 +15,7 @@ class LogService {
 
 @JsonController("")
 export class DataController {
-  constructor(private log: LogService, private swagger: SpecBuilder) {
+  constructor(private log: LogService, private swagger: SpecBuilder, private dep: FirstService) {
   }
 
   @Get('logs/:id/:test')

@@ -1,25 +1,31 @@
-import { Class } from "..";
-import { ContainerRegistry } from "./DiRegistry";
-import { ServiceOptions } from "./types";
+import { ContainerRegistry, DiRegistry } from './DiRegistry';
+import { ServiceOptions } from './types';
 
 /**
  * Provide custom configuration (transient, or scoped)  for a service to register it in the DI container
  * @param options
  */
-export function Service<T>(options?: ServiceOptions) {
-  return (target: Class<T>) => {
-    let constructorArgs = getInjectParamTypes(target);
-    if (!constructorArgs) {
-      const paramTypes = getConstructorParams(target);
-      constructorArgs = paramTypes.map((x: any) => {
-        return { type: x };
-      });
-      Reflect.defineMetadata('design:injectparamtypes', constructorArgs, target);
-    }
-    options = options || {};
-    options.ctorParams = constructorArgs;
-		ContainerRegistry.bind(target, options);
-  }
+export function Service(
+	options?: ServiceOptions,
+	registry: DiRegistry = ContainerRegistry
+) {
+	return (target: any) => {
+		let constructorArgs = getInjectParamTypes(target);
+		if (!constructorArgs) {
+			const paramTypes = getConstructorParams(target);
+			constructorArgs = paramTypes.map((x: any) => {
+				return { type: x };
+			});
+			Reflect.defineMetadata(
+				'design:injectparamtypes',
+				constructorArgs,
+				target
+			);
+		}
+		options = options || {};
+		options.ctorParams = constructorArgs;
+		registry.bind(target, options);
+	};
 }
 
 /**
@@ -27,15 +33,16 @@ export function Service<T>(options?: ServiceOptions) {
  * @param target
  */
 export function getConstructorParams(target: any): any[] {
-  const paramTypes: any[] = Reflect.getOwnMetadata('design:paramtypes', target) || [];
-  if (paramTypes.length === 0) {
-    const superClass = Object.getPrototypeOf(target);
-    if (!!superClass && superClass !== Object) {
-      return getConstructorParams(superClass);
-    }
-    return [];
-  }
-  return paramTypes;
+	const paramTypes: any[] =
+		Reflect.getOwnMetadata('design:paramtypes', target) || [];
+	if (paramTypes.length === 0) {
+		const superClass = Object.getPrototypeOf(target);
+		if (!!superClass && superClass !== Object) {
+			return getConstructorParams(superClass);
+		}
+		return [];
+	}
+	return paramTypes;
 }
 
 /**
@@ -43,15 +50,18 @@ export function getConstructorParams(target: any): any[] {
  * @param target
  */
 export function getInjectParamTypes(target: any): any[] {
-  const paramTypes: any[] = Reflect.getOwnMetadata('design:injectparamtypes', target);
-  if (!paramTypes) {
-    const superClass = Object.getPrototypeOf(target);
-    if (!!superClass && superClass !== Object) {
-      const returnValue = getInjectParamTypes(superClass);
-      return returnValue;
-    }
-  }
-  return paramTypes;
+	const paramTypes: any[] = Reflect.getOwnMetadata(
+		'design:injectparamtypes',
+		target
+	);
+	if (!paramTypes) {
+		const superClass = Object.getPrototypeOf(target);
+		if (!!superClass && superClass !== Object) {
+			const returnValue = getInjectParamTypes(superClass);
+			return returnValue;
+		}
+	}
+	return paramTypes;
 }
 
 /**
@@ -59,15 +69,31 @@ export function getInjectParamTypes(target: any): any[] {
  * @param key
  */
 export function Inject(key?: any) {
-  return (target: any, _propertyKey: string, parameterIndex: number) => {
-    let ctorMetadata = getInjectParamTypes(target);
-    if (!ctorMetadata) {
-      const constructorArgs = Reflect.getOwnMetadata('design:paramtypes', target) || [];
-      ctorMetadata = constructorArgs.map((x: any) => {
-        return { type: x };
-      });
-    }
-    ctorMetadata[parameterIndex].injectOptions = { key: key || ctorMetadata[parameterIndex].type };
-    Reflect.defineMetadata('design:injectparamtypes', ctorMetadata, target);
-  }
+	return (
+		target: any,
+		_propertyKey: string,
+		parameterIndex: number | PropertyDescriptor
+	) => {
+		if (
+			(!!parameterIndex || parameterIndex === 0) &&
+			typeof parameterIndex === 'number'
+		) {
+			let ctorMetadata = getInjectParamTypes(target);
+			if (!ctorMetadata) {
+				const constructorArgs =
+					Reflect.getOwnMetadata('design:paramtypes', target) || [];
+				ctorMetadata = constructorArgs.map((x: any) => {
+					return { type: x };
+				});
+			}
+			ctorMetadata[parameterIndex].injectOptions = {
+				key: key || ctorMetadata[parameterIndex].type,
+			};
+			Reflect.defineMetadata('design:injectparamtypes', ctorMetadata, target);
+		} else {
+			if (!parameterIndex) {
+			}
+			// const properytInjection = parameterIndex.
+		}
+	};
 }

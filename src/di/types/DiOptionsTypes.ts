@@ -1,7 +1,7 @@
 export enum ServiceScope {
-  Transient,
-  Singleton,
-  Request
+  Transient = "Transient",
+  Singleton = "Singleton",
+  Request = "Request"
 }
 
 export interface ServiceDecoratorOptions {

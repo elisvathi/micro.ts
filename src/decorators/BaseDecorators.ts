@@ -5,6 +5,7 @@ import { ControllerMetadata } from "./types/ControllerMetadataTypes";
 import { Service } from "../di/DiDecorators";
 import { AppErrorHandler } from "../errors/types/ErrorHandlerTypes";
 import { AppMiddleware } from "../middlewares/IMiddleware";
+import { ServiceScope } from "../di/types/DiOptionsTypes";
 
 /**
  * Registers or appends metadata to the method
@@ -164,7 +165,7 @@ export function registerControllerMetadata(target: any, options?: ControllerOpti
     metadata.methods.delete(target.prototype);
     metadata.controllers.set(target, found);
     if (!isFound)
-        Reflect.decorate([Service({ transient: true })], target);
+      Reflect.decorate([Service({scope: ServiceScope.Request})], target);
 }
 
 
@@ -183,4 +184,3 @@ export function attachControllerMiddleware(target: any, middlewares: AppMiddlewa
 export function attachControllerAuthorization(target: any, options?: AuthorizeOptions) {
     registerControllerMetadata(target, { authorize: true, authorization: options });
 }
-

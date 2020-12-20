@@ -54,11 +54,11 @@ export interface ActionRequest {
     path: string
 }
 
-export interface Action {
+export class Action {
     /**
      * Request mapped from broker request format
      */
-    request: ActionRequest
+    request!: ActionRequest
     /**
      * Response from the server
      */

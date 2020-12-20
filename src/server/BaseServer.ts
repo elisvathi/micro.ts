@@ -142,8 +142,10 @@ export class BaseServer {
    * @param broker Broker instance
    */
   private async executeRequest(def: BaseRouteDefinition, action: Action, broker: IBroker) {
-    let start = process.hrtime();
-    const controllerInstance: any = Container.get(def.controllerCtor);
+		const start = new Date().getTime();
+		const requestModule = Container.newModule();
+		requestModule.set(Action, action);
+    const controllerInstance: any = requestModule.get(def.controllerCtor);
     const methodControllerMetadata: MethodControllerOptions = getHandlerMetadata(def.controllerCtor, def.handlerName);
     try {
       action = await this.executeWithTimeout(def, action, broker, controllerInstance, methodControllerMetadata);
@@ -164,7 +166,10 @@ export class BaseServer {
      * Log the request info if enabled
      */
     if (this.options.logRequests) {
-      let end = process.hrtime(start);
+      // let end = process.hrtime(start);
+			let end = new Date().getTime() - start;
+			const seconds = Math.floor(end / 1000);
+			const millis = end % 1000;
       const response = action.response || {};
       const statusCode = response.statusCode || 200;
       console.log(chalk.greenBright(`[${broker.name}]`),
@@ -172,7 +177,7 @@ export class BaseServer {
         chalk.green(`[${def.controller}]`),
         chalk.yellow(`[${def.handlerName}]`),
         `${action.request.path}`,
-        statusCode === 200 ? chalk.blue(`[${statusCode}]`) : chalk.red(`[${statusCode}]`), chalk.greenBright(`[${end[0]}s ${Math.floor(end[1] / 1000000)}ms]`));
+        statusCode === 200 ? chalk.blue(`[${statusCode}]`) : chalk.red(`[${statusCode}]`), chalk.greenBright(`[${seconds}s ${millis}ms]`));
     }
     return action;
   }

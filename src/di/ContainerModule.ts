@@ -8,7 +8,9 @@ import {
 import { InjectOptions, ServiceScope } from './types/DiOptionsTypes';
 
 export class ContainerModule {
-  constructor(private parent?: ContainerModule) { }
+  constructor(private parent?: ContainerModule) {
+		this.set(ContainerModule, this);
+	}
 
   private instances: Map<RegistryKey, any> = new Map();
 
@@ -39,7 +41,7 @@ export class ContainerModule {
     key: RegistryKey,
     resolveItem: ResolverRegistryItem<T>
   ): T {
-    const value = resolveItem.resolver();
+    const value = resolveItem.resolver(this);
     if (resolveItem.scope !== ServiceScope.Transient) {
       this.instances.set(key, value);
     }
@@ -61,7 +63,7 @@ export class ContainerModule {
 		this.instances.set(key, value);
 	}
 
-  public get<T = any>(key: RegistryKey): T | undefined {
+  public get<T = any>(key: RegistryKey): T {
     // Check if module contains an instance
     const existing = this.instances.get(key);
     // Exists in own instances
@@ -72,7 +74,7 @@ export class ContainerModule {
     if (ContainerRegistry.hasResolver(key)) {
       const resolveItem = ContainerRegistry.getResolver(key);
       if (this.useParentScope(resolveItem.scope)) {
-        return this.parent?.get(key);
+        return this.parent?.get(key) as T;
       }
       return this.resolve(key, resolveItem);
     }
@@ -85,9 +87,10 @@ export class ContainerModule {
         return this.get<T>(key);
       }
       if (this.useParentScope(keyMetadata.scope || ServiceScope.Singleton)) {
-        return this.parent?.get(key);
+        return this.parent?.get(key) as T;
       }
       return this.buildValue<T>(key as Class<T>, keyMetadata);
     }
+		return {} as T;
   }
 }

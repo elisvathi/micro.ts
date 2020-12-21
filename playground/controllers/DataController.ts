@@ -14,10 +14,12 @@ export class TestValdiator {
 class LogService {
   constructor(private module: ContainerModule, private action: Action) { }
   calls: number = 0;
-  get controller(): DataController {
+
+  public get controller(): DataController {
     return this.module.get<DataController>(DataController);
   }
-  getData() {
+
+  public getData() {
     return {
       calls: this.calls,
       controller: this.controller.controllerValue,
@@ -25,14 +27,18 @@ class LogService {
       self_headers: this.action.request.headers
     };
   }
+
 }
 
 @JsonController("data")
 export class DataController {
+
   constructor(private log: LogService, private swagger: SpecBuilder, private dep: FirstService) {
   }
+
   controllerValue: number = 0;
   headers: any;
+
   @Get('logs/:id/:test')
   @FilterBrokers(b => b.name === 'private')
   public getLogInfo(@QueryParam('test', { required: false }) test: number,
@@ -48,7 +54,6 @@ export class DataController {
     this.controllerValue = 100;
     this.headers = headers;
     return this.log.getData();
-    // return {count: this.log.calls};
   }
 
   @Get('swagger')

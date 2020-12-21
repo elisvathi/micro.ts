@@ -23,36 +23,32 @@ export class DiRegistry {
 	/**
 	 * Store resolvers metadata and resolver functions
 	 */
-	private resolvers: Map<RegistryKey, ResolverRegistryItem> = new Map();
+  private resolvers: Map<RegistryKey, ResolverRegistryItem> = new Map();
 
 	/**
 	 * Verify for circular dependencies
 	 * @param key
 	 * @param visited
 	 */
-  private verify(key: RegistryKey, visited: Map<RegistryKey, boolean> = new Map()) {
+  private verify(key: RegistryKey, searchKey: RegistryKey, visited: Map<RegistryKey, boolean> = new Map()) {
     if (typeof key === "string") {
       return;
     }
-		if(visited.has(key)){
-			throw new Error("Circular dependency");
-		}
-    visited.set(key, true);
-    const metadata = this.getMetadata(key);
-    if (!metadata) {
-      this.initializeMetadata(key);
-			this.verify(key);
+    if (searchKey === key && visited.has(searchKey)) {
+      throw new Error(`Circular dependency found for [${key}]!`);
     }
-		const ctorParams = metadata?.ctorParams;
-		if(ctorParams && ctorParams.length){
-			for(const param of ctorParams){
-				if(param.injectOptions){
-					this.verify(param.injectOptions.key);
-				}else{
-					this.verify(param.type);
-				}
-			}
-		}
+    if (visited.has(searchKey)) {
+      return;
+    }
+    visited.set(searchKey, true);
+    const metadata = this.getMetadata(searchKey);
+    if (!!metadata) {
+			const ctorParams = metadata.ctorParams || [];
+      for (const item of ctorParams) {
+        const newKey = item.injectOptions?.key || item.type;
+        this.verify(key, newKey, visited);
+      }
+    }
   }
 
 	/**
@@ -62,10 +58,10 @@ export class DiRegistry {
 	 */
   public bind(key: RegistryKey, options: ServiceOptions) {
     if (!options.scope) {
-      options.scope = ServiceScope.Singleton;
+      options.scope = ServiceScope.Transient;
     }
     this.serviceOptions.set(key, options);
-    this.verify(key);
+    this.verify(key, key);
   }
 
 	/**
@@ -94,7 +90,7 @@ export class DiRegistry {
 	 * Get stored metadata for a given key
 	 * @param key
 	 */
-  public getMetadata<T>(key: RegistryKey<T>) {
+  public getMetadata<T>(key: RegistryKey<T>): ServiceOptions | undefined {
     return this.serviceOptions.get(key);
   }
 
@@ -110,12 +106,14 @@ export class DiRegistry {
 	 * Default metadata if they are not specified
 	 * @param key
 	 */
-  public initializeMetadata<T>(key: RegistryKey<T | string>) {
+  public initializeMetadata<T>(key: RegistryKey<T | string>): ServiceOptions {
     const constructorArgs =
       Reflect.getOwnMetadata('design:injectparamtypes', key) || [];
     const options: ServiceOptions = {};
     options.ctorParams = constructorArgs;
-    this.bind(key, options);
+    options.scope = ServiceScope.Transient;
+    this.serviceOptions.set(key, options);
+    return options;
   }
 }
 

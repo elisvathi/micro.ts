@@ -4,6 +4,7 @@ import {
 	ContainerRegistry,
 	RegistryKey,
 	ResolverRegistryItem,
+	DiRegistry,
 } from './DiRegistry';
 import { InjectOptions, ServiceScope } from './types/DiOptionsTypes';
 
@@ -19,9 +20,13 @@ export class ContainerModule {
 	/**
 	 * If a parent is provided, this module is a scoped module,
 	 * meaning for singleton scoped dependencies it will fall back to the parent module
+	 * @param registyr
 	 * @param parent
 	 */
-	constructor(private parent?: ContainerModule) {
+	constructor(
+		private registry: DiRegistry = ContainerRegistry,
+		private parent?: ContainerModule
+	) {
 		this.set(ContainerModule, this);
 	}
 
@@ -134,11 +139,11 @@ export class ContainerModule {
 		/**
 		 * Check for resolvers
 		 */
-		if (ContainerRegistry.hasResolver(key)) {
+		if (this.registry.hasResolver(key)) {
 			/**
 			 * Get resolver info and function from the registry
 			 */
-			const resolveItem = ContainerRegistry.getResolver(key);
+			const resolveItem = this.registry.getResolver(key);
 			/**
 			 * Check if the parent should create the resolver
 			 */
@@ -154,13 +159,12 @@ export class ContainerModule {
 			/**
 			 * Doesn't exist in own instances
 			 */
-			const keyMetadata = ContainerRegistry.getMetadata(key);
+			let keyMetadata = this.registry.getMetadata(key);
 			if (!keyMetadata) {
 				/**
 				 * Initialize metadata and call this method again
 				 */
-				ContainerRegistry.initializeMetadata(key);
-				return this.get<T>(key);
+				keyMetadata = this.registry.initializeMetadata(key);
 			}
 			/**
 			 * Check if parent should provide this dependency

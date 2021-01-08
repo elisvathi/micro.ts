@@ -1,6 +1,6 @@
 {
   "name": "@micro.ts/core",
-  "version": "0.1.4",
+  "version": "0.1.5-rc.0",
   "description": "Microservice framework with Typescript",
   "main": "lib/index.js",
   "scripts": {

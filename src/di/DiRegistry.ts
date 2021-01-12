@@ -111,7 +111,7 @@ export class DiRegistry {
       Reflect.getOwnMetadata('design:injectparamtypes', key) || [];
     const options: ServiceOptions = {};
     options.ctorParams = constructorArgs;
-    options.scope = ServiceScope.Transient;
+    options.scope = ServiceScope.Singleton;
     this.serviceOptions.set(key, options);
     return options;
   }

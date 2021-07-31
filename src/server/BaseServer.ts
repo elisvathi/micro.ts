@@ -725,6 +725,13 @@ export class BaseServer {
 				 */
 				case ParamDecoratorType.ParamField:
 					const paramField = action.request.params[options.name as string];
+					if (metadata.type === Number) {
+						const casted = Number(paramField);
+						if(Number.isNaN(casted)) {
+							throw new BadRequest(`Paramater [${options.name}] is not a valid number!`);
+						}
+						return casted;
+					}
 					return this.validateParam({
 						value: paramField || '',
 						isObject: false,

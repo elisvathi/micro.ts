@@ -1,0 +1,60 @@
+{
+	"root": true,
+	"parserOptions": {
+		"project": [
+			"./tsconfig.json"
+		]
+	},
+	"parser": "@typescript-eslint/parser",
+	"plugins": [
+		"@typescript-eslint"
+	],
+	"extends": [
+		"airbnb-typescript",
+		"plugin:@typescript-eslint/recommended",
+		"plugin:@typescript-eslint/recommended-requiring-type-checking"
+	],
+	"rules": {
+		"arrow-body-style": "off",
+		"func-style": [
+			"error",
+			"expression"
+		],
+		"implicit-arrow-linebreak": "off",
+		"import/prefer-default-export": "off",
+		"indent": [
+			2,
+			"tab"
+		],
+		"max-classes-per-file": "off",
+		"max-len": [
+			"error",
+			{
+				"code": 120,
+				"ignoreUrls": true,
+				"ignoreComments": false,
+				"ignoreRegExpLiterals": true,
+				"ignoreStrings": true,
+				"ignoreTemplateLiterals": true
+			}
+		],
+		"no-tabs": "off",
+		"no-new": "off",
+		"no-param-reassign": "warn",
+		"no-unused-vars": "warn",
+		"object-curly-newline": "off",
+		"@typescript-eslint/no-throw-literal": "off",
+		"@typescript-eslint/no-unused-vars": "warn",
+		"@typescript-eslint/ban-ts-comment": "warn",
+		"@typescript-eslint/dot-notation": "off",
+		"@typescript-eslint/explicit-module-boundary-types": "off",
+		"@typescript-eslint/indent": "off",
+		"@typescript-eslint/no-unsafe-call": "off",
+		"@typescript-eslint/no-unsafe-member-access": "off",
+		"@typescript-eslint/no-unsafe-return": "off",
+		"@typescript-eslint/quotes": [
+			"error",
+			"double"
+		]
+	}
+}

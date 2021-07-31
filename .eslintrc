@@ -16,7 +16,6 @@
 	],
 	"rules": {
 		"arrow-body-style": "off",
-		"explicit-function-return-type": "warn",
 		"func-style": [
 			"error",
 			"expression"

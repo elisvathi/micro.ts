@@ -79,7 +79,7 @@ export class RedisBroker extends AbstractBroker<RedisConfig> {
     this.registeredRoutes.forEach((def, key)=>{
       routes.push(key);
     });
-    await new Promise((resolve, reject)=>{
+    await new Promise<void>((resolve, reject)=>{
       this.subscriber.on('connect', ()=>{
         console.log(`Redis connected on ${this.config}`);
         resolve();

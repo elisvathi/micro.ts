@@ -7,7 +7,7 @@ export class RedisClient {
 
   public async init() {
 		const {url,...options } = this.config;
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this.redis = new IoRedis(this.config.url, options);
       this.redis.on("connect", () => {
         console.log("Redis Connected on ", this.config.url);

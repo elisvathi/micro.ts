@@ -30,12 +30,12 @@ export abstract class StartupBase {
    * Executed before  the server is started, use it for Database Connections,
    * and other async processes that are not broker-related
    */
-  public abstract async beforeStart(): Promise<void>;
+  public abstract beforeStart(): Promise<void>;
 
   /**
    * Executed after the server is started, use to set asynchronous dependencies
    */
-  public abstract async afterStart(): Promise<void>;
+  public abstract afterStart(): Promise<void>;
 
   /**
    * Calls the configure server method, to update the builder, and returns the build options

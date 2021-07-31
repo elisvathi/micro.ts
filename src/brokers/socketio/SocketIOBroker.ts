@@ -11,7 +11,7 @@ export class SocketIOBroker extends AbstractBroker<SocketIOConfig> {
   private server!: SocketServer;
 
   construct() {
-    this.server = Socket(this.config);
+    this.server =  new SocketServer(this.config);
   }
 
   public getConnection(): SocketServer {
@@ -61,7 +61,7 @@ export class SocketIOBroker extends AbstractBroker<SocketIOConfig> {
     this.server.on("close", (e: any)=>this.handleConnectionError(e));
     this.server.on("error", (e: any)=>this.handleConnectionError(e));
     this.server.on('connection', (socket) => {
-      const clientId = socket.client.id;
+      const clientId = socket.id;
       const query = socket.handshake.query;
       const headers = socket.handshake.headers;
       this.registeredRoutes.forEach((defs, key) => {

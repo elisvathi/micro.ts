@@ -21,13 +21,21 @@ export const schemas: Map<Class<any>, any> = new Map<Class<any>, any>();
 
 const controllers: GlobalMetadata = getGlobalMetadata();
 
+interface Api {
+	[key: string]: ReturnType<typeof buildMethodParameters> | any;
+}
+
+type Schema = Api & {
+	path?: string;
+}
+
 function buildControllerSchema(metadata: ControllerMetadata) {
   const methodSchemas: { [key: string]: any } = {};
   if (metadata.handlers) {
     Object.keys(metadata.handlers).forEach(key => {
       const obj = buildHandlerSchema('', metadata.options?.path || "", metadata.ctor, metadata.handlers![key]);
       methodSchemas[obj.path] = methodSchemas[obj.path] || {};
-      const newObj = { ...obj };
+      const newObj = { ...obj } as Schema;
       delete newObj.path;
       Object.assign(methodSchemas[obj.path], newObj);
     });

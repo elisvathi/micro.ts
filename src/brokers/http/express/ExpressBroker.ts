@@ -65,7 +65,7 @@ export class ExpressBroker extends HttpBroker<Application, Request, Response, IH
 
   async start(): Promise<void> {
     this.registerRoutes();
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       this.server.listen(this.config.port as number, this.config.address as string, () => {
         resolve();
       });

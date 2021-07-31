@@ -26,6 +26,7 @@
 			2,
 			"tab"
 		],
+		"max-classes-per-file": "off",
 		"max-len": [
 			"error",
 			{

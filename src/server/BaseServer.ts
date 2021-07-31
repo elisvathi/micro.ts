@@ -732,6 +732,15 @@ export class BaseServer {
 						}
 						return casted;
 					}
+					if(metadata.type === Boolean) {
+						if(paramField === "0" || paramField === "false"){
+							return false;
+						}else
+						if(paramField === "1" || paramField === "true"){
+							return true;
+						}
+						throw new BadRequest(`Paramater [${options.name}] is not a valid boolean!`);
+					}
 					return this.validateParam({
 						value: paramField || '',
 						isObject: false,

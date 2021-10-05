@@ -1,96 +1,92 @@
-export interface ParamMetadata {
-
-}
+export interface ParamMetadata {}
 
 export interface ParamDescription {
-  type: any;
-  options?: ParamOptions;
+	type: any;
+	options?: ParamOptions;
 }
 
 export enum ParamDecoratorType {
-  User = "User",
+	User = "User",
 
-  Body = "Body",
-  BodyField = "BodyField",
+	Body = "Body",
+	BodyField = "BodyField",
 
-  Header = "Headers",
-  HeaderField = "HeaderField",
+	Header = "Headers",
+	HeaderField = "HeaderField",
 
-  Query = "Query",
-  QueryField = "QueryField",
+	Query = "Query",
+	QueryField = "QueryField",
 
-  Request = "Request",
-  RawRequest = "RawRequest",
-  ContainerInject = "ContainerInject",
-  Connection = "Connection",
-  Broker = "Broker",
+	Request = "Request",
+	RawRequest = "RawRequest",
+	ContainerInject = "ContainerInject",
+	Connection = "Connection",
+	Broker = "Broker",
 
-  Method = "Method",
+	Method = "Method",
 
-  Params = "Params",
-  ParamField = "ParamField"
+	Params = "Params",
+	ParamField = "ParamField",
 }
 
 export interface ParamOptions {
-  name?: any;
+	name?: any;
 
-  bodyOptions?: RequestBodyOptions;
-  bodyParamOptions?: RequestBodyParamOptions;
+	bodyOptions?: RequestBodyOptions;
+	bodyParamOptions?: RequestBodyParamOptions;
 
-  headerOptions?: RequestHeaderOptions;
-  headerParamOptions?: RequestHeaderParamOptions;
+	headerOptions?: RequestHeaderOptions;
+	headerParamOptions?: RequestHeaderParamOptions;
 
-  queryOptions?: RequestQueryOptions;
-  queryParamOptions?: RequestQueryParamOptions;
+	queryOptions?: RequestQueryOptions;
+	queryParamOptions?: RequestQueryParamOptions;
 
-  paramOptions?: RequestParamsOptions;
-  singleParamOptions?: RequestSingleParamOptions;
+	paramOptions?: RequestParamsOptions;
+	singleParamOptions?: RequestSingleParamOptions;
 
-  currentUserOptions?: CurrentUserOptions;
-  containerInjectOptions?: ContainerInjectOptions;
-  decoratorType: ParamDecoratorType;
+	currentUserOptions?: CurrentUserOptions;
+	containerInjectOptions?: ContainerInjectOptions;
+	decoratorType: ParamDecoratorType;
 }
 
 export interface RequestBodyOptions {
-  validate?: boolean;
-  required?: boolean;
-  notEmpty?: boolean;
+	validate?: boolean;
+	required?: boolean;
+	notEmpty?: boolean;
 }
 
 export interface RequestBodyParamOptions {
-  required?: boolean;
+	required?: boolean;
 }
 
 export interface RequestHeaderOptions {
-  required?: boolean;
-  notEmpty?: boolean;
-  validate?: boolean;
+	required?: boolean;
+	notEmpty?: boolean;
+	validate?: boolean;
 }
 
 export interface RequestHeaderParamOptions {
-  required?: boolean;
+	required?: boolean;
 }
 
 export interface RequestParamsOptions {
-  validate?: boolean;
+	validate?: boolean;
 }
 
-export interface RequestSingleParamOptions {
-}
+export interface RequestSingleParamOptions {}
 
 export interface RequestQueryOptions {
-  required?: boolean;
-  validate?: boolean;
-  notEmpty?: boolean;
+	required?: boolean;
+	validate?: boolean;
+	notEmpty?: boolean;
 }
 
 export interface RequestQueryParamOptions {
-  required?: boolean;
+	required?: boolean;
 }
 
 export interface CurrentUserOptions {
-  required?: boolean;
+	required?: boolean;
 }
 
-export interface ContainerInjectOptions {
-}
+export interface ContainerInjectOptions {}

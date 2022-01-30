@@ -18,6 +18,7 @@ import {
 } from "../src/server";
 import { DataController } from "./controllers/DataController";
 import { UsersController } from "./controllers/UsersController";
+import { Validate } from "joi-typescript-validator";
 
 class InterruptMiddleware implements IMiddleware {
 	do(
@@ -45,6 +46,9 @@ class Startup extends StartupBase {
 		builder.setLogErrors(true);
 		builder.addBeforeMiddlewares(InterruptMiddleware);
 		builder.addControllers(DataController, UsersController);
+		builder.setValidateFunction((instance, klass) => {
+			return Validate(klass, instance).value;
+		});
 		builder.useHapiBroker((b) =>
 			b.withConfigResolver((c) => c.getFromPath("http.hapi"))
 		);

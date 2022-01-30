@@ -469,7 +469,7 @@ export class BaseServer {
 		methodControllerMetadata: MethodControllerOptions
 	) {
 		/**
-		 * If route requires authorization, check it with the autorization function
+		 * If route requires authorization, check it with the authorization function
 		 */
 		await this.checkAuthorization(action, methodControllerMetadata);
 		/**
@@ -872,8 +872,12 @@ export class BaseServer {
 				brokerServerInfo.push({ route, def, params });
 				this._serverInfo.set(broker, brokerServerInfo);
 			}
-			const schemaBuilder = Container.get<SpecBuilder>(SpecBuilder);
-			schemaBuilder.registerRoute(def, brokers, params);
+			try {
+				const schemaBuilder = Container.get<SpecBuilder>(SpecBuilder);
+				schemaBuilder.registerRoute(def, brokers, params);
+			} catch (e) {
+				console.log("Error registering route schema", { route: def, e });
+			}
 		}
 		return result;
 	}

@@ -1,40 +1,40 @@
 {
-  "name": "@micro.ts/core",
-  "version": "0.1.7-rc.1",
-  "description": "Microservice framework with Typescript",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "keywords": [
-    "typescript",
-    "microservice",
-    "brokers",
-    "microservices",
-    "amqp",
-    "rabbitmq",
-    "redis",
-    "hapi",
-    "koa",
-    "express",
-    "fastify",
-    "http",
-    "socket.io",
-    "decorators",
-    "framework"
-  ],
-  "author": "Elis Vathi",
-  "license": "MIT",
-  "peerDependencies": {},
-  "dependencies": {
-    "chalk": "^2.4.2",
-    "config": "^3.3.1",
-    "joi-to-swagger": "^3.3.0",
-    "joi-typescript-validator": "^0.1.3",
-    "openapi-types": "^1.3.5",
-    "reflect-metadata": "^0.1.13"
-  },
-  "devDependencies": {},
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/elisvathi/micro.ts.git"
-  }
+	"name": "@micro.ts/core",
+	"version": "0.1.7-rc.3",
+	"description": "Microservice framework with Typescript",
+	"main": "index.js",
+	"types": "index.d.ts",
+	"keywords": [
+		"typescript",
+		"microservice",
+		"brokers",
+		"microservices",
+		"amqp",
+		"rabbitmq",
+		"redis",
+		"hapi",
+		"koa",
+		"express",
+		"fastify",
+		"http",
+		"socket.io",
+		"decorators",
+		"framework"
+	],
+	"author": "Elis Vathi",
+	"license": "MIT",
+	"peerDependencies": {},
+	"dependencies": {
+		"chalk": "^5.0.0",
+		"config": "^3.3.7",
+		"joi-to-swagger": "^6.0.1",
+		"joi-typescript-validator": "^0.2.0",
+		"openapi-types": "^10.0.0",
+		"reflect-metadata": "^0.1.13"
+	},
+	"devDependencies": {},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/elisvathi/micro.ts.git"
+	}
 }

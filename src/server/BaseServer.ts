@@ -1,39 +1,46 @@
 import chalk from 'chalk';
-import {
-	AppMiddleware,
-	IMiddleware,
-	MiddlewareFunction,
-	TimeoutError,
-} from '..';
 import { IBroker } from '../brokers/IBroker';
-import { ControllerMetadata, GlobalMetadata } from '../decorators';
 import {
 	getGlobalMetadata,
 	getHandlerMetadata,
 } from '../decorators/GlobalMetadata';
-import {
-	MethodControllerOptions,
-	MethodDescription,
-	MethodOptions,
-	MiddlewareOptions,
-	ParamDecoratorType,
-	ParamDescription,
-	ParamOptions,
-	BrokerRouteOptionsResolver,
-} from '../decorators/types';
-import { Container } from '../di';
-import {
-	AppErrorHandler,
-	BadRequest,
-	ErrorHandlerFunction,
-	IErrorHandler,
-	NotAuthorized,
-} from '../errors';
 import { minNonZero, sleep } from '../helpers/BaseHelpers';
 import { ILogger, LoggerKey } from './Logger';
 import { Action, BaseRouteDefinition, ServerOptions } from './types';
 import { SpecBuilder } from '../openapi/SpecBuilder';
 import { ContainerModule } from '../di/ContainerModule';
+import {
+	AppMiddleware,
+	IMiddleware,
+	MiddlewareFunction,
+} from '../middlewares/IMiddleware';
+import {
+	AppErrorHandler,
+	ErrorHandlerFunction,
+	IErrorHandler,
+} from '../errors/types/ErrorHandlerTypes';
+import {
+	BadRequest,
+	NotAuthorized,
+	TimeoutError,
+} from '../errors/MainAppErrror';
+import {
+	BrokerRouteOptionsResolver,
+	MethodControllerOptions,
+	MethodDescription,
+	MethodOptions,
+	MiddlewareOptions,
+} from '../decorators/types/MethodMetadataTypes';
+import {
+	ControllerMetadata,
+	GlobalMetadata,
+} from '../decorators/types/ControllerMetadataTypes';
+import {
+	ParamDecoratorType,
+	ParamDescription,
+	ParamOptions,
+} from '../decorators/types/ParamMetadataTypes';
+import { Container } from '../di/BaseContainer';
 
 interface RegisterMethodParams {
 	/** Name of the method */
@@ -238,10 +245,8 @@ export class BaseServer {
 		const requestModule = Container.newModule();
 		requestModule.set(Action, action);
 		const controllerInstance: any = requestModule.get(def.controllerCtor);
-		const methodControllerMetadata: MethodControllerOptions = getHandlerMetadata(
-			def.controllerCtor,
-			def.handlerName
-		);
+		const methodControllerMetadata: MethodControllerOptions =
+			getHandlerMetadata(def.controllerCtor, def.handlerName);
 		try {
 			action = await this.executeWithTimeout(
 				def,
@@ -252,6 +257,7 @@ export class BaseServer {
 				requestModule
 			);
 		} catch (err) {
+			const error = err as Record<string, unknown>;
 			const errorHandlers: AppErrorHandler[] = this.getErrorHandlers(
 				methodControllerMetadata
 			);
@@ -266,11 +272,11 @@ export class BaseServer {
 			);
 			if (!handled) {
 				action.response = action.response || {};
-				action.response.statusCode = err.statusCode || 500;
+				action.response.statusCode = Number(error.statusCode) || 500;
 				action.response.is_error = true;
 				action.response.error = err;
 				if (this.options.logErrors && action.response.statusCode === 500) {
-					this.logger.info(action);
+					console.log('Error: ', { error: err, route: def });
 				}
 			}
 		}
@@ -344,9 +350,10 @@ export class BaseServer {
 	 * Group an array of middleware options , with the before flag, into to groups, before middlewares and after middlewares
 	 * @param middlewares List of middleware options
 	 */
-	private groupMiddlewares(
-		middlewares: MiddlewareOptions[]
-	): { before: AppMiddleware[]; after: AppMiddleware[] } {
+	private groupMiddlewares(middlewares: MiddlewareOptions[]): {
+		before: AppMiddleware[];
+		after: AppMiddleware[];
+	} {
 		const result: { before: AppMiddleware[]; after: AppMiddleware[] } = {
 			before: [],
 			after: [],
@@ -374,9 +381,10 @@ export class BaseServer {
 	 * 3. App's after middlewares
 	 * @param methodMetadata
 	 */
-	private getMiddlewares(
-		methodMetadata: MethodControllerOptions
-	): { before: any[]; after: any[] } {
+	private getMiddlewares(methodMetadata: MethodControllerOptions): {
+		before: any[];
+		after: any[];
+	} {
 		const middlewares: { before: any[]; after: any[] } = {
 			before: [],
 			after: [],
@@ -484,7 +492,7 @@ export class BaseServer {
 		requestModule: ContainerModule
 	) {
 		/**
-		 * If route requires authorization, check it with the autorization function
+		 * If route requires authorization, check it with the authorization function
 		 */
 		await this.checkAuthorization(action, methodControllerMetadata);
 		/**
@@ -512,7 +520,7 @@ export class BaseServer {
 					controllerInstance,
 					broker,
 					requestModule,
-					send,
+					send
 				);
 				if (broken) {
 					break;
@@ -654,9 +662,10 @@ export class BaseServer {
 				const result = await this.options.validateFunction(value, type);
 				return result || value;
 			} catch (err) {
+				const error = err as Record<string, unknown>;
 				throw new BadRequest(
 					'One or more errors with your request',
-					err.details || err.message || err
+					error.details || error.message || error
 				);
 			}
 		}
@@ -706,7 +715,6 @@ export class BaseServer {
 						validate: false,
 						name: options.name,
 					});
-
 				/**
 				 * Inject the request parameters
 				 */
@@ -732,13 +740,11 @@ export class BaseServer {
 						validate: false,
 						name: options.name,
 					});
-
 				/**
 				 * Inject the request method
 				 */
 				case ParamDecoratorType.Method:
 					return action.request.method;
-
 				/**
 				 * Inject the broker connection
 				 */
@@ -764,7 +770,6 @@ export class BaseServer {
 				 */
 				case ParamDecoratorType.Broker:
 					return broker;
-
 				/**
 				 * Inject all the request headers
 				 */
@@ -791,7 +796,6 @@ export class BaseServer {
 						validate: false,
 						name: options.name,
 					});
-
 				/**
 				 * Inject the request query
 				 */
@@ -845,6 +849,15 @@ export class BaseServer {
 		brokers: IBroker[],
 		params: ParamDescription[]
 	) {
+		if (this.options.onRouteListeners && this.options.onRouteListeners.length) {
+			this.options.onRouteListeners.forEach((listener) => {
+				try {
+					listener(def, brokers, params);
+				} catch (_e) {
+					//ignore
+				}
+			});
+		}
 		const result: any = {};
 		if (brokers && brokers.length) {
 			for (let i = 0; i < brokers.length; i++) {
@@ -858,8 +871,15 @@ export class BaseServer {
 				brokerServerInfo.push({ route, def, params });
 				this._serverInfo.set(broker, brokerServerInfo);
 			}
-			const schemaBuilder = Container.get<SpecBuilder>(SpecBuilder);
-			schemaBuilder.registerRoute(def, brokers, params);
+			try {
+				const schemaBuilder = Container.get<SpecBuilder>(SpecBuilder);
+				schemaBuilder.registerRoute(def, brokers, params);
+			} catch (err) {
+				console.log(`Error registering route schema!`, {
+					route: def,
+					error: err,
+				});
+			}
 		}
 		return result;
 	}

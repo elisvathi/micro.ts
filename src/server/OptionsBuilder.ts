@@ -23,6 +23,9 @@ export type GetNotAuthorizedErrorFuntion = (
 	action: Action,
 	options?: AuthorizeOptions
 ) => MainAppError | Promise<MainAppError>;
+
+export type MicroPlugin = (builder: OptionsBuilder) => void;
+
 export type ValidateFunction = <T>(value: any, type: Class<T>) => Promise<T>;
 export type StartupHook = () => Promise<void>;
 
@@ -233,6 +236,11 @@ export class OptionsBuilder {
 	 * */
 	public setGenerateSwagger(value: boolean): OptionsBuilder {
 		this.options.generateSwagger = value;
+		return this;
+	}
+
+	public addPlugin(plugin: MicroPlugin): OptionsBuilder {
+		plugin(this);
 		return this;
 	}
 }

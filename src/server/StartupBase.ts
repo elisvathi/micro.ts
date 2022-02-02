@@ -9,18 +9,18 @@ export abstract class StartupBase {
 	 */
 	public readonly builder: OptionsBuilder;
 
-	constructor(config: IConfiguration) {
+	public constructor(config: IConfiguration) {
 		this.builder = new OptionsBuilder(config, Container);
 	}
 
-	public async callBeforeStartHooks() {
+	public async callBeforeStartHooks(): Promise<void> {
 		const hooks = this.builder.beforeStartHooks;
 		for (let i = 0; i < hooks.length; i++) {
 			await hooks[i]();
 		}
 	}
 
-	public async callAfterStartHooks() {
+	public async callAfterStartHooks(): Promise<void> {
 		const hooks = this.builder.afterStartHooks;
 		for (let i = 0; i < hooks.length; i++) {
 			await hooks[i]();
@@ -44,5 +44,6 @@ export abstract class StartupBase {
 		this.configureServer(this.builder);
 		return this.builder.serverOptions;
 	}
+
 	public abstract configureServer(builder: OptionsBuilder): void;
 }

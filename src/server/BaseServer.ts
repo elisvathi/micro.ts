@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+// import chalk from 'chalk';
 import { IBroker } from '../brokers/IBroker';
 import {
 	getGlobalMetadata,
@@ -82,7 +82,7 @@ interface ValidateParamParams {
 }
 
 export class BaseServer {
-	constructor(private options: ServerOptions) {}
+	public constructor(private options: ServerOptions) {}
 
 	private get logger(): ILogger {
 		return Container.get<ILogger>(LoggerKey);
@@ -141,7 +141,7 @@ export class BaseServer {
 		controller: any,
 		broker: IBroker,
 		requestModule: ContainerModule
-	) {
+	): Promise<boolean> {
 		if (handler.prototype && 'do' in handler.prototype) {
 			const casted: IErrorHandler = requestModule.get(
 				handler.prototype.constructor
@@ -199,7 +199,7 @@ export class BaseServer {
 		controller: any,
 		methodControllerMetadata: MethodControllerOptions,
 		requestModule: ContainerModule
-	) {
+	): Promise<any> {
 		/**
 		 * Get configured timeouts
 		 */
@@ -240,7 +240,7 @@ export class BaseServer {
 		def: BaseRouteDefinition,
 		action: Action,
 		broker: IBroker
-	) {
+	): Promise<Action> {
 		const start = new Date().getTime();
 		const requestModule = Container.newModule();
 		requestModule.set(Action, action);
@@ -275,7 +275,10 @@ export class BaseServer {
 				action.response.statusCode = Number(error.statusCode) || 500;
 				action.response.is_error = true;
 				action.response.error = err;
-				if (this.options.logErrors && action.response.statusCode === 500) {
+				if (
+					this.options.logErrors &&
+					action.response.statusCode === 500
+				) {
 					console.log('Error: ', { error: err, route: def });
 				}
 			}
@@ -285,22 +288,31 @@ export class BaseServer {
 		 */
 		if (this.options.logRequests) {
 			// let end = process.hrtime(start);
-			let end = new Date().getTime() - start;
+			const end = new Date().getTime() - start;
 			const seconds = Math.floor(end / 1000);
 			const millis = end % 1000;
 			const response = action.response || {};
 			const statusCode = response.statusCode || 200;
 			console.log(
-				chalk.greenBright(`[${broker.name}]`),
-				chalk.blueBright(`[${def.method.toUpperCase()}]`),
-				chalk.green(`[${def.controller}]`),
-				chalk.yellow(`[${def.handlerName}]`),
+				`[${broker.name}]`,
+				`[${def.method.toUpperCase()}]`,
+				`[${def.controller}]`,
+				`[${def.handlerName}]`,
 				`${action.request.path}`,
-				statusCode === 200
-					? chalk.blue(`[${statusCode}]`)
-					: chalk.red(`[${statusCode}]`),
-				chalk.greenBright(`[${seconds}s ${millis}ms]`)
+				statusCode === 200 ? `[${statusCode}]` : `[${statusCode}]`,
+				`[${seconds}s ${millis}ms]`
 			);
+			// console.log(
+			// 	chalk.greenBright(`[${broker.name}]`),
+			// 	chalk.blueBright(`[${def.method.toUpperCase()}]`),
+			// 	chalk.green(`[${def.controller}]`),
+			// 	chalk.yellow(`[${def.handlerName}]`),
+			// 	`${action.request.path}`,
+			// 	statusCode === 200
+			// 		? chalk.blue(`[${statusCode}]`)
+			// 		: chalk.red(`[${statusCode}]`),
+			// 	chalk.greenBright(`[${seconds}s ${millis}ms]`)
+			// );
 		}
 		return action;
 	}
@@ -314,7 +326,7 @@ export class BaseServer {
 	private async checkAuthorization(
 		action: Action,
 		methodMetadata: MethodControllerOptions
-	) {
+	): Promise<void> {
 		let shouldCheck = false;
 		if (methodMetadata.controller.authorize) {
 			shouldCheck = true;
@@ -341,7 +353,9 @@ export class BaseServer {
 					);
 					throw error;
 				}
-				throw new NotAuthorized('You are not authorized to make this request');
+				throw new NotAuthorized(
+					'You are not authorized to make this request'
+				);
 			}
 		}
 	}
@@ -458,7 +472,9 @@ export class BaseServer {
 	 * Build error handlers for the route, using first the method error handlers, then controller error handlers, and app-level error handlers
 	 * @param methodMetadata Metadata for the handler
 	 */
-	private getErrorHandlers(methodMetadata: MethodControllerOptions) {
+	private getErrorHandlers(
+		methodMetadata: MethodControllerOptions
+	): AppErrorHandler[] {
 		const result: AppErrorHandler[] = [];
 		/**
 		 * Handler level error handlers
@@ -490,7 +506,7 @@ export class BaseServer {
 		controllerInstance: any,
 		methodControllerMetadata: MethodControllerOptions,
 		requestModule: ContainerModule
-	) {
+	): Promise<Action> {
 		/**
 		 * If route requires authorization, check it with the authorization function
 		 */
@@ -540,7 +556,7 @@ export class BaseServer {
 			/**
 			 * Execute the handler
 			 */
-			let result = await controllerInstance[def.handlerName](...args);
+			const result = await controllerInstance[def.handlerName](...args);
 			/**
 			 * Build response
 			 */
@@ -707,7 +723,8 @@ export class BaseServer {
 				 * Inject only a named field of the body
 				 */
 				case ParamDecoratorType.BodyField:
-					const bodyField = action.request.body[options.name as string];
+					const bodyField =
+						action.request.body[options.name as string];
 					return this.validateParam({
 						value: bodyField,
 						isObject: false,
@@ -732,7 +749,8 @@ export class BaseServer {
 				 * Inject only a named parameter
 				 */
 				case ParamDecoratorType.ParamField:
-					const paramField = action.request.params[options.name as string];
+					const paramField =
+						action.request.params[options.name as string];
 					return this.validateParam({
 						value: paramField || '',
 						isObject: false,
@@ -788,7 +806,8 @@ export class BaseServer {
 				 * Inject only a named header
 				 */
 				case ParamDecoratorType.HeaderField:
-					const headerParam = action.request.headers[options.name as string];
+					const headerParam =
+						action.request.headers[options.name as string];
 					return this.validateParam({
 						value: headerParam,
 						isObject: false,
@@ -800,7 +819,7 @@ export class BaseServer {
 				 * Inject the request query
 				 */
 				case ParamDecoratorType.Query:
-					let query = action.request.qs;
+					const query = action.request.qs;
 					return this.validateParam({
 						value: query,
 						isObject: true,
@@ -814,7 +833,8 @@ export class BaseServer {
 				 * Inject only a named query field
 				 */
 				case ParamDecoratorType.QueryField:
-					const queryParam = action.request.qs[options.name as string];
+					const queryParam =
+						action.request.qs[options.name as string];
 					return this.validateParam({
 						value: queryParam,
 						isObject: false,
@@ -827,7 +847,8 @@ export class BaseServer {
 				 */
 				case ParamDecoratorType.User:
 					const user = await this.getUser(action, broker);
-					const required = options.currentUserOptions!.required || false;
+					const required =
+						options.currentUserOptions!.required || false;
 					if (required && !user) {
 						throw new NotAuthorized(
 							'You are not authorized to access this resource'
@@ -848,8 +869,11 @@ export class BaseServer {
 		def: BaseRouteDefinition,
 		brokers: IBroker[],
 		params: ParamDescription[]
-	) {
-		if (this.options.onRouteListeners && this.options.onRouteListeners.length) {
+	): Promise<any> {
+		if (
+			this.options.onRouteListeners &&
+			this.options.onRouteListeners.length
+		) {
 			this.options.onRouteListeners.forEach((listener) => {
 				try {
 					listener(def, brokers, params);
@@ -888,19 +912,24 @@ export class BaseServer {
 	 * Registers all routes to the brokers
 	 * Initializes all brokers
 	 */
-	public async start() {
+	public async start(): Promise<void> {
 		await this.buildRoutes();
 		if (this.options.brokers) {
 			await Promise.all(
 				this.options.brokers.map(async (x) => {
 					if (this.options.onBrokerConnnectionError) {
-						x.setConnectionErrorHandler(this.options.onBrokerConnnectionError);
+						x.setConnectionErrorHandler(
+							this.options.onBrokerConnnectionError
+						);
 					}
 					try {
 						await x.start();
 					} catch (brokerConnectionError) {
 						if (this.options.onBrokerConnnectionError) {
-							this.options.onBrokerConnnectionError(x, brokerConnectionError);
+							this.options.onBrokerConnnectionError(
+								x,
+								brokerConnectionError
+							);
 						} else {
 							throw brokerConnectionError;
 						}
@@ -913,15 +942,27 @@ export class BaseServer {
 
 	private _serverInfo: Map<
 		IBroker,
-		{ route: string; def: BaseRouteDefinition; params: ParamDescription[] }[]
+		{
+			route: string;
+			def: BaseRouteDefinition;
+			params: ParamDescription[];
+		}[]
 	> = new Map<
 		IBroker,
-		{ route: string; def: BaseRouteDefinition; params: ParamDescription[] }[]
+		{
+			route: string;
+			def: BaseRouteDefinition;
+			params: ParamDescription[];
+		}[]
 	>();
 
 	public get serverInfo(): Map<
 		IBroker,
-		{ route: string; def: BaseRouteDefinition; params: ParamDescription[] }[]
+		{
+			route: string;
+			def: BaseRouteDefinition;
+			params: ParamDescription[];
+		}[]
 	> {
 		return this._serverInfo;
 	}
@@ -950,7 +991,7 @@ export class BaseServer {
 		controllerName,
 		timeout,
 		brokerRouteOptions,
-	}: RegisterMethodParams) {
+	}: RegisterMethodParams): Promise<void> {
 		const metadata: MethodOptions = desc.metadata || {};
 		const methodPath = metadata.path;
 		let path = methodPath || methodName;
@@ -1005,7 +1046,7 @@ export class BaseServer {
 		basePath: string,
 		routes: any[],
 		brokers: IBroker[]
-	) {
+	): Promise<void> {
 		if (this.options.controllers.includes(controllerMetadata.ctor)) {
 			const name = controllerMetadata.name;
 			let options = controllerMetadata.options;
@@ -1015,14 +1056,18 @@ export class BaseServer {
 			 * Filter brokers for the controller if annotated with broker filter
 			 */
 			if (options.brokersFilter) {
-				controllerBrokers = controllerBrokers.filter(options.brokersFilter);
+				controllerBrokers = controllerBrokers.filter(
+					options.brokersFilter
+				);
 			}
 			const cPath = options.path;
 			const isJson = !!options.json;
 			const controllerPath = cPath || '';
 			const handlers = controllerMetadata.handlers as any;
 			const controllerTimeout =
-				(controllerMetadata.options && controllerMetadata.options.timeout) || 0;
+				(controllerMetadata.options &&
+					controllerMetadata.options.timeout) ||
+				0;
 			const controllerBrokerRouteOptions =
 				controllerMetadata.options?.brokerRouteOptions;
 			/**
@@ -1034,13 +1079,16 @@ export class BaseServer {
 					 * Get timeout from controller or method
 					 */
 					let timeout: number | undefined = controllerTimeout;
-					const methodDescriptor = (controllerMetadata.handlers || {})[key];
+					const methodDescriptor = (controllerMetadata.handlers ||
+						{})[key];
 					/**
 					 * If it has method timeout configured get the minimum nonzero
 					 */
 					if (!!methodDescriptor) {
-						methodDescriptor.metadata = methodDescriptor.metadata || {};
-						const methodTimeout = methodDescriptor.metadata.timeout || 0;
+						methodDescriptor.metadata =
+							methodDescriptor.metadata || {};
+						const methodTimeout =
+							methodDescriptor.metadata.timeout || 0;
 						timeout = minNonZero(controllerTimeout, methodTimeout);
 					}
 					await this.buildSingleMethodRoute({
@@ -1067,17 +1115,30 @@ export class BaseServer {
 	 * Build all the routes for all the app's controllers
 	 * @param controllers Metadata for all registered controllers
 	 */
-	private async buildAllControllers(controllers: ControllerMetadata[]) {
+	private async buildAllControllers(
+		controllers: ControllerMetadata[]
+	): Promise<
+		{
+			brokers: string;
+			method: string;
+			[key: string]: any;
+		}[]
+	> {
 		const routes: {
 			brokers: string;
 			method: string;
 			[key: string]: any;
 		}[] = [];
 		const basePath = this.options.basePath || '';
-		let brokers = this.options.brokers || [];
+		const brokers = this.options.brokers || [];
 		await Promise.all(
 			controllers.map(async (c) => {
-				await this.buildSingleControllerRoute(c, basePath, routes, brokers);
+				await this.buildSingleControllerRoute(
+					c,
+					basePath,
+					routes,
+					brokers
+				);
 			})
 		);
 		return routes;
@@ -1087,8 +1148,8 @@ export class BaseServer {
 	 * Gets all the controllers metadata and build all the routes
 	 * Displays route table on the screen
 	 */
-	public async buildRoutes() {
-		let controllers = BaseServer.controllersMetadata.controllers;
+	public async buildRoutes(): Promise<void> {
+		const controllers = BaseServer.controllersMetadata.controllers;
 		const routes = await this.buildAllControllers(
 			Array.from(controllers.values())
 		);

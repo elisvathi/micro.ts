@@ -1,4 +1,4 @@
-import zlib from 'zlib';
+import * as zlib from 'zlib';
 
 export async function sleep(time: number = 1000): Promise<void> {
 	return new Promise((ok) => {

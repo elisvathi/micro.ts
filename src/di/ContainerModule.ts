@@ -177,6 +177,6 @@ export class ContainerModule {
 			 */
 			return this.buildValue<T>(key as Class<T>, keyMetadata);
 		}
-		return (undefined as unknown) as T;
+		return undefined as unknown as T;
 	}
 }

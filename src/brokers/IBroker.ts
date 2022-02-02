@@ -1,5 +1,5 @@
-import {Action, BaseRouteDefinition} from "../server/types/BaseTypes";
-import { IConfiguration, BrokerConnectionErrorHandler} from "../server";
+import { Action, BaseRouteDefinition } from '../server/types/BaseTypes';
+import { IConfiguration, BrokerConnectionErrorHandler } from '../server';
 
 /**
  * Maps the app level route definitions passed in the BaseRouteDefinition object, with the broker specific routes
@@ -12,32 +12,35 @@ export type RouteMapper = (def: BaseRouteDefinition) => string;
 export type RequestMapper = (...input: any[]) => Promise<Action>;
 
 export interface BrokerConnection<T> {
-    connection: T;
+	connection: T;
 }
 
 export interface IBroker<TConfig = any> {
-  appConfiguration?: IConfiguration;
-  absoluteConfig?: TConfig;
-  name: string;
-  readonly config: TConfig;
+	appConfiguration?: IConfiguration;
+	absoluteConfig?: TConfig;
+	name: string;
+	readonly config: TConfig;
 
-  /**
-     * Register routes before the brokers starts
-     * Saves the route in a broker level Map object, using its resulting route as a key and an array of handler definitions
-     * If the resulting route has more than one handler registered, it is recommended to set the ActionToRoute mapper object,
-     * to filter out the correct handler from the list of multiple handlers
-     * @param def
-     * @param handler
-     */
-    addRoute(def: BaseRouteDefinition, handler: (action: Action) => any): string | Promise<string>;
-    setRequestMapper(requestMapper: RequestMapper): void;
-    setRouteMapper(setRouteMapper: RouteMapper): void;
-    getDefaultTimeout(): number;
-    setDefaultTimeout(val: number): void;
-    setConnectionErrorHandler(handler: BrokerConnectionErrorHandler): void;
+	/**
+	 * Register routes before the brokers starts
+	 * Saves the route in a broker level Map object, using its resulting route as a key and an array of handler definitions
+	 * If the resulting route has more than one handler registered, it is recommended to set the ActionToRoute mapper object,
+	 * to filter out the correct handler from the list of multiple handlers
+	 * @param def
+	 * @param handler
+	 */
+	addRoute(
+		def: BaseRouteDefinition,
+		handler: (action: Action) => any
+	): string | Promise<string>;
+	setRequestMapper(requestMapper: RequestMapper): void;
+	setRouteMapper(setRouteMapper: RouteMapper): void;
+	getDefaultTimeout(): number;
+	setDefaultTimeout(val: number): void;
+	setConnectionErrorHandler(handler: BrokerConnectionErrorHandler): void;
 
-    /**
-     * Starts the broker connection
-     */
-    start(): Promise<void>;
+	/**
+	 * Starts the broker connection
+	 */
+	start(): Promise<void>;
 }

@@ -1,9 +1,10 @@
 {
 	"name": "@micro.ts/core",
-	"version": "0.1.7-rc.3",
+	"version": "0.1.7-rc.5",
 	"description": "Microservice framework with Typescript",
 	"main": "index.js",
 	"types": "index.d.ts",
+	"type": "module",
 	"keywords": [
 		"typescript",
 		"microservice",

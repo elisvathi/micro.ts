@@ -1,10 +1,9 @@
 {
 	"name": "@micro.ts/core",
-	"version": "0.1.7-rc.3",
+	"version": "0.1.7-rc.5",
 	"description": "Microservice framework with Typescript",
 	"main": "lib/index.js",
 	"scripts": {
-		"start": "npx ts-node --project=tsconfig.playground.json ./playground/playground.ts",
 		"update": "npx npm-auto-version && node update-version.js && npm run build && npm run commit:version && npm run push && cd lib && npm publish",
 		"pack": "npm run prepack && cd lib && npm pack",
 		"prepack": "npm run clean && npm run build",
@@ -50,6 +49,11 @@
 		"@types/uuid": "^8.3.4",
 		"@typescript-eslint/eslint-plugin": "^5.10.2",
 		"@typescript-eslint/parser": "^5.10.2",
+		"@typescript-eslint/typescript-estree": "^5.10.2",
+		"eslint": "^8.8.0",
+		"eslint-config-prettier": "^8.3.0",
+		"eslint-plugin-import": "^2.25.4",
+		"eslint-plugin-prettier": "^4.0.0",
 		"amqplib": "^0.8.0",
 		"axios": "^0.25.0",
 		"chai": "^4.3.6",

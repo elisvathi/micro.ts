@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"rootDir": "./",
+		"outDir": "./dist",
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"esModuleInterop": true,
+		"noImplicitAny": false,
+		"noLib": false,
+		"skipLibCheck": true,
+		"module": "commonjs",
+		"lib": ["es6"],
+		"strict": true
+	},
+	"include": ["../src/**/*.ts", "./**/*.ts"]
+}

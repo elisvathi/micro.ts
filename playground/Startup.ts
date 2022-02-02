@@ -12,7 +12,7 @@ export class Startup extends StartupBase {
 	}
 
 	public configureServer(builder: OptionsBuilder): void {
-		builder.useHapiBroker((b) => b.withConfig({ port: 3000 }));
+		builder.useHapiBroker((b) => b.withConfig({ port: 3939 }));
 		builder.addControllers(ValuesController);
 	}
 }

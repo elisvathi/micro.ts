@@ -878,7 +878,7 @@ export class BaseServer {
 				try {
 					listener(def, brokers, params);
 				} catch (_e) {
-					//ignore
+					// ignore
 				}
 			});
 		}
@@ -895,14 +895,17 @@ export class BaseServer {
 				brokerServerInfo.push({ route, def, params });
 				this._serverInfo.set(broker, brokerServerInfo);
 			}
-			try {
-				const schemaBuilder = Container.get<SpecBuilder>(SpecBuilder);
-				schemaBuilder.registerRoute(def, brokers, params);
-			} catch (err) {
-				console.log(`Error registering route schema!`, {
-					route: def,
-					error: err,
-				});
+			if (this.options.generateSwagger) {
+				try {
+					const schemaBuilder =
+						Container.get<SpecBuilder>(SpecBuilder);
+					schemaBuilder.registerRoute(def, brokers, params);
+				} catch (err) {
+					console.log(`Error registering route schema!`, {
+						route: def,
+						error: err,
+					});
+				}
 			}
 		}
 		return result;

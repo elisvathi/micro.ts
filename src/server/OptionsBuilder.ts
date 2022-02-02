@@ -29,7 +29,7 @@ export type StartupHook = () => Promise<void>;
 export class OptionsBuilder {
 	public beforeStartHooks: StartupHook[] = [];
 	public afterStartHooks: StartupHook[] = [];
-	constructor(
+	public constructor(
 		public config: IConfiguration,
 		private container: BaseContainer
 	) {}
@@ -41,12 +41,14 @@ export class OptionsBuilder {
 		errorHandlers: [],
 	};
 
-	public addBeforeStartHook(hook: StartupHook) {
+	public addBeforeStartHook(hook: StartupHook): OptionsBuilder {
 		this.beforeStartHooks.push(hook);
+		return this;
 	}
 
-	public addAfterStartHook(hook: StartupHook) {
+	public addAfterStartHook(hook: StartupHook): OptionsBuilder {
 		this.afterStartHooks.push(hook);
+		return this;
 	}
 
 	/**
@@ -70,7 +72,7 @@ export class OptionsBuilder {
 	 * Base path for all the endpoints
 	 * @param val
 	 */
-	setBasePath(val: string): OptionsBuilder {
+	public setBasePath(val: string): OptionsBuilder {
 		this.options.basePath = val;
 		return this;
 	}
@@ -87,9 +89,10 @@ export class OptionsBuilder {
 	/*
 	 * Listen on startup when a route is registered!
 	 * */
-	public onRoute(fn: OnRotueListener) {
+	public onRoute(fn: OnRotueListener): OptionsBuilder {
 		this.options.onRouteListeners = this.options.onRouteListeners || [];
 		this.options.onRouteListeners.push(fn);
+		return this;
 	}
 
 	/**
@@ -105,8 +108,11 @@ export class OptionsBuilder {
 	 * Add a prebuilt broker
 	 * @param broker
 	 */
-	public addBroker(broker: IBroker) {
-		this.options.brokers!.push(broker);
+	public addBroker(broker: IBroker): OptionsBuilder {
+		if (this.options.brokers) {
+			this.options.brokers.push(broker);
+		}
+		return this;
 	}
 
 	/**
@@ -122,8 +128,12 @@ export class OptionsBuilder {
 	 * Add middlewares that get executed before any request handling, on all requests
 	 * @param middlewares
 	 */
-	public addBeforeMiddlewares(...middlewares: AppMiddleware[]): OptionsBuilder {
-		this.options.beforeMiddlewares!.push(...middlewares);
+	public addBeforeMiddlewares(
+		...middlewares: AppMiddleware[]
+	): OptionsBuilder {
+		if (this.options.beforeMiddlewares) {
+			this.options.beforeMiddlewares.push(...middlewares);
+		}
 		return this;
 	}
 
@@ -131,8 +141,12 @@ export class OptionsBuilder {
 	 * Add middlewares that get executed after all successfully handled requests
 	 * @param middlewares
 	 */
-	public addAfterMiddlewares(...middlewares: AppMiddleware[]): OptionsBuilder {
-		this.options.afterMiddlewares!.push(...middlewares);
+	public addAfterMiddlewares(
+		...middlewares: AppMiddleware[]
+	): OptionsBuilder {
+		if (this.options.afterMiddlewares) {
+			this.options.afterMiddlewares.push(...middlewares);
+		}
 		return this;
 	}
 
@@ -141,7 +155,9 @@ export class OptionsBuilder {
 	 * @param handlers
 	 */
 	public addErrorHandlers(...handlers: AppErrorHandler[]): OptionsBuilder {
-		this.options.errorHandlers!.push(...handlers);
+		if (this.options.errorHandlers) {
+			this.options.errorHandlers.push(...handlers);
+		}
 		return this;
 	}
 
@@ -180,7 +196,7 @@ export class OptionsBuilder {
 	 * Set validate function
 	 * @param func
 	 */
-	public setValidateFunction(func: ValidateFunction) {
+	public setValidateFunction(func: ValidateFunction): OptionsBuilder {
 		this.options.validateFunction = func;
 		return this;
 	}
@@ -189,22 +205,34 @@ export class OptionsBuilder {
 	 * Set logger in container
 	 * @param logger
 	 */
-	public setLogger(logger: ILogger) {
+	public setLogger(logger: ILogger): OptionsBuilder {
 		this.container.set(LoggerKey, logger);
 		return this;
 	}
 
-	public setTimeout(timeout: number) {
+	public setTimeout(timeout: number): OptionsBuilder {
 		if (timeout > 0) {
 			this.options.timeout = timeout;
 		}
+		return this;
 	}
 
 	/**
 	 * Set broker connection error handler
 	 * @param handler
 	 */
-	public setConnectionErrorHandler(handler: BrokerConnectionErrorHandler) {
+	public setConnectionErrorHandler(
+		handler: BrokerConnectionErrorHandler
+	): OptionsBuilder {
 		this.options.onBrokerConnnectionError = handler;
+		return this;
+	}
+
+	/*
+	 * If true it will fill the SpecBuilder singleton with the routes
+	 * */
+	public setGenerateSwagger(value: boolean): OptionsBuilder {
+		this.options.generateSwagger = value;
+		return this;
 	}
 }

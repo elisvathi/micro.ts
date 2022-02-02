@@ -89,4 +89,5 @@ export interface ServerOptions {
 	 */
 	onBrokerConnnectionError?: BrokerConnectionErrorHandler;
 	onRouteListeners?: OnRotueListener[];
+	generateSwagger?: boolean;
 }

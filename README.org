@@ -83,20 +83,27 @@ import { OptionsBuilder, StartupBase } from '@micro.ts/core';
 import '@micro.ts/core/brokers/http/hapi';
 
 export class Startup extends StartupBase {
+  /*
+   * Use this methods for inializiations before the brokers are initialized
+   */
   public async beforeStart(): Promise<void> {
     console.log('Before start called');
   }
 
+  /*
+   * This method gets called after the brokers are initialized
+   */
   public async afterStart(): Promise<void> {
     console.log('After start called!');
   }
 
+  /*
+   * Application setup builder
+   **/
   public configureServer(builder: OptionsBuilder): void {
-    builder.setBasePath('api');
-    builder.setDevMode(true);
-    builder.setLogErrors(false);
-    builder.setLogRequests(true);
-    builder.useHapiBroker((b) => b.withConfig({ port: 8080 }));
+    builder.setBasePath('api'); // all routes are prefixed with /api
+    builder.setLogRequests(true); // log all requests
+    builder.useHapiBroker((b) => b.withConfig({ port: 8080 })); // Serve endpoints on port 8080 using Hapi
   }
 }
 #+END_SRC
@@ -109,10 +116,10 @@ export class Startup extends StartupBase {
 #+BEGIN_SRC typescript
 import { Get, JsonController } from '@micro.ts/core';
 
-@JsonController('first')
+@JsonController('first') // Controller path
 export class HelloController {
-  @Get('')
-  public getHello(): string {
+  @Get('') // Request verb (Get, Post, Put, Patch, Delete)
+  public getHello(): string { // Handler
     return 'Hello, World!';
   }
 }
@@ -126,9 +133,8 @@ export class HelloController {
 import { HelloController } from './controllers/FirstController';
 //---
 
-// Add this line at the end of configureServer method
-//--- configureServer(builder: OptionsBuilder)
 //---
+// Add this line at the end of configureServer() method
     builder.addControllers(HelloController);
 //---
 #+END_SRC
@@ -140,3 +146,258 @@ tsc && node build/main.js
 #+END_SRC
 ******* Open browser on http://localhost:8080/api/first
 And now you should see the "Hello, World!" message!
+
+**** Request Data Decorators
+***** Headers
+Injects all request headers as an object
+#+BEGIN_SRC typescript
+
+  @Get('')
+  public get(@Headers() headers: Record<string, string | string[]>): void {
+    console.log(headers);
+  }
+
+#+END_SRC
+
+***** Header
+Injects a single header
+#+BEGIN_SRC typescript
+
+  @Get('')
+  public get(
+    @Header('Authorization', { required: true }) token: string
+  ): void {
+    console.log(token);
+  }
+
+#+END_SRC
+
+***** Body
+Injects request body from post/put/patch requests
+#+BEGIN_SRC typescript
+
+  @Post('')
+  public get(
+    @Body() body: Record<string, string>
+  ): void {
+    console.log(body);
+  }
+
+#+END_SRC
+
+***** BodyParam
+Injects a single key from request body from post/put/patch requests
+#+BEGIN_SRC typescript
+
+  @Post('')
+  public get(
+    @BodyParam(id) id: string
+  ): void {
+    console.log(id);
+  }
+
+#+END_SRC
+
+***** Query
+Injects the querystring parsed as an object
+#+BEGIN_SRC typescript
+
+  @Get('')
+  public get(
+    @Query() query: {id: string, search: string}
+  ): void {
+    console.log(query);
+  }
+
+#+END_SRC
+
+***** QueryParam
+Injects a single query parameter
+#+BEGIN_SRC typescript
+
+  @Get('')
+  public get(
+    @QueryParam(id) id: string
+  ): void {
+    console.log(id);
+  }
+
+#+END_SRC
+
+***** Param
+Injects a route parameter
+#+BEGIN_SRC typescript
+
+  @Get(':id/:name')
+  public get(
+    @Param('id') id: string,
+    @Param('name') name: string,
+  ): void {
+    console.log(id, name);
+  }
+
+#+END_SRC
+
+***** Params
+Injects all route parameters as an object
+#+BEGIN_SRC typescript
+
+  @Get(':id/:name')
+  public get(
+    @Params() params: {id: string, name: string},
+  ): void {
+    console.log(params);
+  }
+
+#+END_SRC
+
+***** Method
+Injects request verb
+#+BEGIN_SRC typescript
+
+  @Get('')
+  public get(
+    @Method() method: string
+  ): void {
+    console.log(string);
+  }
+
+#+END_SRC
+
+***** RawRequest
+Injects the raw broker request object
+#+BEGIN_SRC typescript
+
+  @Get('')
+  public get<T>(
+    @RawRequest() request: T
+  ): void {
+    console.log(request);
+  }
+
+#+END_SRC
+
+***** Broker
+Injects the broker handling the request
+#+BEGIN_SRC typescript
+
+  @Get('')
+  public get(
+    @Broker() broker: IBroker
+  ): void {
+    console.log(broker);
+  }
+
+#+END_SRC
+
+***** Connection
+Injects the broker connection (in case of http brokers injects the server instance)
+#+BEGIN_SRC typescript
+
+  @Get('')
+  public get<T>(
+    @Connection() connection: T
+  ): void {
+    console.log(connection);
+  }
+
+#+END_SRC
+
+**** Middlewares
+Middlewares modify the Action object which is the request/response container that gets passed around
+in a request cycle
+Middlewares are classified into BeforeMiddlewares and AfterMiddlewars
+They can be places around the handler, around the controller or in application level
+
+
+***** Handler Level Middlewares
+****** Before Middlewares
+#+BEGIN_SRC typescript
+  @BeforeMiddlewares([(action: Action) => {
+    action.request.headers['x-test'] = 'test';
+    return action;
+  }]);
+  @Get('')
+  public getHello(@Header('x-test') test_header: string): void {
+    console.log(test_header);
+  }
+#+END_SRC
+
+****** After Middlewares
+#+BEGIN_SRC typescript
+  @AfterMiddlewares([(action: Action) => {
+    action.reponse.headers['Content-Type'] = 'text/html';
+    return action;
+  }]);
+  @Get('')
+  public getHello(): void {
+    return '<div>Hello</div>'
+  }
+#+END_SRC
+
+***** Controller Level Middlewares
+****** Before Middlewares
+#+BEGIN_SRC typescript
+  @BeforeMiddlewares([(action: Action) => {
+    action.request.headers['x-test'] = 'test';
+    return action;
+  }]);
+  @JsonController()
+  export class TestController{
+    @Get('')
+    public getHello(@Header('x-test') test_header: string): void {
+        console.log(test_header);
+    }
+  }
+#+END_SRC
+
+****** After Middlewares
+#+BEGIN_SRC typescript
+  @AfterMiddlewares([(action: Action) => {
+    action.reponse.headers['Content-Type'] = 'text/html';
+    return action;
+  }]);
+  @JsonController("test")
+  export class TestController{
+    @Get('')
+    public getHello(): void {
+        return '<div>Hello</div>'
+    }
+  }
+#+END_SRC
+
+***** Application Level Middlewares
+
+#+BEGIN_SRC typescript
+  // src/Startup.ts
+  public configureServer(builder: OptionsBuilder): void {
+    builder.setBasePath('api'); // all routes are prefixed with /api
+    builder.setLogRequests(true); // log all requests
+    builder.addBeforeMiddlewares((action: Action) => {
+            action.request.headers['x-test'] = 'test';
+            return action;
+        });
+    builder.addAfterMiddlewares((action: Action) => {
+            action.reponse.headers['Content-Type'] = 'text/html';
+            return action;
+        });
+    builder.useHapiBroker((b) => b.withConfig({ port: 8080 })); // Serve endpoints on port 8080 using Hapi
+  }
+#+END_SRC
+
+***** Middleware construction
+Middlewares can be a function or a class constructor implementing the IMiddleware interface
+
+#+BEGIN_SRC typescript
+type AppMiddleware = Class<IMiddleware> | MiddlewareFunction;
+
+interface IMiddleware {
+    do(action: Action, def?: BaseRouteDefinition, controller?: any, broker?: IBroker, send?: (data: any) => Action): Action | Promise<Action>;
+}
+
+type MiddlewareFunction = (action: Action, def?: BaseRouteDefinition, controller?: any, broker?: IBroker, send?: (data: any) => Action) => Action | Promise<Action>;
+
+type Class<T = any> = {
+    new (...args: any[]): T;
+};
+#+END_SRC

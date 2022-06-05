@@ -1,0 +1,142 @@
+#+title: micro.ts
+**** Quick start
+***** Project setup
+#+BEGIN_SRC bash
+mkdir first_micro_project
+cd first_micro_project
+npm init -y
+npm i --save @micro.ts/core@0.1.7-rc.9
+npm i --save @hapi/hapi
+npm i --save-dev typescript
+npm i --save-dev @types/node
+
+# Create  folders
+mkdir config
+mkdir src
+mkdir src/controllers
+mkdir src/services
+
+# Create initial files
+touch tsconfig.json
+touch src/main.ts
+touch src/Startup.ts
+#+END_SRC
+
+***** Folder Structure
+You should end up with this folder structure
+#+BEGIN_SRC bash
+.
+├── config
+├── package.json
+├── package-lock.json
+├── src
+│   ├── controllers
+│   ├── main.ts
+│   ├── services
+│   └── Startup.ts
+└── tsconfig.json
+#+END_SRC
+
+***** File contents
+****** tsconfig.json
+#+BEGIN_SRC json
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "module": "CommonJS",
+    "noImplicitAny": true,
+    "outDir": "./build",
+    "removeComments": false,
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "strictPropertyInitialization": true,
+    "target": "ES2018"
+  }
+}
+#+END_SRC
+
+****** src/main.ts
+#+BEGIN_SRC typescript
+import { Container, AppBuilder, BaseConfiguration } from '@micro.ts/core';
+import { Startup } from './Startup';
+
+async function main(): Promise<void> {
+  const appBuilder: AppBuilder = new AppBuilder(
+    Container.get<BaseConfiguration>(BaseConfiguration)
+  ).useStartup(Startup);
+  await appBuilder.start();
+}
+
+main().catch((error) => {
+  process.exit(1);
+});
+#+END_SRC
+
+****** src/Startup.ts
+#+BEGIN_SRC typescript
+import { OptionsBuilder, StartupBase } from '@micro.ts/core';
+import '@micro.ts/core/brokers/http/hapi';
+
+export class Startup extends StartupBase {
+  public async beforeStart(): Promise<void> {
+    console.log('Before start called');
+  }
+
+  public async afterStart(): Promise<void> {
+    console.log('After start called!');
+  }
+
+  public configureServer(builder: OptionsBuilder): void {
+    builder.setBasePath('api');
+    builder.setDevMode(true);
+    builder.setLogErrors(false);
+    builder.setLogRequests(true);
+    builder.useHapiBroker((b) => b.withConfig({ port: 8080 }));
+  }
+}
+#+END_SRC
+
+***** Creating First Controller
+
+****** Create a file on src/controllers named "HelloController.ts"
+
+******* src/controllers/HelloController.ts
+#+BEGIN_SRC typescript
+import { Get, JsonController } from '@micro.ts/core';
+
+@JsonController('first')
+export class HelloController {
+  @Get('')
+  public getHello(): string {
+    return 'Hello, World!';
+  }
+}
+#+END_SRC
+
+****** Register the controller on Startup
+
+******* src/Startup.ts
+#+BEGIN_SRC typescript
+//--- imports
+import { HelloController } from './controllers/FirstController';
+//---
+
+// Add this line at the end of configureServer method
+//--- configureServer(builder: OptionsBuilder)
+//---
+    builder.addControllers(HelloController);
+//---
+#+END_SRC
+
+****** Build and run the project
+******* Execute the command below
+#+BEGIN_SRC bash
+tsc && node build/main.js
+#+END_SRC
+******* Open browser on http://localhost:8080/api/first
+And now you should see the "Hello, World!" message!

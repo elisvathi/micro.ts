@@ -244,6 +244,7 @@ export class BaseServer {
 		const start = new Date().getTime();
 		const requestModule = Container.newModule();
 		requestModule.set(Action, action);
+		action.container_module = requestModule;
 		const controllerInstance: any = requestModule.get(def.controllerCtor);
 		const methodControllerMetadata: MethodControllerOptions =
 			getHandlerMetadata(def.controllerCtor, def.handlerName);

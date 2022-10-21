@@ -4,8 +4,14 @@ import {
 	ServerOptions,
 	BrokerConnectionErrorHandler,
 	OnRotueListener,
+	BaseRouteDefinition,
 } from './types';
-import { AppErrorHandler, AppMiddleware, AuthorizeOptions } from '..';
+import {
+	AppErrorHandler,
+	AppMiddleware,
+	AuthorizeOptions,
+	ParamDescription,
+} from '..';
 import { IConfiguration } from './IConfiguration';
 import { IBroker } from '../brokers/IBroker';
 import { ILogger, LoggerKey } from './Logger';
@@ -25,6 +31,13 @@ export type GetNotAuthorizedErrorFuntion = (
 ) => MainAppError | Promise<MainAppError>;
 
 export type MicroPlugin = (builder: OptionsBuilder) => void;
+export type TransformerFunction = <T>(
+	clazz: Class<T>,
+	value: T,
+	description?: ParamDescription,
+	def?: BaseRouteDefinition,
+	action?: Action
+) => T;
 
 export type ValidateFunction = <T>(value: any, type: Class<T>) => Promise<T>;
 export type StartupHook = () => Promise<void>;
@@ -241,6 +254,11 @@ export class OptionsBuilder {
 
 	public addPlugin(plugin: MicroPlugin): OptionsBuilder {
 		plugin(this);
+		return this;
+	}
+
+	public useTypeTransformer(fn: TransformerFunction): OptionsBuilder {
+		this.options.transformerFunction = fn;
 		return this;
 	}
 }

@@ -1,5 +1,5 @@
 import { IBroker } from '../../brokers/IBroker';
-import { AppMiddleware } from '../..';
+import { AppMiddleware, TransformerFunction } from '../..';
 import { Action, Class, BaseRouteDefinition } from './BaseTypes';
 import { AuthorizeOptions, ParamDescription } from '../../decorators/types';
 import { AppErrorHandler, MainAppError } from '../../errors';
@@ -90,4 +90,5 @@ export interface ServerOptions {
 	onBrokerConnnectionError?: BrokerConnectionErrorHandler;
 	onRouteListeners?: OnRotueListener[];
 	generateSwagger?: boolean;
+	transformerFunction?: TransformerFunction;
 }

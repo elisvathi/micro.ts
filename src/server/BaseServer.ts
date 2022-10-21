@@ -518,7 +518,7 @@ export class BaseServer {
 		 */
 		const middlewares = this.getMiddlewares(methodControllerMetadata);
 		let broken = false;
-		const send = (result: any) => {
+		const send = (result: any): Action => {
 			broken = true;
 			action.response = action.response || {};
 			action.response.headers = action.response.headers || {};
@@ -553,7 +553,8 @@ export class BaseServer {
 				action,
 				methodControllerMetadata.method,
 				broker,
-				requestModule
+				requestModule,
+				def
 			);
 			/**
 			 * Execute the handler
@@ -627,11 +628,18 @@ export class BaseServer {
 		action: Action,
 		metadata: MethodDescription,
 		broker: IBroker,
-		requestModule: ContainerModule
+		requestModule: ContainerModule,
+		def: BaseRouteDefinition
 	): Promise<any[]> {
 		return Promise.all(
 			metadata.params.map(async (p) => {
-				return this.buildSingleParam(action, p, broker, requestModule);
+				return this.buildSingleParam(
+					action,
+					p,
+					broker,
+					requestModule,
+					def
+				);
 			})
 		);
 	}
@@ -646,6 +654,24 @@ export class BaseServer {
 			return null;
 		}
 		return this.options.currentUserChecker(action, broker);
+	}
+
+	private transform(
+		value: unknown,
+		description: ParamDescription,
+		def: BaseRouteDefinition,
+		action: Action
+	): unknown {
+		if (value && this.options.transformerFunction && description.type) {
+			return this.options.transformerFunction(
+				description.type,
+				value,
+				description,
+				def,
+				action
+			);
+		}
+		return value;
 	}
 
 	/**
@@ -700,7 +726,8 @@ export class BaseServer {
 		action: Action,
 		metadata: ParamDescription,
 		broker: IBroker,
-		requestModule: ContainerModule
+		requestModule: ContainerModule,
+		def: BaseRouteDefinition
 	): Promise<any> {
 		if (!metadata.options) {
 			return action.request.body || action.request.qs || {};
@@ -711,7 +738,12 @@ export class BaseServer {
 				 * Inject the request body
 				 */
 				case ParamDecoratorType.Body:
-					const body = action.request.body;
+					const body = this.transform(
+						action.request.body,
+						metadata,
+						def,
+						action
+					);
 					return this.validateParam({
 						value: body,
 						required: options.bodyOptions!.required || false,
@@ -725,8 +757,12 @@ export class BaseServer {
 				 * Inject only a named field of the body
 				 */
 				case ParamDecoratorType.BodyField:
-					const bodyField =
-						action.request.body[options.name as string];
+					const bodyField = this.transform(
+						action.request.body[options.name as string],
+						metadata,
+						def,
+						action
+					);
 					return this.validateParam({
 						value: bodyField,
 						isObject: false,
@@ -738,7 +774,12 @@ export class BaseServer {
 				 * Inject the request parameters
 				 */
 				case ParamDecoratorType.Params:
-					const params = action.request.params;
+					const params = this.transform(
+						action.request.params,
+						metadata,
+						def,
+						action
+					);
 					return this.validateParam({
 						value: params,
 						isObject: true,
@@ -751,8 +792,12 @@ export class BaseServer {
 				 * Inject only a named parameter
 				 */
 				case ParamDecoratorType.ParamField:
-					const paramField =
-						action.request.params[options.name as string];
+					const paramField = this.transform(
+						action.request.params[options.name as string],
+						metadata,
+						def,
+						action
+					);
 					return this.validateParam({
 						value: paramField || '',
 						isObject: false,
@@ -794,7 +839,12 @@ export class BaseServer {
 				 * Inject all the request headers
 				 */
 				case ParamDecoratorType.Header:
-					const headers = action.request.headers;
+					const headers = this.transform(
+						action.request.headers,
+						metadata,
+						def,
+						action
+					);
 					return this.validateParam({
 						value: headers,
 						isObject: true,
@@ -808,8 +858,12 @@ export class BaseServer {
 				 * Inject only a named header
 				 */
 				case ParamDecoratorType.HeaderField:
-					const headerParam =
-						action.request.headers[options.name as string];
+					const headerParam = this.transform(
+						action.request.headers[options.name as string],
+						metadata,
+						def,
+						action
+					);
 					return this.validateParam({
 						value: headerParam,
 						isObject: false,
@@ -821,7 +875,12 @@ export class BaseServer {
 				 * Inject the request query
 				 */
 				case ParamDecoratorType.Query:
-					const query = action.request.qs;
+					const query = this.transform(
+						action.request.qs,
+						metadata,
+						def,
+						action
+					);
 					return this.validateParam({
 						value: query,
 						isObject: true,
@@ -835,8 +894,12 @@ export class BaseServer {
 				 * Inject only a named query field
 				 */
 				case ParamDecoratorType.QueryField:
-					const queryParam =
-						action.request.qs[options.name as string];
+					const queryParam = this.transform(
+						action.request.qs[options.name as string],
+						metadata,
+						def,
+						action
+					);
 					return this.validateParam({
 						value: queryParam,
 						isObject: false,
@@ -848,7 +911,12 @@ export class BaseServer {
 				 * Inject the user object
 				 */
 				case ParamDecoratorType.User:
-					const user = await this.getUser(action, broker);
+					const user = this.transform(
+						await this.getUser(action, broker),
+						metadata,
+						def,
+						action
+					);
 					const required =
 						options.currentUserOptions!.required || false;
 					if (required && !user) {

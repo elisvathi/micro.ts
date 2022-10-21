@@ -1,5 +1,8 @@
 import { ContainerModule } from '../..';
-import { BrokerRouteOptionsResolver } from '../../decorators';
+import {
+	BrokerRouteOptionsResolver,
+	MethodDescription,
+} from '../../decorators';
 
 export interface ActionResponse {
 	/**
@@ -117,6 +120,7 @@ export interface BaseRouteDefinition {
 	 * Resolver for route specific broker options
 	 */
 	brokerRouteOptions?: BrokerRouteOptionsResolver;
+	methodDescription?: MethodDescription;
 }
 
 export type AssertExchange = {

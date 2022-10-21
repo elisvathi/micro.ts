@@ -69,6 +69,7 @@ interface RegisterMethodParams {
 	 * Rotue specific broker options
 	 */
 	brokerRouteOptions?: BrokerRouteOptionsResolver;
+	methodDescriptor?: MethodDescription;
 }
 
 interface ValidateParamParams {
@@ -993,6 +994,7 @@ export class BaseServer {
 		brokers,
 		routes,
 		controllerName,
+		methodDescriptor,
 		timeout,
 		brokerRouteOptions,
 	}: RegisterMethodParams): Promise<void> {
@@ -1018,6 +1020,7 @@ export class BaseServer {
 			queueOptions: metadata.queueOptions,
 			json: isJson,
 			timeout: timeout,
+			methodDescription: methodDescriptor,
 			brokerRouteOptions,
 		};
 		const results = await this.addRoute(
@@ -1106,6 +1109,7 @@ export class BaseServer {
 						brokers: controllerBrokers,
 						routes,
 						controllerName: name,
+						methodDescriptor,
 						brokerRouteOptions:
 							methodDescriptor.metadata?.brokerRouteOptions ||
 							controllerBrokerRouteOptions,
